@@ -1,0 +1,26 @@
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'groovy'
+apply plugin: 'com.palantir.external-publish-jar'
+apply plugin: 'com.palantir.external-publish-gradle-plugin'
+
+dependencies {
+    compileOnly gradleApi()
+
+    testImplementation gradleTestKit()
+    testImplementation 'com.netflix.nebula:nebula-test'
+}
+
+gradlePlugin {
+    website = 'https://github.com/palantir/gradle-plugin-testing'
+    vcsUrl = 'https://github.com/palantir/gradle-plugin-testing'
+
+    plugins {
+        pluginTestingPlugin {
+            id = 'com.palantir.plugin-testing'
+            displayName = 'Palantir Plugin for testing other gradle plugins'
+            description = 'A Gradle plugin that detects failures in CircleCI jobs and converts them into JUnit test reports that can be rendered in CircleCI UI.'
+            tags.set(['failure', 'report', 'reporting', 'circleci'])
+            implementationClass = 'com.palantir.gradle.plugintesting.PluginTestingPlugin'
+        }
+    }
+}

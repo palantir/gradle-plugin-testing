@@ -1,0 +1,44 @@
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+.profileconfig.json
+
+# Eclipse
+.classpath
+.checkstyle
+.factorypath
+.project
+.settings
+*.launch
+
+# Codegen
+.generated
+.apt_generated
+generated_src/
+**/src/generated/
+
+# OS X
+.DS_Store
+
+# Java
+*.class
+
+# Build Systems
+.gradle/
+bin/
+build/
+out/
+reports/
+
+
+# SublimeText + TextMate + Vim
+*.sublime-workspace
+*.sublime-project
+*.tmproj
+*.tmproject
+*.sw[op]
+
+# Gradle JDKs setup
+!gradle/*
