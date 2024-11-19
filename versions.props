@@ -1,4 +1,9 @@
 com.fasterxml.jackson.core:jackson-databind = 2.18.1
+org.apache.commons:commons-lang3 = 3.17.0
+com.google.guava:guava = 33.3.1-jre
+
+# test dependencies
+org.junit.jupiter:* = 5.11.3
 com.netflix.nebula:nebula-test = 10.6.1
 
 # conflict resolution

@@ -5,8 +5,10 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
     compileOnly gradleApi()
+    implementation 'com.google.guava:guava'
 
     testImplementation gradleTestKit()
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.netflix.nebula:nebula-test'
 }
 
@@ -16,7 +18,7 @@ gradlePlugin {
 
     plugins {
         pluginTestingPlugin {
-            id = 'com.palantir.plugin-testing'
+            id = 'com.palantir.gradle.plugin-testing'
             displayName = 'Palantir Plugin for testing other gradle plugins'
             description = 'A Gradle plugin that detects failures in CircleCI jobs and converts them into JUnit test reports that can be rendered in CircleCI UI.'
             tags.set(['failure', 'report', 'reporting', 'circleci'])

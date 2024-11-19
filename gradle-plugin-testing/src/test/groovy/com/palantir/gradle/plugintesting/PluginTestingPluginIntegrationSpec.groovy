@@ -20,19 +20,123 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
+import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
 
 class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
-    def 'example test running a task'() {
-        setup:
-        buildFile << '''
-            apply plugin: 'com.palantir.plugin-testing'
-        '''
+    public static final String DEPRECATION_ERROR_MESSAGE_FROM_NEBULA = 'Deprecation warnings were found (Set the ignoreDeprecations system property during the test to ignore)'
+
+    def setup() {
+        writeHelloWorld('com.testing')
+        System.setProperty('ignoreDeprecations', 'true')
+        //language=gradle
+        buildFile << """
+            apply plugin: 'groovy'
+            
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation gradleApi()
+
+                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
+                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                //testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+            tasks.withType(Test) {
+                useJUnitPlatform()
+            }
+        """.stripIndent(true)
+
+        //language=groovy
+        file('src/test/groovy/com/testing/HelloWorldSpec.groovy') << '''
+            package com.testing
+
+            import nebula.test.IntegrationSpec
+
+            class HelloWorldSpec extends IntegrationSpec {
+                def setup() {
+                    //language=gradle
+                    buildFile << """
+                        buildscript {
+                            repositories {
+                                mavenCentral()
+                            }
+                            dependencies {
+                                // This version causes deprecation warnings in gradle 8 for gradle 9
+                                classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.27.0'
+                            }
+                        }
+                        apply plugin: 'java'
+                        apply plugin: 'com.palantir.consistent-versions'
+                    """.stripIndent(true)
+                    
+                    file('versions.lock') << ''
+                }
+
+                def 'someTest'() {
+                    when:
+                    def result = runTasks('test')
+
+                    then:
+                    println "============std error follows============"
+                    println result.standardError
+                    println "============std out follows============"
+                    println result.standardOutput
+                    result.success
+                }
+            }
+        '''.stripIndent(true)
+    }
+
+    /**
+     * this is just a sanity check test to verify that nebula behaves as expected in the default case.  That is, it
+     * will fail the test if there are gradle deprecation warnings.
+     */
+    def 'fails when plugin not applied'() {
+        when:
+        def result = runTasks('test')
+
+        then:
+        result.standardOutput.contains('HelloWorldSpec > someTest FAILED')
+        result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
+        !result.success
+    }
+
+    def 'ignoreDeprecations automatically set when plugin applied'() {
+        given:
+        applyTestUtilsPlugin()
 
         when:
-        ExecutionResult result = runTasksSuccessfully('plugintestingTask')
+        def result = runTasks('test')
 
         then:
         result.success
+        !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
+    }
+
+    def 'override gradle testing versions'() {
+        given:
+        applyTestUtilsPlugin()
+        buildFile << """
+            gradleTestUtils {
+                gradleVersions = ['7.6.4', '8.10.1']
+            }
+        """.stripIndent(true)
+
+        when:
+        def result = runTasks('test')
+
+        then:
+        //TODO: verify test run with versions
+        result.standardOutput.contains('8.10.1')
+    }
+
+    void applyTestUtilsPlugin() {
+        //language=gradle
+        buildFile << """
+            apply plugin: 'com.palantir.gradle.plugin-testing'
+        """.stripIndent(true)
     }
 }

@@ -18,11 +18,28 @@ package com.palantir.gradle.plugintesting;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.tasks.testing.Test;
 
 public class PluginTestingPlugin implements Plugin<Project> {
 
+    /**
+     * Applies the plugin to the given project.
+     */
     @Override
-    public final void apply(Project project) {
-        project.getTasks().register("plugintestingTask", PluginTestingTask.class);
+    public void apply(Project project) {
+        PluginTestingExtension testUtilsExt =
+                project.getExtensions().create("gradleTestUtils", PluginTestingExtension.class);
+
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            // add system properties when running tests
+            String versions = String.join(",", testUtilsExt.getGradleVersions().get());
+            test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
+
+            if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
+                // from
+                // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
+                test.systemProperty("ignoreDeprecations", "true");
+            }
+        });
     }
 }
