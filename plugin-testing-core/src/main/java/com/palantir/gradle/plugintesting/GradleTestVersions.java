@@ -17,9 +17,10 @@
 package com.palantir.gradle.plugintesting;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -29,16 +30,17 @@ import java.util.function.Supplier;
  */
 public final class GradleTestVersions {
     static final String TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY = "TEST_GRADLE_VERSIONS";
-    static final Set<String> DEFAULT_TEST_GRADLE_VERSIONS = new LinkedHashSet<>(Arrays.asList("7.6.4", "8.8"));
+    static final List<String> DEFAULT_TEST_GRADLE_VERSIONS = Arrays.asList("7.6.4", "8.8");
 
-    private static final Supplier<Set<String>> gradleVersionsSupplier =
+    private static final Supplier<List<String>> gradleVersionsSupplier =
             Suppliers.memoize(GradleTestVersions::loadVersions);
 
-    public static Set<String> getGradleVersionsForTests() {
+    public static List<String> getGradleVersionsForTests() {
         return gradleVersionsSupplier.get();
     }
 
-    private static Set<String> loadVersions() {
+    private static List<String> loadVersions() {
+        //use a set to get rid of duplicates
         Set<String> result = new LinkedHashSet<>();
 
         if (System.getProperty(TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY) == null) {
@@ -47,7 +49,7 @@ public final class GradleTestVersions {
             result.addAll(Arrays.asList(
                     System.getProperty(TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY).split(",")));
         }
-        return ImmutableSet.copyOf(result);
+        return ImmutableList.copyOf(result);
     }
 
     private GradleTestVersions() {}
