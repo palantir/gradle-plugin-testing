@@ -94,6 +94,8 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                     println result.standardOutput
                     result.success
                 }
+                
+                //INSERT MORE TESTS HERE
             }
         '''.stripIndent(true)
     }
@@ -124,6 +126,24 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
     }
 
+    def 'enable ignoreDeprecations'() {
+        given:
+        applyTestUtilsPlugin()
+        buildFile << """
+            gradleTestUtils {
+                ignoreGradleDeprecations = false
+            }
+        """.stripIndent(true)
+
+        when:
+        def result = runTasks('test')
+
+        then:
+        result.standardOutput.contains('HelloWorldSpec > someTest FAILED')
+        result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
+        !result.success
+    }
+
     def 'resolve dependencies'() {
         given:
         applyTestUtilsPlugin()
@@ -147,7 +167,6 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         generatedBuildFile.exists()
     }
 
-    @NotYetImplemented
     def 'override gradle testing versions'() {
         given:
         applyTestUtilsPlugin()
@@ -157,12 +176,37 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
             }
         """.stripIndent(true)
 
+        //add a test case to the spec
+        specUnderTest.text = specUnderTest.text
+            .replace('//INSERT IMPORTS HERE', '''
+                import com.palantir.gradle.plugintesting.GradleTestVersions
+            '''.stripIndent(true))
+
+            //language=groovy
+            .replace('//INSERT MORE TESTS HERE', '''
+               def 'test with version: #version'() {
+                    when:
+                    gradleVersion = version
+            
+                    then:
+                    def result = runTasks('test')
+                    println "============std error from test with version============"
+                    println result.standardError
+                    println "============std error from test with version============"
+                    println result.standardOutput
+                    result.success
+            
+                    where:
+                    version << GradleTestVersions.gradleVersionsForTests
+                }
+            '''.stripIndent())
+
         when:
         def result = runTasks('test')
 
         then:
-        //TODO: verify test run with versions
-        result.standardOutput.contains('8.10.1')
+        result.standardOutput.contains('test with version: #version > test with version: 7.6.4')
+        result.standardOutput.contains('test with version: #version > test with version: 8.10.1')
     }
 
     void applyTestUtilsPlugin() {

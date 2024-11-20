@@ -28,6 +28,9 @@ public abstract class PluginTestingExtension {
      */
     public abstract Property<Boolean> getIgnoreGradleDeprecations();
 
+    /**
+     * Gradle versions to test against.
+     */
     public abstract SetProperty<String> getGradleVersions();
 
     public PluginTestingExtension() {
