@@ -5,6 +5,7 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
     compileOnly gradleApi()
+    implementation project(':plugin-testing-core')
     implementation 'com.google.guava:guava'
 
     testImplementation gradleTestKit()
@@ -27,13 +28,11 @@ gradlePlugin {
     }
 }
 
-tasks.withType(Test).configureEach {
+test {
     systemProperty 'projectVersion', project.version
-}
+    //TODO(#xxx): Remove this once we have a published version of the plugin that we can apply to the project itself
+    systemProperty 'ignoreDeprecations', 'true'
 
-
-tasks.withType(JavaCompile) {
-    options.errorprone {
-        disable('StrictUnusedVariable')
-    }
+    // Added as a jar the so in nebula-tests needs to exist in maven local
+    dependsOn tasks.findByPath(':plugin-testing-core:publishToMavenLocal')
 }

@@ -3,8 +3,9 @@ org.apache.commons:commons-lang3 = 3.17.0
 com.google.guava:guava = 33.3.1-jre
 
 # test dependencies
-org.junit.jupiter:* = 5.11.3
 com.netflix.nebula:nebula-test = 10.6.1
+org.assertj:assertj-core = 3.26.3
+org.junit.jupiter:* = 5.11.3
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2

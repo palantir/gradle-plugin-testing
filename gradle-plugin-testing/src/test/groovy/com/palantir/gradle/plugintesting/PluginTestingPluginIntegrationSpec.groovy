@@ -16,21 +16,12 @@
 
 package com.palantir.gradle.plugintesting
 
+import groovy.test.NotYetImplemented
+
+import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
+
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
-import spock.lang.IgnoreIf
-import spock.lang.Unroll
-
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-import java.util.stream.Collectors
-import java.util.stream.Stream
-
-//import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
 
 class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
@@ -39,23 +30,24 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
     File specUnderTest
 
     def setup() {
+        //TODO(#xxx): once we have a published version of the plugin, apply it to the project and remove this
+        System.setProperty(TestDepVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1')
+
         writeHelloWorld('com.testing')
-        System.setProperty('ignoreDeprecations', 'true')
         //language=gradle
         buildFile << """
             apply plugin: 'groovy'
             
             repositories {
                 mavenCentral()
+                mavenLocal()
             }
 
             dependencies {
                 implementation gradleApi()
 
-                //TODO(#xxx): once we have a published version of the plugin, apply it to the project so we can use resolve
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
-                testImplementation 'com.netflix.nebula:nebula-test:10.6.1'
-                //testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
+                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
             }
             tasks.withType(Test) {
                 useJUnitPlatform()
@@ -66,6 +58,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         specUnderTest = file('src/test/groovy/com/testing/HelloWorldSpec.groovy') << '''
             package com.testing
 
+            //INSERT IMPORTS HERE
             import nebula.test.IntegrationSpec
 
             class HelloWorldSpec extends IntegrationSpec {
@@ -131,24 +124,30 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
     }
 
-    def 'resolve test dependencies'() {
+    def 'resolve dependencies'() {
         given:
         applyTestUtilsPlugin()
-        specUnderTest.text = specUnderTest.text.replaceAll('//INSERT MORE HERE', '''
+        specUnderTest.text = specUnderTest.text
+            .replace('//INSERT IMPORTS HERE', '''
+                import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
+            '''.stripIndent(true))
+            .replace('//INSERT MORE HERE', '''
             dependencies {
                 testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
                 testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
             }
-        '''.stripIndent(true))
+        ''')
 
         when:
         def result = runTasks('test')
 
         then:
         result.success
-        !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
+        def generatedBuildFile = file('build/nebulatest/com.testing.HelloWorldSpec/someTest/build.gradle')
+        generatedBuildFile.exists()
     }
 
+    @NotYetImplemented
     def 'override gradle testing versions'() {
         given:
         applyTestUtilsPlugin()

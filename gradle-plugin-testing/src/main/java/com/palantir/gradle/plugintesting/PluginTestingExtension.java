@@ -20,6 +20,8 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 
 public abstract class PluginTestingExtension {
+    public static final String EXTENSION_NAME = "gradleTestUtils";
+
     /**
      * Whether to set the ignoreDeprecations system property when running tests.  This is for nebula tests that will
      * fail if there are gradle deprecations.

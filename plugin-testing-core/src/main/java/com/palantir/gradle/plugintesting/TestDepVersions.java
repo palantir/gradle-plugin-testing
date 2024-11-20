@@ -83,10 +83,13 @@ public final class TestDepVersions {
 
     private static Map<String, String> loadVersions() {
         if (System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY) == null) {
-            throw new IllegalStateException("No test dependencies found.  Use the PluginTestingPlugin to set the " + TEST_DEPENDENCIES_SYSTEM_PROPERTY + " system property.");
+            throw new IllegalStateException("No test dependencies found.  Use the PluginTestingPlugin to set the "
+                    + TEST_DEPENDENCIES_SYSTEM_PROPERTY + " system property.");
         }
 
-        Map<String, String> results = Arrays.stream(System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY).split(","))
+        Map<String, String> results = Arrays.stream(
+                        System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY).split(","))
+                .map(String::trim)
                 .map(dep -> dep.split(":"))
                 .collect(Collectors.toMap(dep -> dep[0] + ":" + dep[1], dep -> dep[2]));
 
