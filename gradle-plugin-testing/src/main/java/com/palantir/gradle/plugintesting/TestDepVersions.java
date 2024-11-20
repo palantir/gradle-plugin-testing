@@ -16,28 +16,20 @@
 
 package com.palantir.gradle.plugintesting;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Utility class to keep versions of dependencies referenced in test files up to date with the versions declared in
- * the project.  The class looks both at versions.lock and versions.props files to resolve dependencies.
+ * the project.
  *
  * {@code
  *    import static com.palantir.test.TestDepVersions.resolve
- *    //...within a test case...
+ *    //...within a nebula spec...
  *      buildFile << """
  *         buildscript {
  *             repositories {
@@ -56,13 +48,7 @@ import java.util.stream.Stream;
  *  }
  */
 public final class TestDepVersions {
-
-    private static final String PROPS_FILE = "versions.props";
-    private static final Pattern PROPS_FILE_LINE = Pattern.compile("(.*?)(:\\*)?\\s*=\\s*(.+)");
-    private static final String LOCK_FILE = "versions.lock";
-    private static final Pattern LOCK_FILE_LINE = Pattern.compile("([^:]+):([^:]+):([^ ]+) \\(.*");
-
-    private static Path versionsDir = getRepositoryRoot();
+    static final String TEST_DEPENDENCIES_SYSTEM_PROPERTY = "TEST_DEPENDENCIES";
     private static final Supplier<Map<String, String>> versionsSupplier =
             Suppliers.memoize(TestDepVersions::loadVersions);
 
@@ -95,54 +81,18 @@ public final class TestDepVersions {
         return depName + ":" + version(depName);
     }
 
-    /**
-     * Parses the versions.lock and versions.props files build a map of dependencies for the project.  Prioritizes
-     * entries from versions.lock.  The versions.props entries are useful to get anything that is not specifically
-     * referenced from java source sets like the conjure plugin.
-     */
     private static Map<String, String> loadVersions() {
-        Map<String, String> results;
-        Path lockFile = versionsDir.resolve(Paths.get(LOCK_FILE));
-
-        try (Stream<String> lines = Files.lines(lockFile, StandardCharsets.UTF_8)) {
-            results = lines.map(String::trim)
-                    .map(LOCK_FILE_LINE::matcher)
-                    .filter(Matcher::matches)
-                    .collect(Collectors.toMap(
-                            matcher -> matcher.group(1) + ":" + matcher.group(2), matcher -> matcher.group(3)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY) == null) {
+            throw new IllegalStateException("No test dependencies found.  Use the PluginTestingPlugin to set the " + TEST_DEPENDENCIES_SYSTEM_PROPERTY + " system property.");
         }
 
-        Path propsFile = versionsDir.resolve(Paths.get(PROPS_FILE));
-        try (Stream<String> lines = Files.lines(propsFile, StandardCharsets.UTF_8)) {
-            Map<String, String> versionsFromProps = lines.map(String::trim)
-                    .map(PROPS_FILE_LINE::matcher)
-                    .filter(Matcher::matches)
-                    // filter out keys that are already in the map from the lock file
-                    .filter(matcher -> !results.containsKey(matcher.group(1)))
-                    .collect(Collectors.toMap(matcher -> matcher.group(1), matcher -> matcher.group(3)));
-            results.putAll(versionsFromProps);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Map<String, String> results = Arrays.stream(System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY).split(","))
+                .map(dep -> dep.split(":"))
+                .collect(Collectors.toMap(dep -> dep[0] + ":" + dep[1], dep -> dep[2]));
+
+        // TODO(#XXX): do we need to handle just the group?  useful to get anything that is not specifically
+        // referenced from java source sets like the conjure plugin
         return ImmutableMap.copyOf(results);
-    }
-
-    /**
-     * Return the repository root.  Know that the versions file resides there.
-     */
-    static Path getRepositoryRoot() {
-        Path root = Paths.get(".").toAbsolutePath().normalize();
-        while (root.getParent() != null && !Files.exists(root.resolve(LOCK_FILE))) {
-            root = root.getParent();
-        }
-        return root;
-    }
-
-    @VisibleForTesting
-    static void setVersionsDir(Path versionsDirOverride) {
-        versionsDir = versionsDirOverride;
     }
 
     private TestDepVersions() {}

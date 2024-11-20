@@ -26,3 +26,14 @@ gradlePlugin {
         }
     }
 }
+
+tasks.withType(Test).configureEach {
+    systemProperty 'projectVersion', project.version
+}
+
+
+tasks.withType(JavaCompile) {
+    options.errorprone {
+        disable('StrictUnusedVariable')
+    }
+}

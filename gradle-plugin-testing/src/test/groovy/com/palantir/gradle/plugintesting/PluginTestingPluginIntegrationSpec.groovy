@@ -20,7 +20,17 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
-import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
+//import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
 
 class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
@@ -40,8 +50,9 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
             dependencies {
                 implementation gradleApi()
 
-                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
-                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                //TODO(#xxx): once we have a published version of the plugin, apply it to the project so we can use resolve
+                testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+                testImplementation 'com.netflix.nebula:nebula-test:10.6.1'
                 //testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             tasks.withType(Test) {
@@ -138,5 +149,12 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         buildFile << """
             apply plugin: 'com.palantir.gradle.plugin-testing'
         """.stripIndent(true)
+    }
+
+    @Override
+    ExecutionResult runTasks(String... tasks) {
+        def projectVersion = Optional.ofNullable(System.getProperty('projectVersion')).orElseThrow()
+        String[] strings = tasks + ["-P${PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME}=${projectVersion}".toString()]
+        return super.runTasks(strings)
     }
 }

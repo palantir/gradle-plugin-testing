@@ -25,10 +25,33 @@ class TestDepVersionsTests extends IntegrationSpec {
         //write versions.props - I am aware of the irony that I am using a hardcoded version within the test file
         file('versions.props') << """
             com.palantir.sls-packaging:* = 7.69.0
-        """.stripIndent()
+        """.stripIndent(true)
         file('versions.lock') << """
             com.palantir.sls-packaging:gradle-sls-packaging-api:7.69.0 (1 constraints: f2133970)
-        """.stripIndent()
+        """.stripIndent(true)
+
+        System.setProperty('ignoreDeprecations', 'true')
+        //language=gradle
+        buildFile << """
+            apply plugin: 'groovy'
+            
+            repositories {
+                mavenCentral()
+            }
+            apply plugin: 'com.palantir.gradle.plugin-testing'
+
+            dependencies {
+                implementation gradleApi()
+
+                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
+                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                //testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+            tasks.withType(Test) {
+                useJUnitPlatform()
+            }
+        """.stripIndent(true)
+
     }
 
     def 'test fully specified dep'() {
