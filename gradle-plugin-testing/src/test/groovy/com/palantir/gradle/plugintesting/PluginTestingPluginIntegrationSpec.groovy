@@ -34,7 +34,9 @@ import java.util.stream.Stream
 
 class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
-    public static final String DEPRECATION_ERROR_MESSAGE_FROM_NEBULA = 'Deprecation warnings were found (Set the ignoreDeprecations system property during the test to ignore)'
+    private static final String DEPRECATION_ERROR_MESSAGE_FROM_NEBULA = 'Deprecation warnings were found (Set the ignoreDeprecations system property during the test to ignore)'
+
+    File specUnderTest
 
     def setup() {
         writeHelloWorld('com.testing')
@@ -61,7 +63,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         """.stripIndent(true)
 
         //language=groovy
-        file('src/test/groovy/com/testing/HelloWorldSpec.groovy') << '''
+        specUnderTest = file('src/test/groovy/com/testing/HelloWorldSpec.groovy') << '''
             package com.testing
 
             import nebula.test.IntegrationSpec
@@ -81,6 +83,8 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                         }
                         apply plugin: 'java'
                         apply plugin: 'com.palantir.consistent-versions'
+                        
+                        //INSERT MORE HERE
                     """.stripIndent(true)
                     
                     file('versions.lock') << ''
@@ -118,6 +122,24 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
     def 'ignoreDeprecations automatically set when plugin applied'() {
         given:
         applyTestUtilsPlugin()
+
+        when:
+        def result = runTasks('test')
+
+        then:
+        result.success
+        !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
+    }
+
+    def 'resolve test dependencies'() {
+        given:
+        applyTestUtilsPlugin()
+        specUnderTest.text = specUnderTest.text.replaceAll('//INSERT MORE HERE', '''
+            dependencies {
+                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
+                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+            }
+        '''.stripIndent(true))
 
         when:
         def result = runTasks('test')
