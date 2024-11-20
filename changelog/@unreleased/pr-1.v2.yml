@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: initial real plugin
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/1
