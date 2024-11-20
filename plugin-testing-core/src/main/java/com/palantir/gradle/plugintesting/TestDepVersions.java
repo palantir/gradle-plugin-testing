@@ -26,26 +26,6 @@ import java.util.stream.Collectors;
 /**
  * Utility class to keep versions of dependencies referenced in test files up to date with the versions declared in
  * the project.
- *
- * {@code
- *    import static com.palantir.test.TestDepVersions.resolve
- *    //...within a nebula spec...
- *      buildFile << """
- *         buildscript {
- *             repositories {
- *                 maven { url 'https://artifactory.palantir.build/artifactory/release-jar' }
- *             }
- *             dependencies {
- *                 classpath '${resolve('com.palantir.gradle.conjure:gradle-conjure')}'
- *                 classpath '${resolve('com.palantir.sls-packaging:gradle-sls-packaging')}'
- *             }
- *         }
- *
- *         dependencies {
- *             implementation '${resolve('com.palantir.conjure.java:conjure-lib')}'
- *         }
- *         """.stripIndent(true)
- *  }
  */
 public final class TestDepVersions {
     static final String TEST_DEPENDENCIES_SYSTEM_PROPERTY = "TEST_DEPENDENCIES";

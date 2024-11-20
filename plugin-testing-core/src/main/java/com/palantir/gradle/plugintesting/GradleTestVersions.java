@@ -26,20 +26,6 @@ import java.util.function.Supplier;
 /**
  * Utility class to maintain and update canonical list versions of gradle to test against.  This helps verify that a
  * plugin is both backwards and forwards compatible.
- *
- *  {@code
- *     @Unroll
- *     def 'runs on version of gradle: #version'() {
- *         when:
- *         gradleVersion = version
- *
- *         then:
- *         ExecutionResult result = runTasksSuccessfully('someTask')
- *
- *         where:
- *         version << GradleTestVersions.getGradleVersions()
- *     }
- *  }
  */
 public final class GradleTestVersions {
     static final String TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY = "TEST_GRADLE_VERSIONS";
