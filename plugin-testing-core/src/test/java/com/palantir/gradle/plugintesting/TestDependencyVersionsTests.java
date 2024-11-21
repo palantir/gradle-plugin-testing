@@ -22,24 +22,24 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class TestDepVersionsTests {
+public class TestDependencyVersionsTests {
     private static final String SAMPLE_VERSIONS = "foo:bar:100,com.palantir:gradle-plugin-testing:1.2.3";
 
     @BeforeAll
     public static void beforeAll() {
-        System.setProperty(TestDepVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, SAMPLE_VERSIONS);
+        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, SAMPLE_VERSIONS);
     }
 
     @Test
     public void testDepVersions() {
-        assertThat(TestDepVersions.resolve("foo:bar")).isEqualTo("foo:bar:100");
-        assertThat(TestDepVersions.resolve("com.palantir:gradle-plugin-testing"))
+        assertThat(TestDependencyVersions.resolve("foo:bar")).isEqualTo("foo:bar:100");
+        assertThat(TestDependencyVersions.resolve("com.palantir:gradle-plugin-testing"))
                 .isEqualTo("com.palantir:gradle-plugin-testing:1.2.3");
     }
 
     @Test
     public void throwWhenNoVersion() {
-        assertThatThrownBy(() -> TestDepVersions.resolve("not:found"))
+        assertThatThrownBy(() -> TestDependencyVersions.resolve("not:found"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("No version found for not:found");
     }

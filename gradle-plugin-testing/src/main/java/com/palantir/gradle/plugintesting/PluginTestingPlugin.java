@@ -60,7 +60,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
                     // add system property for all test dependencies so that TestDepVersions can resolve them
                     Set<String> depSet = getDependencyStrings(testRuntimeConfig.get());
                     String depsString = String.join(",", depSet);
-                    test.systemProperty(TestDepVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, depsString);
+                    test.systemProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, depsString);
 
                     // add system property for what versions of gradle should be used in tests
                     String versions =

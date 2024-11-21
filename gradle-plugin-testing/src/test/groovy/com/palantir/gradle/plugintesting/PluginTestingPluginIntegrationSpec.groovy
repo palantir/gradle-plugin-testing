@@ -16,9 +16,8 @@
 
 package com.palantir.gradle.plugintesting
 
-import groovy.test.NotYetImplemented
 
-import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
+import static TestDependencyVersions.resolve
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
@@ -31,7 +30,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
     def setup() {
         //TODO(#xxx): once we have a published version of the plugin, apply it to the project and remove this
-        System.setProperty(TestDepVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1')
+        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1')
 
         writeHelloWorld('com.testing')
         //language=gradle
@@ -149,7 +148,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         applyTestUtilsPlugin()
         specUnderTest.text = specUnderTest.text
             .replace('//INSERT IMPORTS HERE', '''
-                import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
+                import static com.palantir.gradle.plugintesting.TestDependencyVersions.resolve
             '''.stripIndent(true))
             .replace('//INSERT MORE HERE', '''
             dependencies {

@@ -27,14 +27,13 @@ import java.util.stream.Collectors;
  * Utility class to keep versions of dependencies referenced in test files up to date with the versions declared in
  * the project.
  */
-public final class TestDepVersions {
+public final class TestDependencyVersions {
     static final String TEST_DEPENDENCIES_SYSTEM_PROPERTY = "TEST_DEPENDENCIES";
     private static final Supplier<Map<String, String>> versionsSupplier =
-            Suppliers.memoize(TestDepVersions::loadVersions);
+            Suppliers.memoize(TestDependencyVersions::loadVersions);
 
     /**
-     * Returns the version of the given dependency.  If a specific dependency isn't found, look for a general org
-     * dependency that matches.  Throws exception if neither found.
+     * Returns the version of the given dependency. Throws exception if not found.
      */
     public static String version(String depName) {
         Map<String, String> versionsMap = versionsSupplier.get();
@@ -72,11 +71,8 @@ public final class TestDepVersions {
                 .map(String::trim)
                 .map(dep -> dep.split(":"))
                 .collect(Collectors.toMap(dep -> dep[0] + ":" + dep[1], dep -> dep[2]));
-
-        // TODO(#XXX): do we need to handle just the group?  useful to get anything that is not specifically
-        // referenced from java source sets like the conjure plugin
         return ImmutableMap.copyOf(results);
     }
 
-    private TestDepVersions() {}
+    private TestDependencyVersions() {}
 }

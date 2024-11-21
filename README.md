@@ -59,7 +59,7 @@ Once these tests are written, the versions of the plugins are often not updated,
 When applied to a project, the `gradle-plugin-testing` plugin scans the `testRuntimeClasspath` configuration for the project and passes all dependencies to the test task as a system property.  The version of the dependencies can then be resolved when tests are run and written into generated files.  e.g.
 
 ```groovy
-import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
+import static com.palantir.gradle.plugintesting.TestDependencyVersions.resolve
 import nebula.test.IntegrationSpec
 
 class HelloWorldSpec extends IntegrationSpec {
