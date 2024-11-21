@@ -28,7 +28,7 @@ gradleTestUtils {
 ```
 
 ## Resolution of dependencies in generated build files
-Integration tests for gradle plugins often write build files which include other plugins.  The version of those included plugins is hardcoded in some way, either directly in the test, e.g.
+Integration tests for Gradle plugins often write build files which include other plugins.  The version of those included plugins is hardcoded in some way, either directly in the test, e.g.
 
 ```groovy
 //...within a nebula spec...
@@ -54,9 +54,9 @@ final class TestPluginVersions {
     static final String CONJURE = "com.palantir.conjure:conjure:4.10.1";
 ```
 
-Once these tests are written, the versions of the plugins are often not updated, even when the project under test keeps its dependencies of those plugins up-to-date.  This can cause tests to fail when the plugin is updated not because the plugin is bad, but because there is an incompatibility in the old versions of plugins used in the integration tests.  This can often happen with gradle version bumps.
+Once these tests are written, the versions of the plugins are often not updated, even when the project under test keeps its dependencies of those plugins up-to-date.  This can cause tests to fail when the plugin is updated not because the plugin is bad, but because there is an incompatibility in the old versions of plugins used in the integration tests.  This can often happen with Gradle version bumps.
 
-When applied to a project, the plugin-testing plugin scans the `testRuntimeClasspath` configuration for the project and passes all dependencies to the test task as a system property.  The version of the dependencies can then be resolved when tests are run and written into generated files.  e.g.
+When applied to a project, the `gradle-plugin-testing` plugin scans the `testRuntimeClasspath` configuration for the project and passes all dependencies to the test task as a system property.  The version of the dependencies can then be resolved when tests are run and written into generated files.  e.g.
 
 ```groovy
 import static com.palantir.gradle.plugintesting.TestDepVersions.resolve
@@ -80,10 +80,10 @@ class HelloWorldSpec extends IntegrationSpec {
         """
    }
 ```
-# Resolution of gradle versions to test against
-Similarly, tests may hardcode versions of gradle that they need to stay compatible with. These versions also get stale and PRs start failing for the inverse reason of the above - the code in the plugin or a dependency of it is updated and is no longer compatible with an old version of gradle. For example, attempting to update jackson libraries from 2.15 -> 2.17 would fail if a test tried to run on gradle < 7.6.4 (when compatibility with jackson 17 was fixed).
+# Resolution of Gradle versions to test against
+Similarly, tests may hardcode versions of Gradle that they need to stay compatible with. These versions also get stale and PRs start failing for the inverse reason of the above - the code in the plugin or a dependency of it is updated and is no longer compatible with an old version of Gradle. For example, attempting to update jackson libraries from `2.15.0` -> `2.17.0` would fail if a test tried to run on Gradle versiosn < `7.6.4` (when compatibility with jackson `2.17.0` was fixed).
 
-The `GradleTestVersions` class can provide up-to-date versions of gradle to test against.  
+The `GradleTestVersions` class can provide up-to-date versions of Gradle to test against.  
 ```groovy
 import nebula.test.IntegrationSpec
 import com.palantir.gradle.plugintesting.GradleTestVersions
