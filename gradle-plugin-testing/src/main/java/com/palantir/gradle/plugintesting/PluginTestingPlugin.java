@@ -49,6 +49,16 @@ public class PluginTestingPlugin implements Plugin<Project> {
         NamedDomainObjectProvider<Configuration> testRuntimeConfig =
                 project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
 
+        // need to use the afterEvalute hook so that any custom settings on the extension are applied before reading
+        // the values in the test configuration blocks.
+        project.afterEvaluate(p -> configureTestTasks(p, testUtilsExt, testRuntimeConfig));
+    }
+
+    private void configureTestTasks(
+            Project project,
+            PluginTestingExtension testUtilsExt,
+            NamedDomainObjectProvider<Configuration> testRuntimeConfig) {
+
         project.getTasks().withType(Test.class).configureEach(test -> {
             // add system property for all test dependencies so that TestDepVersions can resolve them
             Set<String> depSet = getDependencyStrings(testRuntimeConfig.get());
