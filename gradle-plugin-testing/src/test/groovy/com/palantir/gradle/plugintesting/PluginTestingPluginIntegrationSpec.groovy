@@ -212,7 +212,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
     void applyTestUtilsPlugin() {
         //language=gradle
         buildFile << """
-            apply plugin: 'com.palantir.gradle.plugin-testing'
+            apply plugin: 'com.palantir.gradle-plugin-testing'
         """.stripIndent(true)
     }
 

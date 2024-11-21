@@ -9,7 +9,7 @@ Gradle plugin and helpers to assist with writing tests for other gradle plugins.
 ## Using the Plugin
     
  ```groovy
-apply plugin: 'com.palantir.gradle.plugin-testing'
+apply plugin: 'com.palantir.gradle-plugin-testing'
  ```
 
 The plugin automatically adds a `testImplementation` dependency on the `com.palantir.gradle.plugintesting:plugin-testing-core` library so that the helper classes are available in tests.
