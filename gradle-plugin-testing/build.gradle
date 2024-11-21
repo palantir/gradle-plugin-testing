@@ -4,11 +4,9 @@ apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
-    compileOnly gradleApi()
     implementation project(':plugin-testing-core')
     implementation 'com.google.guava:guava'
 
-    testImplementation gradleTestKit()
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.netflix.nebula:nebula-test'
 }
