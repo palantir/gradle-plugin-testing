@@ -40,7 +40,7 @@ public final class GradleTestVersions {
     }
 
     private static List<String> loadVersions() {
-        //use a set to get rid of duplicates
+        // use a set to get rid of duplicates
         Set<String> result = new LinkedHashSet<>();
 
         if (System.getProperty(TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY) == null) {
