@@ -19,9 +19,11 @@ package com.palantir.gradle.plugintesting;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.tasks.SourceSet;
@@ -49,32 +51,31 @@ public class PluginTestingPlugin implements Plugin<Project> {
         NamedDomainObjectProvider<Configuration> testRuntimeConfig =
                 project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
 
-        // need to use the afterEvalute hook so that any custom settings on the extension are applied before reading
-        // the values in the test configuration blocks.
-        project.afterEvaluate(p -> configureTestTasks(p, testUtilsExt, testRuntimeConfig));
-    }
-
-    private void configureTestTasks(
-            Project project,
-            PluginTestingExtension testUtilsExt,
-            NamedDomainObjectProvider<Configuration> testRuntimeConfig) {
-
         project.getTasks().withType(Test.class).configureEach(test -> {
-            // add system property for all test dependencies so that TestDepVersions can resolve them
-            Set<String> depSet = getDependencyStrings(testRuntimeConfig.get());
-            String depsString = String.join(",", depSet);
-            test.systemProperty(TestDepVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, depsString);
+            // need to use the doFirst so that any custom settings on the extension are applied before reading
+            // the values and setting the system properties.
+            Action<Task> action = new Action<>() {
+                @Override
+                public void execute(Task _task) {
+                    // add system property for all test dependencies so that TestDepVersions can resolve them
+                    Set<String> depSet = getDependencyStrings(testRuntimeConfig.get());
+                    String depsString = String.join(",", depSet);
+                    test.systemProperty(TestDepVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, depsString);
 
-            // add system property for what versions of gradle should be used in tests
-            String versions = String.join(",", testUtilsExt.getGradleVersions().get());
-            test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
+                    // add system property for what versions of gradle should be used in tests
+                    String versions =
+                            String.join(",", testUtilsExt.getGradleVersions().get());
+                    test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
 
-            // add system property to ignore gradle deprecations so that nebula tests don't fail
-            if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
-                // from
-                // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
-                test.systemProperty("ignoreDeprecations", "true");
-            }
+                    // add system property to ignore gradle deprecations so that nebula tests don't fail
+                    if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
+                        // from
+                        // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
+                        test.systemProperty("ignoreDeprecations", "true");
+                    }
+                }
+            };
+            test.doFirst(action);
         });
     }
 
