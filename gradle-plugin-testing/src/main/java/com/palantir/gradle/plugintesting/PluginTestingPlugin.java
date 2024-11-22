@@ -80,9 +80,10 @@ public class PluginTestingPlugin implements Plugin<Project> {
     }
 
     /**
-     * Add test dependency on this plugin to the project so can access utility methods from code if needed.  This is
-     * normally done by getting the Implementation_Version setting in the compiled jar, but that doesn't always work
-     * when running tests so we can also look it up via a gradle property that tests set.
+     * Add test dependency on the utility jar to the project so that an explicit dependency statement isn't needed.
+     * This is done by getting the Implementation-Version metainfo from the compiled jar when this plugin is used
+     * for real, but that doesn't work when running tests in this repo, so we can also look it up via a gradle property
+     * that tests set.
      */
     private static void addTestDependency(Project project) {
         SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
