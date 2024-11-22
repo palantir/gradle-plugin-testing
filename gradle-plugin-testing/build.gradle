@@ -4,9 +4,10 @@ apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
-    compileOnly gradleApi()
+    implementation project(':plugin-testing-core')
+    implementation 'com.google.guava:guava'
 
-    testImplementation gradleTestKit()
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.netflix.nebula:nebula-test'
 }
 
@@ -16,11 +17,20 @@ gradlePlugin {
 
     plugins {
         pluginTestingPlugin {
-            id = 'com.palantir.plugin-testing'
+            id = 'com.palantir.gradle-plugin-testing'
             displayName = 'Palantir Plugin for testing other gradle plugins'
             description = 'A Gradle plugin that detects failures in CircleCI jobs and converts them into JUnit test reports that can be rendered in CircleCI UI.'
             tags.set(['failure', 'report', 'reporting', 'circleci'])
             implementationClass = 'com.palantir.gradle.plugintesting.PluginTestingPlugin'
         }
     }
+}
+
+test {
+    systemProperty 'projectVersion', project.version
+    //TODO(#xxx): Remove this once we have a published version of the plugin that we can apply to the project itself
+    systemProperty 'ignoreDeprecations', 'true'
+
+    // Added as a jar the so in nebula-tests needs to exist in maven local
+    dependsOn tasks.findByPath(':plugin-testing-core:publishToMavenLocal')
 }
