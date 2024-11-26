@@ -60,6 +60,7 @@ public final class TestDependencyVersions {
         return depName + ":" + version(depName);
     }
 
+    @SuppressWarnings("for-rollout:PreferSafeLoggableExceptions")
     private static Map<String, String> loadVersions() {
         if (System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY) == null) {
             throw new IllegalStateException("No test dependencies found.  Use the PluginTestingPlugin to set the "
