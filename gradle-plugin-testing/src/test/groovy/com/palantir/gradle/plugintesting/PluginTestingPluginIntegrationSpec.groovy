@@ -30,7 +30,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
     def setup() {
         //TODO(#xxx): once we have a published version of the plugin, apply it to the project and remove this
-        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1')
+        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0')
 
         writeHelloWorld('com.testing')
         //language=gradle
@@ -145,9 +145,9 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
     def 'works when applied before other plugins'() {
         given:
-        buildFile.text = """
+        prependToBuildFile('''
             apply plugin: 'com.palantir.gradle-plugin-testing'
-        """.stripIndent(true) + buildFile.text
+        ''')
 
         when:
         def result = runTasks('test')
@@ -221,11 +221,41 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         result.standardOutput.contains('test with version: #version > test with version: 8.10.1')
     }
 
+    def 'checkUnusedDependencies ignores the plugin'() {
+        given:
+        //language=gradle
+        prependToBuildFile("""
+            buildscript {
+                repositories {
+                    mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+                    gradlePluginPortal() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+                }
+                dependencies {
+                    classpath '${resolve('com.palantir.baseline:gradle-baseline-java')}'
+                }
+            }
+            apply plugin: 'com.palantir.baseline-exact-dependencies'
+        """)
+        applyTestUtilsPlugin()
+
+        when:
+        def result = runTasks('checkUnusedDependencies')
+
+        then:
+        !result.standardOutput.contains('Found 1 dependencies unused during compilation')
+        result.success
+    }
+
     void applyTestUtilsPlugin() {
         //language=gradle
         buildFile << """
             apply plugin: 'com.palantir.gradle-plugin-testing'
         """.stripIndent(true)
+    }
+
+    File prependToBuildFile(String content) {
+        buildFile.text = content.stripIndent(true) + buildFile.text
+        return buildFile
     }
 
     @Override

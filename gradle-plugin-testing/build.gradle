@@ -7,6 +7,7 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 dependencies {
     implementation project(':plugin-testing-core')
     implementation 'com.google.guava:guava'
+    implementation 'com.palantir.baseline:gradle-baseline-java'
 
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.netflix.nebula:nebula-test'
