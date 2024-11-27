@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: wait until java plugin applied
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/6
