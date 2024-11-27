@@ -41,8 +41,15 @@ public class PluginTestingPlugin implements Plugin<Project> {
      */
     @Override
     public void apply(Project project) {
-        PluginTestingExtension testUtilsExt =
-                project.getExtensions().create(PluginTestingExtension.EXTENSION_NAME, PluginTestingExtension.class);
+        project.getExtensions().create(PluginTestingExtension.EXTENSION_NAME, PluginTestingExtension.class);
+        // need the SourceSetContainer extension so need to wait until java plugin is applied
+        project.getPluginManager().withPlugin("java", _unused -> {
+            doApply(project);
+        });
+    }
+
+    private static void doApply(Project project) {
+        PluginTestingExtension testUtilsExt = project.getExtensions().getByType(PluginTestingExtension.class);
 
         addTestDependency(project);
 

@@ -143,6 +143,19 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         !result.success
     }
 
+    def 'works when applied before other plugins'() {
+        given:
+        buildFile.text = """
+            apply plugin: 'com.palantir.gradle-plugin-testing'
+        """.stripIndent(true) + buildFile.text
+
+        when:
+        def result = runTasks('test')
+
+        then:
+        result.success
+    }
+
     def 'resolve dependencies'() {
         given:
         applyTestUtilsPlugin()
