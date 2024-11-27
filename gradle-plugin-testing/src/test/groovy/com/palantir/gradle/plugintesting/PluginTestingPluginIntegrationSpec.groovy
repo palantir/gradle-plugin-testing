@@ -29,10 +29,9 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
     File specUnderTest
 
     def setup() {
-        //TODO(#xxx): once we have a published version of the plugin, apply it to the project and remove this
-        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0')
+        //TODO(#xxx): once we have a published version of the plugin that works with resolved dependencies, remove this
+        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre')
 
-        writeHelloWorld('com.testing')
         //language=gradle
         buildFile << """
             apply plugin: 'groovy'
@@ -44,6 +43,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
             dependencies {
                 implementation gradleApi()
+                implementation '${resolve("com.google.guava:guava")}'
 
                 testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
                 testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
@@ -52,6 +52,20 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                 useJUnitPlatform()
             }
         """.stripIndent(true)
+
+        //Setup java source file that uses guava
+        //language=java
+        writeJavaSourceFile '''
+            package com.testing;
+            import com.google.common.collect.ImmutableMap;
+
+            public class HelloWorld {
+                static final ImmutableMap<String, String> HELLO_WORLD = ImmutableMap.of("hello", "world");
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+        '''.stripIndent(true)
 
         //language=groovy
         specUnderTest = file('src/test/groovy/com/testing/HelloWorldSpec.groovy') << '''
@@ -70,6 +84,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                             }
                             dependencies {
                                 // This version causes deprecation warnings in gradle 8 for gradle 9
+                                // DO NOT REPLACE THIS VERSION WITH A 'resolve' call
                                 classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.27.0'
                             }
                         }
@@ -167,6 +182,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
             dependencies {
                 testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
                 testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                testImplementation '${resolve("com.google.guava:guava")}'
             }
         ''')
 

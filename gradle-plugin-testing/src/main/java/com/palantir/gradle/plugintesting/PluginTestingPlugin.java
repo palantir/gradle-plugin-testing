@@ -129,5 +129,9 @@ public class PluginTestingPlugin implements Plugin<Project> {
                 .filter(ModuleDependency.class::isInstance)
                 .map(dep -> dep.getGroup() + ":" + dep.getName() + ":" + dep.getVersion())
                 .collect(Collectors.toSet());
+        // return config.getIncoming().getDependencies().stream()
+        //        return config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
+        //                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + ":" + dep.getModuleVersion())
+        //                .collect(Collectors.toSet());
     }
 }

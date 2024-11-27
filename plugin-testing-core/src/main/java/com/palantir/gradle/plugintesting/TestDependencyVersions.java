@@ -62,17 +62,24 @@ public final class TestDependencyVersions {
 
     @SuppressWarnings("for-rollout:PreferSafeLoggableExceptions")
     private static Map<String, String> loadVersions() {
-        if (System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY) == null) {
+        String valuesString = System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY);
+        if (valuesString == null) {
             throw new IllegalStateException("No test dependencies found.  Use the PluginTestingPlugin to set the "
                     + TEST_DEPENDENCIES_SYSTEM_PROPERTY + " system property.");
         }
 
-        Map<String, String> results = Arrays.stream(
-                        System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY).split(","))
+        Map<String, String> results = Arrays.stream(valuesString.split(","))
                 .map(String::trim)
                 .map(dep -> dep.split(":"))
-                .collect(Collectors.toMap(dep -> dep[0] + ":" + dep[1], dep -> dep[2]));
+                .collect(Collectors.toMap(
+                        dep -> dep[0] + ":" + dep[1], dep -> dep[2], TestDependencyVersions::versionResolution));
         return ImmutableMap.copyOf(results);
+    }
+
+    //TODO: Get rid of this.  This is only needed for the plugin itself when running tests. We should do this on the
+    // plugin side so it never comes in.
+    private static String versionResolution(String version1, String version2) {
+        return version1;
     }
 
     private TestDependencyVersions() {}
