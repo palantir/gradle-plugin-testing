@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.plugintesting;
 
+import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,6 +37,10 @@ public class PluginTestingPlugin implements Plugin<Project> {
      */
     static final String PLUGIN_VERSION_PROPERTY_NAME = "pluginTestingPluginVersion";
 
+    private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
+    private static final String CORE_MAVEN_NAME = "plugin-testing-core";
+    private static final String CORE_MAVEN_COORDINATES = MAVEN_GROUP + ":" + CORE_MAVEN_NAME;
+
     /**
      * Applies the plugin to the given project.
      */
@@ -54,7 +59,16 @@ public class PluginTestingPlugin implements Plugin<Project> {
         addTestDependency(project);
 
         SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
-        SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        String testSourceSetName = SourceSet.TEST_SOURCE_SET_NAME;
+        SourceSet sourceSet = sourceSetContainer.getByName(testSourceSetName);
+
+        // add to ignore list for CheckUnusedDependencies
+        project.getPluginManager().withPlugin("com.palantir.baseline-exact-dependencies", _unused -> {
+            project.getTasks().withType(CheckUnusedDependenciesParentTask.class).configureEach(task -> {
+                task.ignore(MAVEN_GROUP, CORE_MAVEN_NAME);
+            });
+        });
+
         NamedDomainObjectProvider<Configuration> testRuntimeConfig =
                 project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
 
@@ -102,9 +116,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
 
         String testImplConfigName = testSourceSet.getImplementationConfigurationName();
         project.getConfigurations().named(testImplConfigName).configure(conf -> {
-            conf.getDependencies()
-                    .add(project.getDependencies()
-                            .create("com.palantir.gradle.plugintesting:plugin-testing-core:" + version));
+            conf.getDependencies().add(project.getDependencies().create(CORE_MAVEN_COORDINATES + ":" + version));
         });
     }
 
