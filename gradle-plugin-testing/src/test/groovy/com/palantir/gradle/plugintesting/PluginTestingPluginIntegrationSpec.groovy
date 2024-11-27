@@ -145,9 +145,9 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
     def 'works when applied before other plugins'() {
         given:
-        buildFile.text = """
+        prependToBuildFile('''
             apply plugin: 'com.palantir.gradle-plugin-testing'
-        """.stripIndent(true) + buildFile.text
+        ''')
 
         when:
         def result = runTasks('test')

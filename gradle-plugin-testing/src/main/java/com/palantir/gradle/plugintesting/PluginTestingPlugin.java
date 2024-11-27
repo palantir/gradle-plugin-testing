@@ -59,15 +59,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
         addTestDependency(project);
 
         SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
-        String testSourceSetName = SourceSet.TEST_SOURCE_SET_NAME;
-        SourceSet sourceSet = sourceSetContainer.getByName(testSourceSetName);
-
-        // add to ignore list for CheckUnusedDependencies
-        project.getPluginManager().withPlugin("com.palantir.baseline-exact-dependencies", _unused -> {
-            project.getTasks().withType(CheckUnusedDependenciesParentTask.class).configureEach(task -> {
-                task.ignore(MAVEN_GROUP, CORE_MAVEN_NAME);
-            });
-        });
+        SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
 
         NamedDomainObjectProvider<Configuration> testRuntimeConfig =
                 project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
@@ -105,6 +97,11 @@ public class PluginTestingPlugin implements Plugin<Project> {
      * This is done by getting the Implementation-Version metainfo from the compiled jar when this plugin is used
      * for real, but that doesn't work when running tests in this repo, so we can also look it up via a gradle property
      * that tests set.
+     *
+     * This also adds the dependency to the checkUnusedDependencies ignore list if the baseline plugin is applied so
+     * those tasks do not fail if nothing uses the dependency (yet).  This is somewhat common since an automated tool
+     * (like excavator) could apply this plugin to a repo before a human attempts to use the utility methods.
+     *
      */
     private static void addTestDependency(Project project) {
         SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
@@ -117,6 +114,13 @@ public class PluginTestingPlugin implements Plugin<Project> {
         String testImplConfigName = testSourceSet.getImplementationConfigurationName();
         project.getConfigurations().named(testImplConfigName).configure(conf -> {
             conf.getDependencies().add(project.getDependencies().create(CORE_MAVEN_COORDINATES + ":" + version));
+        });
+
+        // add to ignore list for CheckUnusedDependencies
+        project.getPluginManager().withPlugin("com.palantir.baseline-exact-dependencies", _unused -> {
+            project.getTasks().withType(CheckUnusedDependenciesParentTask.class).configureEach(task -> {
+                task.ignore(MAVEN_GROUP, CORE_MAVEN_NAME);
+            });
         });
     }
 
