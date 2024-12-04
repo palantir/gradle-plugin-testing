@@ -76,7 +76,7 @@ public final class TestDependencyVersions {
         return ImmutableMap.copyOf(results);
     }
 
-    //TODO: Get rid of this.  This is only needed for the plugin itself when running tests. We should do this on the
+    // TODO: Get rid of this.  This is only needed for the plugin itself when running tests. We should do this on the
     // plugin side so it never comes in.
     private static String versionResolution(String version1, String version2) {
         return version1;

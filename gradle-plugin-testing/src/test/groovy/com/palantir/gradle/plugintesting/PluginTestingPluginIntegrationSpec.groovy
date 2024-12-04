@@ -18,7 +18,9 @@ package com.palantir.gradle.plugintesting
 
 
 import static TestDependencyVersions.resolve
+import static TestDependencyVersions.version
 
+import java.util.stream.Collectors;
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
@@ -30,10 +32,23 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
     def setup() {
         //TODO(#xxx): once we have a published version of the plugin that works with resolved dependencies, remove this
-        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre')
+        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre,com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0')
 
         //language=gradle
         buildFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    // remember - this invocation of resolve is using the information passed from the version of the plugin
+                    // applied to this project itself, _not_ the current version under test.  So the resolve code itself is
+                    // the current version, but the information it is working with is from the last published version of
+                    // the plugin.
+                    classpath '${resolve("com.palantir.gradle.consistentversions:gradle-consistent-versions")}'
+                }
+            }
+            apply plugin: 'com.palantir.consistent-versions'
             apply plugin: 'groovy'
             
             repositories {
@@ -43,10 +58,10 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
             dependencies {
                 implementation gradleApi()
-                implementation '${resolve("com.google.guava:guava")}'
+                implementation 'com.google.guava:guava'
 
-                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
-                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                testImplementation 'org.junit.jupiter:junit-jupiter'
+                testImplementation 'com.netflix.nebula:nebula-test'
             }
             tasks.withType(Test) {
                 useJUnitPlatform()
@@ -112,13 +127,16 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                 //INSERT MORE TESTS HERE
             }
         '''.stripIndent(true)
+
+        writeVersionsPropsFile(file('versions.props'), ['org.junit.jupiter:junit-jupiter', 'com.netflix.nebula:nebula-test', 'com.google.guava:guava'])
+        runTasksSuccessfully('writeVersionLocks')
     }
 
     /**
      * this is just a sanity check test to verify that nebula behaves as expected in the default case.  That is, it
      * will fail the test if there are gradle deprecation warnings.
      */
-    def 'fails when plugin not applied'() {
+    def 'fails with gradle deprecation warnings when plugin not applied'() {
         when:
         def result = runTasks('test')
 
@@ -279,5 +297,13 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         def projectVersion = Optional.ofNullable(System.getProperty('projectVersion')).orElseThrow()
         String[] strings = tasks + ["-P${PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME}=${projectVersion}".toString()]
         return super.runTasks(strings)
+    }
+
+    //TODO: Maybe make this a utility method in TestDependencyVersions or other utility class
+    void writeVersionsPropsFile(File versionPropsFile, Collection<String> dependencies) {
+        String versionsProps = dependencies.stream()
+            .map { dependency -> dependency + "=" + version(dependency)}
+            .collect(Collectors.joining("\n"))
+        versionPropsFile << versionsProps
     }
 }

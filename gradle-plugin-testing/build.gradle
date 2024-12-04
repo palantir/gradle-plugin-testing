@@ -12,6 +12,7 @@ dependencies {
     testImplementation 'com.netflix.nebula:nebula-test'
 
     testRuntimeOnly 'com.google.guava:guava'
+    testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 }
 
 gradlePlugin {
