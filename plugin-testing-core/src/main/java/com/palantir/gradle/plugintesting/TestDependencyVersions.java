@@ -79,8 +79,8 @@ public final class TestDependencyVersions {
             Map<String, String> results = Files.readAllLines(depsFile.toPath()).stream()
                     .map(String::trim)
                     .filter(line -> !line.isEmpty())
-                    .map(dep -> dep.split(":"))
-                    .collect(Collectors.toMap(dep -> dep[0] + ":" + dep[1], dep -> dep[2]));
+                    .map(dep -> dep.split("="))
+                    .collect(Collectors.toMap(dep -> dep[0], dep -> dep[1]));
             return ImmutableMap.copyOf(results);
         } catch (IOException e) {
             throw new RuntimeException(e);

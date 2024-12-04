@@ -64,7 +64,7 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
     private static List<String> getDependencyStrings(Configuration config) {
         // return config.getIncoming().getDependencies().stream()
         return config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
-                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + ":" + dep.getModuleVersion())
+                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + "=" + dep.getModuleVersion())
                 .sorted()
                 .distinct()
                 .collect(Collectors.toList());

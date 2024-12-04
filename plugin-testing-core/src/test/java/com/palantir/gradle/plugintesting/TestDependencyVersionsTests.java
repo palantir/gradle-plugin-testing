@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class TestDependencyVersionsTests {
-    private static final String SAMPLE_VERSIONS = "foo:bar:100\ncom.palantir:gradle-plugin-testing:1.2.3";
+    private static final String SAMPLE_VERSIONS = "foo:bar=100\ncom.palantir:gradle-plugin-testing=1.2.3";
 
     @TempDir
     static Path tempDir;

@@ -16,12 +16,7 @@
 
 package com.palantir.gradle.plugintesting
 
-
 import static TestDependencyVersions.resolve
-import static TestDependencyVersions.version
-
-import java.util.stream.Collectors;
-import nebula.test.functional.ExecutionResult
 
 class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
@@ -30,8 +25,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
     File specUnderTest
 
     def setup() {
-        //TODO(#xxx): once we have a published version of the plugin that works with resolved dependencies, remove this
-        System.setProperty('TEST_DEPENDENCIES', 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre,com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0')
+        writeDependenciesVersionsFile()
 
         //language=gradle
         buildFile << """
@@ -157,7 +151,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
     }
 
-    def 'enable ignoreDeprecations'() {
+    def 'do not set ignoreDeprecations'() {
         given:
         applyTestUtilsPlugin()
         buildFile << """
