@@ -31,7 +31,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def setup() {
         //TODO(#xxx): once we have a published version of the plugin that works with resolved dependencies, remove this
-        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre,com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0')
+        System.setProperty('TEST_DEPENDENCIES', 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre,com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0')
 
         //language=gradle
         buildFile << """

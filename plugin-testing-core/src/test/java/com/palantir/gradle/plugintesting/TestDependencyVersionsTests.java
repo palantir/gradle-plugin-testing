@@ -19,15 +19,30 @@ package com.palantir.gradle.plugintesting;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class TestDependencyVersionsTests {
-    private static final String SAMPLE_VERSIONS = "foo:bar:100,com.palantir:gradle-plugin-testing:1.2.3";
+    private static final String SAMPLE_VERSIONS = "foo:bar:100\ncom.palantir:gradle-plugin-testing:1.2.3";
+
+    @TempDir
+    static Path tempDir;
 
     @BeforeAll
     public static void beforeAll() {
-        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, SAMPLE_VERSIONS);
+        Path versionsFile = tempDir.resolve("dependency-versions.properties");
+        System.setProperty(
+                TestDependencyVersions.TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY,
+                versionsFile.toAbsolutePath().toString());
+        try {
+            Files.writeString(versionsFile, SAMPLE_VERSIONS);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

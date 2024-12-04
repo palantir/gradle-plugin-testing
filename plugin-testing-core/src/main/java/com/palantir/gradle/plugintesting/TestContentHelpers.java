@@ -25,6 +25,9 @@ import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+/**
+ * Useful methods for writing common test content.
+ */
 public final class TestContentHelpers {
 
     private static final OpenOption[] WRITE_OPTIONS = {StandardOpenOption.CREATE, StandardOpenOption.APPEND};
