@@ -61,20 +61,6 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
         """.stripIndent(true)
 
-        //Setup java source file that uses guava
-        //language=java
-        writeJavaSourceFile '''
-            package com.testing;
-            import com.google.common.collect.ImmutableMap;
-
-            public class HelloWorld {
-                static final ImmutableMap<String, String> HELLO_WORLD = ImmutableMap.of("hello", "world");
-                public static void main(String[] args) {
-                    System.out.println("Hello, World!");
-                }
-            }
-        '''.stripIndent(true)
-
         //language=groovy
         specUnderTest = file('src/test/groovy/com/testing/HelloWorldSpec.groovy') << '''
             package com.testing
@@ -264,6 +250,21 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             apply plugin: 'com.palantir.baseline-exact-dependencies'
         """)
         applyTestUtilsPlugin()
+
+
+        //Setup java source file that uses guava.  Just need this so checkUnusedDependencies doesn't throw an error
+        //language=java
+        writeJavaSourceFile '''
+            package com.testing;
+            import com.google.common.collect.ImmutableMap;
+
+            public class HelloWorld {
+                static final ImmutableMap<String, String> HELLO_WORLD = ImmutableMap.of("hello", "world");
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+        '''.stripIndent(true)
 
         when:
         def result = runTasks('checkUnusedDependencies')
