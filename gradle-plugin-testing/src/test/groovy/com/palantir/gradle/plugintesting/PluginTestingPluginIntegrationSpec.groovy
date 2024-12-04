@@ -21,10 +21,9 @@ import static TestDependencyVersions.resolve
 import static TestDependencyVersions.version
 
 import java.util.stream.Collectors;
-import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
-class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
+class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     private static final String DEPRECATION_ERROR_MESSAGE_FROM_NEBULA = 'Deprecation warnings were found (Set the ignoreDeprecations system property during the test to ignore)'
 
@@ -128,7 +127,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
             }
         '''.stripIndent(true)
 
-        writeVersionsPropsFile(file('versions.props'), ['org.junit.jupiter:junit-jupiter', 'com.netflix.nebula:nebula-test', 'com.google.guava:guava'])
+        TestContentHelpers.addVersionsToPropsFile(file('versions.props'), ['org.junit.jupiter:junit-jupiter', 'com.netflix.nebula:nebula-test', 'com.google.guava:guava', 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
         runTasksSuccessfully('writeVersionLocks')
     }
 
@@ -290,20 +289,5 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
     File prependToBuildFile(String content) {
         buildFile.text = content.stripIndent(true) + buildFile.text
         return buildFile
-    }
-
-    @Override
-    ExecutionResult runTasks(String... tasks) {
-        def projectVersion = Optional.ofNullable(System.getProperty('projectVersion')).orElseThrow()
-        String[] strings = tasks + ["-P${PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME}=${projectVersion}".toString()]
-        return super.runTasks(strings)
-    }
-
-    //TODO: Maybe make this a utility method in TestDependencyVersions or other utility class
-    void writeVersionsPropsFile(File versionPropsFile, Collection<String> dependencies) {
-        String versionsProps = dependencies.stream()
-            .map { dependency -> dependency + "=" + version(dependency)}
-            .collect(Collectors.joining("\n"))
-        versionPropsFile << versionsProps
     }
 }

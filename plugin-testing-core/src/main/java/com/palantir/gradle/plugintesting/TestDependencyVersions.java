@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
  */
 public final class TestDependencyVersions {
     static final String TEST_DEPENDENCIES_SYSTEM_PROPERTY = "TEST_DEPENDENCIES";
+    static final String TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY = "TEST_DEPENDENCIES_FILE";
+
     private static final Supplier<Map<String, String>> versionsSupplier =
             Suppliers.memoize(TestDependencyVersions::loadVersions);
 
