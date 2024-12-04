@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -63,17 +62,11 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
      * Returns a list of all dependencies, sorted and deduplicated.
      */
     private static List<String> getDependencyStrings(Configuration config) {
-        return config.getAllDependencies().stream()
-                .filter(ModuleDependency.class::isInstance)
-                .map(dep -> dep.getGroup() + ":" + dep.getName() + ":" + dep.getVersion())
+        // return config.getIncoming().getDependencies().stream()
+        return config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
+                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + ":" + dep.getModuleVersion())
                 .sorted()
                 .distinct()
                 .collect(Collectors.toList());
-        // return config.getIncoming().getDependencies().stream()
-        //        return config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
-        //                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + ":" + dep.getModuleVersion())
-//                .sorted()
-//                .distinct()
-        //                .collect(Collectors.toSet());
     }
 }
