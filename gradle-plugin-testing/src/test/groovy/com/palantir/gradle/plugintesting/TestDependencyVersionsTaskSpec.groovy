@@ -23,13 +23,70 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
     File outputFile
 
     def setup() {
+        outputFile = new File(projectDir,'build/plugin-testing/dependency-versions.properties')
+    }
+
+    def 'write versions without GCV'() {
+        given:
+        buildFile.text = basicBuildFile
+
+        when:
+        def result = runTasksSuccessfully('writeTestDependencyVersions')
+
+        then:
+        outputFile.exists()
+        !outputFile.text.contains(':null')
+        outputFile.text.contains('com.google.guava:guava:33.3.1-jre')
+        outputFile.text.contains('org.junit.jupiter:junit-jupiter:5.11.3')
+        outputFile.text.contains('com.netflix.nebula:nebula-test:10.6.1')
+        outputFile.text.contains('com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0')
+        outputFile.text.contains('com.palantir.gradle.plugintesting:plugin-testing-core')
+    }
+
+    def 'write versions with GCV'() {
+        given:
+        buildFile << buildFileWithGcv
+
+        TestContentHelpers.addVersionsToPropsFile(file('versions.props'), ['org.junit.jupiter:junit-jupiter', 'com.netflix.nebula:nebula-test', 'com.google.guava:guava', 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
+        runTasksSuccessfully('writeVersionLocks')
+
+        when:
+        def result = runTasksSuccessfully('writeTestDependencyVersions')
+
+        then:
+        outputFile.exists()
+        !outputFile.text.contains(':null')
+        outputFile.text.contains('org.junit.jupiter:junit-jupiter')
+    }
+
+    private static String getBasicBuildFile() {
+        //language=gradle
+        """
+            apply plugin: 'groovy'
+            apply plugin: 'com.palantir.gradle-plugin-testing'
+            
+            repositories {
+                mavenCentral()
+                mavenLocal()
+            }
+
+            dependencies {
+                implementation 'com.google.guava:guava:33.3.1-jre'
+
+                testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+                testImplementation 'com.netflix.nebula:nebula-test:10.6.1'
+
+                testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0'
+            }
+        """.stripIndent(true)
+    }
+
+    private static String getBuildFileWithGcv() {
         //TODO(#xxx): once we have a published version of the plugin that works with resolved dependencies, remove this
         System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0,com.google.guava:guava:33.3.1-jre,com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0')
 
-        outputFile = new File(projectDir,'build/plugin-testing/dependency-versions.properties')
-
         //language=gradle
-        buildFile << """
+        """
             buildscript {
                 repositories {
                     mavenCentral()
@@ -60,17 +117,5 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
                 testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
             }
         """.stripIndent(true)
-
-        TestContentHelpers.addVersionsToPropsFile(file('versions.props'), ['org.junit.jupiter:junit-jupiter', 'com.netflix.nebula:nebula-test', 'com.google.guava:guava', 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
-        runTasksSuccessfully('writeVersionLocks')
-    }
-
-    def 'write versions'() {
-        when:
-        def result = runTasksSuccessfully('writeTestDependencyVersions')
-
-        then:
-        outputFile.exists()
-        outputFile.text.contains('org.junit.jupiter:junit-jupiter')
     }
 }

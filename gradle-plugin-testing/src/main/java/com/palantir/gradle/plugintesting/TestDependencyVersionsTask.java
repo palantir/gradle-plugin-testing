@@ -19,7 +19,7 @@ package com.palantir.gradle.plugintesting;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
@@ -50,7 +50,7 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
 
     @TaskAction
     public final void doAction() {
-        Set<String> depSet = getDependencyStrings(getClasspathConfiguration().get());
+        List<String> depSet = getDependencyStrings(getClasspathConfiguration().get());
         String depsString = String.join("\n", depSet);
         try {
             Files.write(getOutputFile().get().getAsFile().toPath(), depsString.getBytes(StandardCharsets.UTF_8));
@@ -59,14 +59,21 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
         }
     }
 
-    private static Set<String> getDependencyStrings(Configuration config) {
+    /**
+     * Returns a list of all dependencies, sorted and deduplicated.
+     */
+    private static List<String> getDependencyStrings(Configuration config) {
         return config.getAllDependencies().stream()
                 .filter(ModuleDependency.class::isInstance)
                 .map(dep -> dep.getGroup() + ":" + dep.getName() + ":" + dep.getVersion())
-                .collect(Collectors.toSet());
+                .sorted()
+                .distinct()
+                .collect(Collectors.toList());
         // return config.getIncoming().getDependencies().stream()
         //        return config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
         //                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + ":" + dep.getModuleVersion())
+//                .sorted()
+//                .distinct()
         //                .collect(Collectors.toSet());
     }
 }
