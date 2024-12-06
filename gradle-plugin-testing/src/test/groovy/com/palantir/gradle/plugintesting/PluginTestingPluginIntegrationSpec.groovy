@@ -77,8 +77,9 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                                 mavenCentral()
                             }
                             dependencies {
-                                // This version causes deprecation warnings in gradle 8 for gradle 9
+                                // This version of consistentversions causes deprecation warnings in gradle 8 for gradle 9
                                 // DO NOT REPLACE THIS VERSION WITH A 'resolve' call
+                                // the various "gradle deprecation" tests below need it so the deprecation warnings are emitted
                                 classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.27.0'
                             }
                         }
@@ -107,7 +108,11 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
         '''.stripIndent(true)
 
-        TestContentHelpers.addVersionsToPropsFile(file('versions.props'), ['org.junit.jupiter:junit-jupiter', 'com.netflix.nebula:nebula-test', 'com.google.guava:guava', 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
+        TestContentHelpers.addVersionsToPropsFile(file('versions.props'), [
+                'org.junit.jupiter:junit-jupiter',
+                'com.netflix.nebula:nebula-test',
+                'com.google.guava:guava',
+                'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
         runTasksSuccessfully('writeVersionLocks')
     }
 
