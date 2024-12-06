@@ -72,29 +72,21 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 def setup() {
                     //language=gradle
                     buildFile << """
-                        buildscript {
-                            repositories {
-                                mavenCentral()
-                            }
-                            dependencies {
-                                // This version of consistentversions causes deprecation warnings in gradle 8 for gradle 9
-                                // DO NOT REPLACE THIS VERSION WITH A 'resolve' call
-                                // the various "gradle deprecation" tests below need it so the deprecation warnings are emitted
-                                classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.27.0'
+                        apply plugin: 'java'
+                        task 'foo' {
+                            doFirst {
+                                //simulate that gradle reports the test did something deprecated
+                                //This is a string that IntegrationBase.checkForDeprecations looks for
+                                println "This behaviour has been deprecated and is scheduled to be removed in Gradle"
                             }
                         }
-                        apply plugin: 'java'
-                        apply plugin: 'com.palantir.consistent-versions'
-                        
                         //INSERT MORE HERE
                     """.stripIndent(true)
-                    
-                    file('versions.lock') << ''
                 }
 
                 def 'someTest'() {
                     when:
-                    def result = runTasks('test')
+                    def result = runTasks('foo')
 
                     then:
                     println "============std error follows============"
