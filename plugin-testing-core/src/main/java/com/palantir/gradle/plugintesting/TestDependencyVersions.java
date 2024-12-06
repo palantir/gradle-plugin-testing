@@ -18,7 +18,9 @@ package com.palantir.gradle.plugintesting;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import java.util.Arrays;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -28,7 +30,8 @@ import java.util.stream.Collectors;
  * the project.
  */
 public final class TestDependencyVersions {
-    static final String TEST_DEPENDENCIES_SYSTEM_PROPERTY = "TEST_DEPENDENCIES";
+    static final String TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY = "TEST_DEPENDENCIES_FILE";
+
     private static final Supplier<Map<String, String>> versionsSupplier =
             Suppliers.memoize(TestDependencyVersions::loadVersions);
 
@@ -62,17 +65,26 @@ public final class TestDependencyVersions {
 
     @SuppressWarnings("for-rollout:PreferSafeLoggableExceptions")
     private static Map<String, String> loadVersions() {
-        if (System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY) == null) {
-            throw new IllegalStateException("No test dependencies found.  Use the PluginTestingPlugin to set the "
-                    + TEST_DEPENDENCIES_SYSTEM_PROPERTY + " system property.");
+        String fileName = System.getProperty(TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY);
+        if (fileName == null) {
+            throw new IllegalStateException("No test dependencies file name found.  Use the PluginTestingPlugin to set "
+                    + TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY + " system property.");
+        }
+        File depsFile = new File(fileName);
+        if (!depsFile.exists()) {
+            throw new IllegalStateException("Test dependencies file does not exist: " + depsFile);
         }
 
-        Map<String, String> results = Arrays.stream(
-                        System.getProperty(TEST_DEPENDENCIES_SYSTEM_PROPERTY).split(","))
-                .map(String::trim)
-                .map(dep -> dep.split(":"))
-                .collect(Collectors.toMap(dep -> dep[0] + ":" + dep[1], dep -> dep[2]));
-        return ImmutableMap.copyOf(results);
+        try {
+            Map<String, String> results = Files.readAllLines(depsFile.toPath()).stream()
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .map(dep -> dep.split("="))
+                    .collect(Collectors.toMap(dep -> dep[0], dep -> dep[1]));
+            return ImmutableMap.copyOf(results);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private TestDependencyVersions() {}

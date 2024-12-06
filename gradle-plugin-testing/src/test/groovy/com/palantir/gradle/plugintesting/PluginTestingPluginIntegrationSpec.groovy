@@ -16,25 +16,32 @@
 
 package com.palantir.gradle.plugintesting
 
-
 import static TestDependencyVersions.resolve
 
-import nebula.test.IntegrationSpec
-import nebula.test.functional.ExecutionResult
-
-class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
+class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     private static final String DEPRECATION_ERROR_MESSAGE_FROM_NEBULA = 'Deprecation warnings were found (Set the ignoreDeprecations system property during the test to ignore)'
 
     File specUnderTest
 
     def setup() {
-        //TODO(#xxx): once we have a published version of the plugin, apply it to the project and remove this
-        System.setProperty(TestDependencyVersions.TEST_DEPENDENCIES_SYSTEM_PROPERTY, 'org.junit.jupiter:junit-jupiter:5.11.3,com.netflix.nebula:nebula-test:10.6.1, com.palantir.baseline:gradle-baseline-java:6.4.0')
+        writeDependenciesVersionsFile()
 
-        writeHelloWorld('com.testing')
         //language=gradle
         buildFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    // remember - this invocation of resolve is using the information passed from the version of the plugin
+                    // applied to this project itself, _not_ the current version under test.  So the resolve code itself is
+                    // the current version, but the information it is working with is from the last published version of
+                    // the plugin.
+                    classpath '${resolve("com.palantir.gradle.consistentversions:gradle-consistent-versions")}'
+                }
+            }
+            apply plugin: 'com.palantir.consistent-versions'
             apply plugin: 'groovy'
             
             repositories {
@@ -44,9 +51,10 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
 
             dependencies {
                 implementation gradleApi()
+                implementation 'com.google.guava:guava'
 
-                testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
-                testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                testImplementation 'org.junit.jupiter:junit-jupiter'
+                testImplementation 'com.netflix.nebula:nebula-test'
             }
             tasks.withType(Test) {
                 useJUnitPlatform()
@@ -64,27 +72,21 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                 def setup() {
                     //language=gradle
                     buildFile << """
-                        buildscript {
-                            repositories {
-                                mavenCentral()
-                            }
-                            dependencies {
-                                // This version causes deprecation warnings in gradle 8 for gradle 9
-                                classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.27.0'
+                        apply plugin: 'java'
+                        task 'foo' {
+                            doFirst {
+                                //simulate that gradle reports the test did something deprecated
+                                //This is a string that IntegrationBase.checkForDeprecations looks for
+                                println "This behaviour has been deprecated and is scheduled to be removed in Gradle"
                             }
                         }
-                        apply plugin: 'java'
-                        apply plugin: 'com.palantir.consistent-versions'
-                        
                         //INSERT MORE HERE
                     """.stripIndent(true)
-                    
-                    file('versions.lock') << ''
                 }
 
                 def 'someTest'() {
                     when:
-                    def result = runTasks('test')
+                    def result = runTasks('foo')
 
                     then:
                     println "============std error follows============"
@@ -97,13 +99,20 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
                 //INSERT MORE TESTS HERE
             }
         '''.stripIndent(true)
+
+        TestContentHelpers.addVersionsToPropsFile(file('versions.props'), [
+                'org.junit.jupiter:junit-jupiter',
+                'com.netflix.nebula:nebula-test',
+                'com.google.guava:guava',
+                'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
+        runTasksSuccessfully('writeVersionLocks')
     }
 
     /**
      * this is just a sanity check test to verify that nebula behaves as expected in the default case.  That is, it
      * will fail the test if there are gradle deprecation warnings.
      */
-    def 'fails when plugin not applied'() {
+    def 'fails with gradle deprecation warnings when plugin not applied'() {
         when:
         def result = runTasks('test')
 
@@ -125,7 +134,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
     }
 
-    def 'enable ignoreDeprecations'() {
+    def 'do not set ignoreDeprecations'() {
         given:
         applyTestUtilsPlugin()
         buildFile << """
@@ -167,6 +176,7 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
             dependencies {
                 testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
                 testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
+                testImplementation '${resolve("com.google.guava:guava")}'
             }
         ''')
 
@@ -238,6 +248,21 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
         """)
         applyTestUtilsPlugin()
 
+
+        //Setup java source file that uses guava.  Just need this so checkUnusedDependencies doesn't throw an error
+        //language=java
+        writeJavaSourceFile '''
+            package com.testing;
+            import com.google.common.collect.ImmutableMap;
+
+            public class HelloWorld {
+                static final ImmutableMap<String, String> HELLO_WORLD = ImmutableMap.of("hello", "world");
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+        '''.stripIndent(true)
+
         when:
         def result = runTasks('checkUnusedDependencies')
 
@@ -256,12 +281,5 @@ class PluginTestingPluginIntegrationSpec extends IntegrationSpec {
     File prependToBuildFile(String content) {
         buildFile.text = content.stripIndent(true) + buildFile.text
         return buildFile
-    }
-
-    @Override
-    ExecutionResult runTasks(String... tasks) {
-        def projectVersion = Optional.ofNullable(System.getProperty('projectVersion')).orElseThrow()
-        String[] strings = tasks + ["-P${PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME}=${projectVersion}".toString()]
-        return super.runTasks(strings)
     }
 }
