@@ -6,11 +6,13 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
     implementation project(':plugin-testing-core')
-    implementation 'com.google.guava:guava'
     implementation 'com.palantir.baseline:gradle-baseline-java'
 
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.netflix.nebula:nebula-test'
+
+    testRuntimeOnly 'com.google.guava:guava'
+    testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 }
 
 gradlePlugin {
@@ -30,8 +32,6 @@ gradlePlugin {
 
 test {
     systemProperty 'projectVersion', project.version
-    //TODO(#xxx): Remove this once we have a published version of the plugin that we can apply to the project itself
-    systemProperty 'ignoreDeprecations', 'true'
 
     // Added as a jar the so in nebula-tests needs to exist in maven local
     dependsOn tasks.findByPath(':plugin-testing-core:publishToMavenLocal')
