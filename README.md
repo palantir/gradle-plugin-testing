@@ -80,6 +80,29 @@ class HelloWorldSpec extends IntegrationSpec {
         """
    }
 ```
+## Adding Test Only Plugin Dependencies
+You may find yourself needing to resolve a dependency on a plugin that you do not directly consume as part of your implementation. In these scenarios you will need to add additional, test only, dependencies. For example, leveraging [Gradle consistent versions](https://github.com/palantir/gradle-consistent-versions):
+
+`versions.props`:
+```properties
+# Nebula test dependencies (comment is nice, but certainly not necessary)
+com.palantir.sls-packaging:gradle-sls-packaging = 7.69.0
+```
+
+
+`build.gradle`:
+```gradle
+dependencies {
+    // Other dependencies...
+    
+    // Note: 'testRuntimeOnly' is used here intentionally as the Baseline 
+    //   'checkUnusedDependencies' task is (currently) unaware of the 'resolve'
+    //   method this plugin provides. Given the scenario described above, we do not use this plugin
+    //   directly and thus 'testImplementation' triggers a warning to remove this dependency
+    testRuntimeOnly 'com.palantir.sls-packaging:gradle-sls-packaging'
+}
+```
+
 # Resolution of Gradle versions to test against
 Similarly, tests may hardcode versions of Gradle that they need to stay compatible with. These versions also get stale and PRs start failing for the inverse reason of the above - the code in the plugin or a dependency of it is updated and is no longer compatible with an old version of Gradle. For example, attempting to update jackson libraries from `2.15.0` -> `2.17.0` would fail if a test tried to run on Gradle versiosn < `7.6.4` (when compatibility with jackson `2.17.0` was fixed).
 
