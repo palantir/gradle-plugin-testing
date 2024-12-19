@@ -1,16 +1,16 @@
 com.fasterxml.jackson.core:jackson-databind = 2.18.2
 org.apache.commons:commons-lang3 = 3.17.0
-com.google.guava:guava = 33.3.1-jre
-com.palantir.baseline:gradle-baseline-java = 6.4.0
+com.google.guava:guava = 33.4.0-jre
+com.palantir.baseline:gradle-baseline-java = 6.5.0
 
 # test dependencies
-com.netflix.nebula:nebula-test = 10.6.1
-org.assertj:assertj-core = 3.26.3
-org.junit.jupiter:* = 5.11.3
-org.codehaus.groovy:* = 3.0.21
+com.netflix.nebula:nebula-test = 10.6.2
+org.assertj:assertj-core = 3.27.0
+org.junit.jupiter:* = 5.11.4
+org.codehaus.groovy:* = 3.0.23
 com.palantir.gradle.consistentversions:gradle-consistent-versions = 2.31.0
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2
 com.google.errorprone:error_prone_annotations = 2.11.0
-org.checkerframework:checker-qual = 3.48.2
+org.checkerframework:checker-qual = 3.48.3
