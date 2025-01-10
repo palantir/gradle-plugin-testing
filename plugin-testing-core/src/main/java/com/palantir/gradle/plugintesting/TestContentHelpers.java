@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,52 @@ public final class TestContentHelpers {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Add the given repository and dependencies in a new buildscript block.
+     */
+    public static String addBuildScriptBlock(String repository, String... dependencies) {
+        String depBlock = addDependencies("classpath", dependencies);
+        // indent the extra level for being in the buildscript block
+        String result = depBlock.replaceAll("(?m)^", "    ");
+        return """
+                buildscript {
+                    repositories {
+                        %s
+                    }
+                %s
+                }
+                """
+                .formatted(repository, result);
+    }
+
+    /**
+     * Add the given dependencies in a new buildscript block.  Useful to add to a build.gradle file.
+     */
+    public static String addBuildScriptDependencies(String... dependencies) {
+        String depBlock = addDependencies("classpath", dependencies);
+        // indent the extra level for being in the buildscript block
+        String result = depBlock.replaceAll("(?m)^", "    ");
+
+        return "buildscript {\n" + result + "\n}\n";
+    }
+
+    /**
+     * Add the given dependencies in a new dependencies block.
+     */
+    public static String addDependencies(String configuration, String... dependencies) {
+        String depLines = Arrays.stream(dependencies)
+                .map(dep -> "    " + dependency(configuration, dep))
+                .collect(Collectors.joining("\n"));
+        return "dependencies {\n" + depLines + "\n}";
+    }
+
+    /**
+     * Returns a dependency string for the given configuration and dependency.
+     */
+    public static String dependency(String configuration, String dependency) {
+        return configuration + " '" + TestDependencyVersions.resolve(dependency) + "'";
     }
 
     private TestContentHelpers() {}

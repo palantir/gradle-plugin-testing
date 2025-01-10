@@ -62,4 +62,39 @@ public class TestDependencyVersionsTests {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("No version found for not:found");
     }
+
+    @Test
+    public void addBuildScriptDependencies() {
+        String buildScript =
+                TestContentHelpers.addBuildScriptDependencies("foo:bar", "com.palantir:gradle-plugin-testing");
+        assertThat(buildScript)
+                .isEqualTo(
+                        """
+                buildscript {
+                    dependencies {
+                        classpath 'foo:bar:100'
+                        classpath 'com.palantir:gradle-plugin-testing:1.2.3'
+                    }
+                }
+                """);
+    }
+
+    @Test
+    public void addBuildScriptBlock() {
+        String buildScript = TestContentHelpers.addBuildScriptBlock(
+                "mavenCentral()", "foo:bar", "com.palantir:gradle-plugin-testing");
+        assertThat(buildScript)
+                .isEqualTo(
+                        """
+                buildscript {
+                    repositories {
+                        mavenCentral()
+                    }
+                    dependencies {
+                        classpath 'foo:bar:100'
+                        classpath 'com.palantir:gradle-plugin-testing:1.2.3'
+                    }
+                }
+                """);
+    }
 }
