@@ -7,7 +7,7 @@ com.palantir.baseline:gradle-baseline-java = 6.8.0
 com.netflix.nebula:nebula-test = 10.6.2
 org.assertj:assertj-core = 3.27.2
 org.junit.jupiter:* = 5.11.4
-org.codehaus.groovy:* = 3.0.23
+org.codehaus.groovy:* = 3.0.21
 com.palantir.gradle.consistentversions:gradle-consistent-versions = 2.31.0
 
 # conflict resolution
