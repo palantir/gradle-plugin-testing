@@ -63,7 +63,6 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
 
     def 'write versions with GCV'() {
         given:
-        writeDependenciesVersionsFile()
         //language=gradle
         buildFile << """
             buildscript {

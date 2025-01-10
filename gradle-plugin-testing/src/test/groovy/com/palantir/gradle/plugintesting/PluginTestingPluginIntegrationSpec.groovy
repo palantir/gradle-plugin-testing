@@ -25,8 +25,6 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
     File specUnderTest
 
     def setup() {
-        writeDependenciesVersionsFile()
-
         //language=gradle
         buildFile << """
             buildscript {
