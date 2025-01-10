@@ -39,7 +39,13 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
             }
 
             dependencies {
-                implementation 'com.google.guava:guava:33.3.1-jre'
+                //WARNING: Do not include any dependencies here that the plugin-testing-core project uses in it's
+                // api or implementation configurations.  Because the plugin adds the plugin-testing-core artifact as
+                // a testImplementation dependency, we get the transitive dependencies of it (e.g. guava).  Since those
+                // versions will update over time this test could start erroneously failing.  So just list some random
+                // dependencies here that are unlikely to be added to the plugin-test-core project.
+                //implementation 'com.google.guava:guava:33.3.1-jre'
+                implementation 'org.ow2.asm:asm:9.7.1'
 
                 testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
                 testImplementation 'com.netflix.nebula:nebula-test:10.6.1'
@@ -54,7 +60,7 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         then:
         outputFile.exists()
         !outputFile.text.contains('null')
-        outputFile.text.contains('com.google.guava:guava=33.3.1-jre')
+        outputFile.text.contains('org.ow2.asm:asm=9.7.1')
         outputFile.text.contains('org.junit.jupiter:junit-jupiter=5.11.3')
         outputFile.text.contains('com.netflix.nebula:nebula-test=10.6.1')
         outputFile.text.contains('com.palantir.gradle.consistentversions:gradle-consistent-versions=2.31.0')
