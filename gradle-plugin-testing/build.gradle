@@ -36,3 +36,7 @@ test {
     // Added as a jar the so in nebula-tests needs to exist in maven local
     dependsOn tasks.findByPath(':plugin-testing-core:publishToMavenLocal')
 }
+
+gradleTestUtils {
+    gradleVersions = ['7.6.4', '8.8', '8.12.1']
+}
