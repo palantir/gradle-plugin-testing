@@ -5,10 +5,24 @@ buildscript {
     }
     dependencies {
         classpath 'com.palantir.gradle.jdks:gradle-jdks-settings:0.64.0'
+        classpath 'com.gradle:develocity-gradle-plugin:4.0'
     }
 }
+
 apply plugin: 'com.palantir.jdks.settings'
+apply plugin: 'com.gradle.develocity'
+
 rootProject.name = 'gradle-plugin-testing-root'
+
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        publishing {
+            onlyIf {System.getenv("CI") != null}
+        }
+    }
+}
 
 include 'plugin-testing-core'
 include 'gradle-plugin-testing'
