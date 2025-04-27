@@ -60,4 +60,8 @@ public interface GradleProject extends ArbitraryFileFactory {
     default GradleSourceSet sourceSet(String sourceSetName) {
         return new GradleSourceSet(path().resolve("src").resolve(sourceSetName));
     }
+
+    default BuildDir buildDir() {
+        return new BuildDir(path().resolve("build"));
+    }
 }

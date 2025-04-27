@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.java;
+package com.palantir.gradle.testing.project;
 
-final class JavaSourceUtils {
+import com.palantir.gradle.testing.files.arbitrary.ArbitraryFileFactory;
+import java.nio.file.Path;
 
-
-    private JavaSourceUtils() {}
-}
+public record BuildDir(Path path) implements ArbitraryFileFactory {}
