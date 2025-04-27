@@ -1,0 +1,15 @@
+apply plugin: 'java-library'
+apply plugin: 'java-test-fixtures'
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    api 'org.junit.jupiter:junit-jupiter-api'
+    api 'org.assertj:assertj-core'
+
+    compileOnlyApi 'org.jetbrains:annotations'
+
+    implementation gradleTestKit()
+    implementation 'commons-io:commons-io'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}

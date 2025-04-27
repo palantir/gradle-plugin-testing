@@ -42,14 +42,20 @@ allprojects {
     apply plugin: 'com.palantir.jakarta-package-alignment'
 
     repositories {
-        mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+        mavenCentral()
         gradlePluginPortal()
     }
 
     group 'com.palantir.gradle.plugintesting'
     version rootProject.version
 
-    tasks.check.dependsOn checkImplicitDependencies, checkUnusedDependencies
+    pluginManager.withPlugin('com.palantir.suppressible-error-prone') {
+        suppressibleErrorProne {
+            configureEachErrorProneOptions {
+                it.disable 'StrictUnusedVariable'
+            }
+        }
+    }
 }
 
 javaVersions {
