@@ -14,8 +14,28 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.project;
+package com.palantir.gradle.testing.files.arbitrary;
 
+import com.palantir.gradle.testing.files.gradle.GradleFile;
+import com.palantir.gradle.testing.files.yaml.YamlFile;
 import java.nio.file.Path;
 
-public record SubProject(String name, Path path, RootProject rootProject) implements GradleProject {}
+public interface ArbitraryFileFactory {
+    Path path();
+
+    default ArbitraryFile file(String path) {
+        return new ArbitraryFile(resolvePath(path));
+    }
+
+    default GradleFile gradleFile(String path) {
+        return new GradleFile(resolvePath(path));
+    }
+
+    default YamlFile yamlFile(String path) {
+        return new YamlFile(resolvePath(path));
+    }
+
+    private Path resolvePath(String path) {
+        return path().resolve(path);
+    }
+}

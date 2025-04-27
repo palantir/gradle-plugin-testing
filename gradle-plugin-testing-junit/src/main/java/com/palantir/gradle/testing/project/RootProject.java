@@ -19,7 +19,7 @@ package com.palantir.gradle.testing.project;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import java.nio.file.Path;
 
-public record RootProject(Path projectDir) implements GradleProject {
+public record RootProject(Path path) implements GradleProject {
     @Override
     public RootProject rootProject() {
         return this;

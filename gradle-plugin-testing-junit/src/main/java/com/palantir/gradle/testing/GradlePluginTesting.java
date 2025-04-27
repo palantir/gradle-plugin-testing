@@ -16,12 +16,14 @@
 
 package com.palantir.gradle.testing;
 
+import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.Gradlew;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,8 +102,17 @@ public final class GradlePluginTesting implements Extension, ParameterResolver, 
 
     @Override
     public Stream<? extends ClassTemplateInvocationContext> provideClassTemplateInvocationContexts(
-            ExtensionContext _context) {
-        return Stream.of(new GradleVersionInvocationContext("8.12.1"), new GradleVersionInvocationContext("8.14"));
+            ExtensionContext context) {
+        String gradleVersionsToTestAgainst = context.getConfigurationParameter(
+                        "com.palantir.gradle.testing.gradle_versions_to_test")
+                //                .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to
+                // test against. "
+                //                        + "Have you applied the `com.palantir.gradle-testing` plugin?"));
+                .orElse("8.12.1");
+
+        List<String> gradleVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
+
+        return gradleVersions.stream().map(GradleVersionInvocationContext::new);
     }
 
     private record GradleVersionInvocationContext(String gradleVersion) implements ClassTemplateInvocationContext {

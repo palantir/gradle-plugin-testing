@@ -7,9 +7,14 @@ dependencies {
     api 'org.assertj:assertj-core'
 
     compileOnlyApi 'org.jetbrains:annotations'
+    // Just so people can get Gradle autocomplete in text blocks in intellij injected with the
+    // Gradle language fragments
+    compileOnlyApi gradleApi()
 
     implementation gradleTestKit()
     implementation 'commons-io:commons-io'
+    implementation 'com.google.guava:guava'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.junit.platform:junit-platform-testkit'
 }

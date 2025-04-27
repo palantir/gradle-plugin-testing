@@ -20,16 +20,12 @@ import com.palantir.gradle.testing.files.arbitrary.ArbitrarySrcDir;
 import com.palantir.gradle.testing.files.java.JavaSrcDir;
 import java.nio.file.Path;
 
-public record GradleSourceSet(Path projectDir, String name) {
-    public Path path() {
-        return projectDir.resolve("src").resolve(name);
-    }
-
+public record GradleSourceSet(Path path) {
     public JavaSrcDir java() {
         return new JavaSrcDir(this);
     }
 
     public ArbitrarySrcDir srcDir(String srcDirName) {
-        return new ArbitrarySrcDir(this, srcDirName);
+        return new ArbitrarySrcDir(this.path.resolve(srcDirName));
     }
 }

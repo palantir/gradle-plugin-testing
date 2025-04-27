@@ -17,31 +17,22 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.GradlePluginTests;
+import com.palantir.gradle.testing.execution.Gradlew;
 import com.palantir.gradle.testing.project.RootProject;
-import com.palantir.gradle.testing.project.SubProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-class BasicUsageTest {
+public final class GradleVersionOutputterTest {
     @Test
-    void basic(RootProject rootProject, SubProject subProject) {
-        rootProject.buildFile().append("""
-            apply plugin: 'java'
-            """);
-
-        subProject.buildFile().append("""
-            apply plugin: 'java-library'
-            """);
-
-        subProject
-                .mainSourceSet()
-                .java()
-                .writeClass(
+    void noop_test(Gradlew gradlew, RootProject rootProject) {
+        rootProject
+                .buildFile()
+                .append(
                         """
-            package app;
-            public final class Main {
-                public static void main(String... args) {}
-            }
+            import org.gradle.util.GradleVersion
+            file('gradle-version').text = GradleVersion.current()
             """);
+
+        gradlew.withArgs("help").buildSuccessfully();
     }
 }

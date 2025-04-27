@@ -16,20 +16,6 @@
 
 package com.palantir.gradle.testing.files.arbitrary;
 
-import com.palantir.gradle.testing.files.GradleSourceSet;
-import com.palantir.gradle.testing.files.yaml.YamlFile;
 import java.nio.file.Path;
 
-public record ArbitrarySrcDir(GradleSourceSet sourceSet, String srcDirName) {
-    public ArbitraryFile file(String path) {
-        return new ArbitraryFile(resolvePath(path));
-    }
-
-    public YamlFile yamlFile(String path) {
-        return new YamlFile(resolvePath(path));
-    }
-
-    private Path resolvePath(String path) {
-        return sourceSet.path().resolve(srcDirName).resolve(path);
-    }
-}
+public record ArbitrarySrcDir(Path path) implements ArbitraryFileFactory {}

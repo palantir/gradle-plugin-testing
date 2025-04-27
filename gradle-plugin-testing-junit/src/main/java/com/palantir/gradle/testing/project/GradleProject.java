@@ -17,18 +17,19 @@
 package com.palantir.gradle.testing.project;
 
 import com.palantir.gradle.testing.files.GradleSourceSet;
+import com.palantir.gradle.testing.files.arbitrary.ArbitraryFileFactory;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface GradleProject {
-    Path projectDir();
+public interface GradleProject extends ArbitraryFileFactory {
+    Path path();
 
     RootProject rootProject();
 
     default SubProject addSubproject(String name) {
-        Path subprojectDir = projectDir().resolve(name);
+        Path subprojectDir = path().resolve(name);
 
         try {
             Files.createDirectories(subprojectDir);
@@ -37,15 +38,11 @@ public interface GradleProject {
         }
 
         String subprojectPath =
-                rootProject().projectDir().relativize(subprojectDir).toString().replace('/', ':');
+                rootProject().path().relativize(subprojectDir).toString().replace('/', ':');
 
         rootProject().settingsFile().appendLine("include '%s'".formatted(subprojectPath));
 
         return new SubProject(name, subprojectDir, rootProject());
-    }
-
-    default GradleFile gradleFile(String name) {
-        return new GradleFile(projectDir().resolve(name));
     }
 
     default GradleFile buildFile() {
@@ -61,6 +58,6 @@ public interface GradleProject {
     }
 
     default GradleSourceSet sourceSet(String sourceSetName) {
-        return new GradleSourceSet(projectDir(), sourceSetName);
+        return new GradleSourceSet(path().resolve("src").resolve(sourceSetName));
     }
 }

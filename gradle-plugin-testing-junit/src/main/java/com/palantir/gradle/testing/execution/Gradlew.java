@@ -26,13 +26,12 @@ public final class Gradlew {
         this.rootProjectDir = rootProjectDir;
     }
 
-    public GradleInvocation build(String... args) {
+    public GradleInvocation withArgs(String... args) {
         return new GradleInvocation(GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(false)
                 .forwardOutput()
                 .withGradleVersion("8.12.1")
-                .withPluginClasspath()
                 .withArguments(args));
     }
 }
