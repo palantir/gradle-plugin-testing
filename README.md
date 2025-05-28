@@ -106,7 +106,7 @@ dependencies {
 # Resolution of Gradle versions to test against
 Similarly, tests may hardcode versions of Gradle that they need to stay compatible with. These versions also get stale and PRs start failing for the inverse reason of the above - the code in the plugin or a dependency of it is updated and is no longer compatible with an old version of Gradle. For example, attempting to update jackson libraries from `2.15.0` -> `2.17.0` would fail if a test tried to run on Gradle versiosn < `7.6.4` (when compatibility with jackson `2.17.0` was fixed).
 
-The `GradleTestVersions` class can provide up-to-date versions of Gradle to test against.  
+The `GradleTestVersions` class can provide up-to-date versions of Gradle to test against. It will always include the current Gradle version.
 ```groovy
 import nebula.test.IntegrationSpec
 import com.palantir.gradle.plugintesting.GradleTestVersions

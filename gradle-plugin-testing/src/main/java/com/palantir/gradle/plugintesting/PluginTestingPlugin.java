@@ -18,6 +18,7 @@ package com.palantir.gradle.plugintesting;
 
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -28,6 +29,8 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.impldep.com.google.common.collect.ImmutableSet;
+import org.gradle.util.GradleVersion;
 
 public class PluginTestingPlugin implements Plugin<Project> {
     /**
@@ -85,8 +88,11 @@ public class PluginTestingPlugin implements Plugin<Project> {
                                     .getAbsolutePath());
 
                     // add system property for what versions of gradle should be used in tests
-                    String versions =
-                            String.join(",", testUtilsExt.getGradleVersions().get());
+                    Set<String> gradleVersions = ImmutableSet.<String>builder()
+                            .addAll(testUtilsExt.getGradleVersions().get())
+                            .add(GradleVersion.current().getVersion())
+                            .build();
+                    String versions = String.join(",", gradleVersions);
                     test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
 
                     // add system property to ignore gradle deprecations so that nebula tests don't fail
