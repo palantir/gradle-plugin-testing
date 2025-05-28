@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.plugintesting;
 
+import com.google.common.collect.ImmutableSet;
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import java.util.Optional;
 import java.util.Set;
@@ -29,7 +30,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.impldep.com.google.common.collect.ImmutableSet;
 import org.gradle.util.GradleVersion;
 
 public class PluginTestingPlugin implements Plugin<Project> {
