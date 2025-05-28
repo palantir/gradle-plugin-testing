@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: GradleTestVersions should always include `GradleVersion.current()`
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/99
