@@ -63,7 +63,11 @@ public final class TestDependencyVersions {
         return depName + ":" + version(depName);
     }
 
-    @SuppressWarnings("for-rollout:PreferSafeLoggableExceptions")
+    @SuppressWarnings({
+        "for-rollout:PreferSafeLoggableExceptions",
+        "for-rollout:PreferredInterfaceType",
+        "for-rollout:ThrowSpecificExceptions"
+    })
     private static Map<String, String> loadVersions() {
         String fileName = System.getProperty(TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY);
         if (fileName == null) {

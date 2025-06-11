@@ -39,6 +39,7 @@ public final class GradleTestVersions {
         return gradleVersionsSupplier.get();
     }
 
+    @SuppressWarnings("for-rollout:PreferredInterfaceType")
     private static List<String> loadVersions() {
         // use a set to get rid of duplicates
         Set<String> result = new LinkedHashSet<>();

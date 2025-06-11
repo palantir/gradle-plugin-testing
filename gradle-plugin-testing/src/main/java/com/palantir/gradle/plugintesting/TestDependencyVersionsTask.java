@@ -47,6 +47,7 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
+    @SuppressWarnings("for-rollout:ThrowSpecificExceptions")
     @TaskAction
     public final void doAction() {
         List<String> depSet = getDependencyStrings(getClasspathConfiguration().get());

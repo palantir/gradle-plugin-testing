@@ -37,6 +37,7 @@ public final class TestContentHelpers {
      * Add version strings to the versions.props file for the given dependencies using the information from
      * TestDependencyVersions.
      */
+    @SuppressWarnings("for-rollout:ThrowSpecificExceptions")
     public static void addVersionsToPropsFile(File versionPropsFile, Collection<String> dependencies) {
         String versionsProps = dependencies.stream()
                 .map(dep -> dep + " = " + TestDependencyVersions.version(dep))
