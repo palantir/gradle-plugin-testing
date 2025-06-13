@@ -33,7 +33,6 @@ public class TestDependencyVersionsTests {
             com.palantir:gradle-plugin-testing=1.2.3
             """;
 
-    @SuppressWarnings("for-rollout:NonFinalStaticField")
     @TempDir
     static Path tempDir;
 
