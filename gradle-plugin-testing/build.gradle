@@ -8,8 +8,10 @@ dependencies {
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.netflix.nebula:nebula-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.codehaus.groovy:groovy'
+    testImplementation 'org.spockframework:spock-core'
 
     testRuntimeOnly 'com.google.guava:guava'
     testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'

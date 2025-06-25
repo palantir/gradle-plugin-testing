@@ -28,6 +28,7 @@ apply plugin: 'com.palantir.gradle-guide'
 apply plugin: 'com.palantir.jdks'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.baseline'
+apply plugin: 'com.palantir.baseline-exact-dependencies'
 apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.baseline-format'
 apply plugin: 'com.palantir.jdks.latest'
@@ -36,6 +37,7 @@ apply plugin: 'com.palantir.failure-reports'
 version gitVersion()
 
 allprojects {
+    apply plugin: 'java-library'
     apply plugin: 'com.palantir.java-format'
     apply plugin: 'com.palantir.jakarta-package-alignment'
 
@@ -46,6 +48,8 @@ allprojects {
 
     group 'com.palantir.gradle.plugintesting'
     version rootProject.version
+
+    tasks.check.dependsOn checkImplicitDependencies, checkUnusedDependencies
 }
 
 javaVersions {

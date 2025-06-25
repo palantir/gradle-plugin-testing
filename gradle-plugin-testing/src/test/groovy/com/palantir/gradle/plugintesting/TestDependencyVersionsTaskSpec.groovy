@@ -61,7 +61,7 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         outputFile.exists()
         !outputFile.text.contains('null')
         outputFile.text.contains('org.ow2.asm:asm=9.7.1')
-        outputFile.text.contains('org.junit.jupiter:junit-jupiter=5.11.3')
+        outputFile.text.contains('org.junit.jupiter:junit-jupiter=5.13.1')
         outputFile.text.contains('com.netflix.nebula:nebula-test=10.6.1')
         outputFile.text.contains('com.palantir.gradle.consistentversions:gradle-consistent-versions=2.31.0')
         outputFile.text.contains('com.palantir.gradle.plugintesting:plugin-testing-core')
