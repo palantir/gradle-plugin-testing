@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Add JUnit5 argument provider for `GradleTestVersions`.
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/111
