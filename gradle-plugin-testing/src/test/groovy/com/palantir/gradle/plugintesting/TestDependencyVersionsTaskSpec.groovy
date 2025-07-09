@@ -17,6 +17,7 @@
 package com.palantir.gradle.plugintesting
 
 import static TestDependencyVersions.resolve
+import com.palantir.gradle.plugintesting.PluginTestingPlugin
 
 class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
 
@@ -64,16 +65,13 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         outputFile.text.contains('org.junit.jupiter:junit-jupiter=5.13.1')
         outputFile.text.contains('com.netflix.nebula:nebula-test=10.6.1')
         outputFile.text.contains('com.palantir.gradle.consistentversions:gradle-consistent-versions=2.31.0')
-        outputFile.text.contains('com.palantir.gradle.plugintesting:plugin-testing-core')
+        PluginTestingPlugin.CORE_MAVEN_NAMES.each { coreName ->
+            assert outputFile.text.contains("com.palantir.gradle.plugintesting:${coreName}")
+        }
     }
 
     def 'write versions with GCV'() {
         given:
-        // remember - the resolved version for this dependency is using the information passed from the version of the plugin
-        // applied to the gradle-plugin-test project itself, _not_ the current version under test.  So the
-        // addBuildScriptDependencies code and the "resolve" logic it calls is the current version, but the information
-        // it is working with is from the last published version of the plugin (assuming that's the one applied to the
-        // root build.gradle file of this project.
         buildFile << TestContentHelpers.addBuildScriptBlock('mavenCentral()', 'com.palantir.gradle.consistentversions:gradle-consistent-versions')
         //language=gradle
         buildFile << """
@@ -110,5 +108,8 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         outputFile.exists()
         !outputFile.text.contains('null')
         outputFile.text.contains('org.junit.jupiter:junit-jupiter')
+        PluginTestingPlugin.CORE_MAVEN_NAMES.each { coreName ->
+            assert outputFile.text.contains("com.palantir.gradle.plugintesting:${coreName}")
+        }
     }
 }

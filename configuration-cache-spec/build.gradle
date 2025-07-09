@@ -1,0 +1,8 @@
+apply plugin: 'groovy'
+apply plugin: 'com.palantir.gradle-plugin-testing'
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    implementation 'com.netflix.nebula:nebula-test'
+    implementation gradleTestKit()
+}

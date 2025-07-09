@@ -6,6 +6,7 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
     implementation project(':plugin-testing-core')
+    implementation project(':configuration-cache-spec')
     implementation 'com.palantir.baseline:gradle-baseline-java'
 
     testImplementation 'com.netflix.nebula:nebula-test'
