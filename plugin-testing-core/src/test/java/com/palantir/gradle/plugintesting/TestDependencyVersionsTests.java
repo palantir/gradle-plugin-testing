@@ -36,6 +36,7 @@ public class TestDependencyVersionsTests {
     @TempDir
     static Path tempDir;
 
+    @SuppressWarnings("for-rollout:PreferUncheckedIoException")
     @BeforeAll
     public static void beforeAll() {
         Path versionsFile = tempDir.resolve("dependency-versions.properties");
