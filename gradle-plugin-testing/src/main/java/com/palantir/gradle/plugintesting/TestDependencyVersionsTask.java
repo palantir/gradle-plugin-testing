@@ -17,6 +17,7 @@
 package com.palantir.gradle.plugintesting;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
@@ -47,7 +48,6 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
-    @SuppressWarnings("for-rollout:PreferUncheckedIoException")
     @TaskAction
     public final void doAction() {
         List<String> depSet = getDependencyStrings(getClasspathConfiguration().get());
@@ -55,7 +55,7 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
         try {
             Files.write(getOutputFile().get().getAsFile().toPath(), depsString.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

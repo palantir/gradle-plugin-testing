@@ -18,6 +18,7 @@ package com.palantir.gradle.plugintesting;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -37,7 +38,6 @@ public final class TestContentHelpers {
      * Add version strings to the versions.props file for the given dependencies using the information from
      * TestDependencyVersions.
      */
-    @SuppressWarnings("for-rollout:PreferUncheckedIoException")
     public static void addVersionsToPropsFile(File versionPropsFile, Collection<String> dependencies) {
         String versionsProps = dependencies.stream()
                 .map(dep -> dep + " = " + TestDependencyVersions.version(dep))
@@ -46,7 +46,7 @@ public final class TestContentHelpers {
         try {
             Files.writeString(versionPropsFile.toPath(), versionsProps, StandardCharsets.UTF_8, WRITE_OPTIONS);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

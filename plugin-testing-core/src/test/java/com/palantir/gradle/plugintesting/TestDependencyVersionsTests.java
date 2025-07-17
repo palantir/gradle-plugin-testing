@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,7 +37,6 @@ public class TestDependencyVersionsTests {
     @TempDir
     static Path tempDir;
 
-    @SuppressWarnings("for-rollout:PreferUncheckedIoException")
     @BeforeAll
     public static void beforeAll() {
         Path versionsFile = tempDir.resolve("dependency-versions.properties");
@@ -46,7 +46,7 @@ public class TestDependencyVersionsTests {
         try {
             Files.writeString(versionsFile, SAMPLE_VERSIONS);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
