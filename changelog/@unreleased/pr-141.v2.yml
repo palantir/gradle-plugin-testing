@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Add `ConfigurationCacheSpec` as part of gradle-plugin-testing
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/141
