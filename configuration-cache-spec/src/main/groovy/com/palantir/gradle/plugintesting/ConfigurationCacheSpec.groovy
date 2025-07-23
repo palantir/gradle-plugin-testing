@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.configurationcachespec
+package com.palantir.gradle.plugintesting
 
 import nebula.test.IntegrationTestKitSpec
 import org.gradle.testkit.runner.BuildResult
