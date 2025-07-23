@@ -20,6 +20,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -83,7 +84,7 @@ public final class TestDependencyVersions {
                     .collect(Collectors.toMap(dep -> dep[0], dep -> dep[1]));
             return ImmutableMap.copyOf(results);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

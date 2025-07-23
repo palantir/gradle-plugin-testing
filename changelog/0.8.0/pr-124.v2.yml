@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: '`GradleTestVersions` no longer includes Gradle 7 by default.'
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/124

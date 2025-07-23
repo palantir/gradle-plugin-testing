@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  */
 public final class GradleTestVersions {
     static final String TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY = "TEST_GRADLE_VERSIONS";
-    static final List<String> DEFAULT_TEST_GRADLE_VERSIONS = Arrays.asList("7.6.4", "8.8");
+    static final List<String> DEFAULT_TEST_GRADLE_VERSIONS = Arrays.asList("8.14.3");
 
     private static final Supplier<List<String>> gradleVersionsSupplier =
             Suppliers.memoize(GradleTestVersions::loadVersions);
