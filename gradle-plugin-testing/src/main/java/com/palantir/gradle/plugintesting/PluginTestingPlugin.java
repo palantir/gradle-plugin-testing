@@ -125,18 +125,14 @@ public class PluginTestingPlugin implements Plugin<Project> {
 
         String testImplConfigName = testSourceSet.getImplementationConfigurationName();
         project.getConfigurations().named(testImplConfigName).configure(conf -> {
-            for (String name : CORE_MAVEN_NAMES) {
-                conf.getDependencies()
-                        .add(project.getDependencies().create(coreMavenCoordinates(name) + ":" + version));
-            }
+            CORE_MAVEN_NAMES.forEach(name -> conf.getDependencies()
+                    .add(project.getDependencies().create(coreMavenCoordinates(name) + ":" + version)));
         });
 
         // add to ignore list for CheckUnusedDependencies
         project.getPluginManager().withPlugin("com.palantir.baseline-exact-dependencies", _unused -> {
             project.getTasks().withType(CheckUnusedDependenciesParentTask.class).configureEach(task -> {
-                for (String name : CORE_MAVEN_NAMES) {
-                    task.ignore(MAVEN_GROUP, name);
-                }
+                CORE_MAVEN_NAMES.forEach(name -> task.ignore(MAVEN_GROUP, name));
             });
         });
     }
