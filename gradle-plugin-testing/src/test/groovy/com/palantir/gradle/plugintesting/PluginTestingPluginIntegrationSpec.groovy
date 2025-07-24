@@ -249,8 +249,8 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         def result = runTasks('test')
 
         then:
-        result.standardOutput.contains('test with version: #version > test with version: 7.6.4')
-        result.standardOutput.contains('test with version: #version > test with version: 8.10.1')
+        result.standardOutput.contains('test with version: #configuredVersion > test with version: 7.6.4')
+        result.standardOutput.contains('test with version: #configuredVersion > test with version: 8.10.1')
         
         where:
         version << GradleTestVersions.gradleVersionsForTests
