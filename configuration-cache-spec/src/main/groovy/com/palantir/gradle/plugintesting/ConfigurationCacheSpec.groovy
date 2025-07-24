@@ -26,11 +26,6 @@ abstract class ConfigurationCacheSpec extends IntegrationTestKitSpec {
         keepFiles = true
     }
 
-    // keep parity with old fileExists method
-    Boolean fileExists(String path) {
-        return new File(projectDir, path).exists()
-    }
-
     BuildResult runTasksWithConfigurationCacheAndCheck(String... tasks) {
         def firstRun = runTasksWithConfigurationCache(false, false, tasks)
         assert firstRun.output.contains('Configuration cache entry stored.')
