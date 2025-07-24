@@ -51,7 +51,6 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 implementation gradleApi()
                 implementation 'com.google.guava:guava'
                 
-                testImplementation 'org.codehaus.groovy:groovy'
                 testImplementation 'org.junit.jupiter:junit-jupiter'
                 testImplementation 'com.netflix.nebula:nebula-test'
 
@@ -105,7 +104,6 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 'org.junit.jupiter:junit-jupiter',
                 'com.netflix.nebula:nebula-test',
                 'com.google.guava:guava',
-                'org.codehaus.groovy:groovy',
                 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
         runTasksSuccessfully('writeVersionLocks')
     }
