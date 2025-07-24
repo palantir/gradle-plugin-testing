@@ -26,28 +26,39 @@ abstract class ConfigurationCacheSpec extends IntegrationTestKitSpec {
         keepFiles = true
     }
 
+    // keep parity with old fileExists method
     Boolean fileExists(String path) {
         return new File(projectDir, path).exists()
     }
 
     BuildResult runTasksWithConfigurationCacheAndCheck(String... tasks) {
-        def firstRun = runTasksWithConfigurationCache(false, tasks)
+        def firstRun = runTasksWithConfigurationCache(false, false, tasks)
         assert firstRun.output.contains('Configuration cache entry stored.')
-        def secondRun = runTasksWithConfigurationCache(tasks)
+        def secondRun = runTasksWithConfigurationCache(true, false, tasks)
         assert secondRun.output.contains('Configuration cache entry reused.')
 
         return firstRun
     }
 
-    BuildResult runTasksWithConfigurationCache(String... tasks) {
-        return runTasksWithConfigurationCache(true, tasks)
+    BuildResult runTasksAndFailWithConfigurationCache(String... tasks) {
+        def run = runTasksWithConfigurationCache(true, true, tasks)
+        assert run.output.contains('Configuration cache entry stored.')
+        return run
     }
 
-    BuildResult runTasksWithConfigurationCache(boolean cleanUp, String... tasks) {
-        def run = createRunner(tasks + ['--configuration-cache'] as String[]).build()
+    BuildResult runTasksWithConfigurationCache(String... tasks) {
+        def run =  runTasksWithConfigurationCache(true, false, tasks)
+        assert run.output.contains('Configuration cache entry stored.')
+        return run
+    }
 
-        assert run.output.contains('Configuration cache entry stored.') ||
-                run.output.contains('Configuration cache entry reused.')
+    BuildResult runTasksWithConfigurationCache(boolean cleanUp, boolean fail, String... tasks) {
+        def run
+        if (fail) {
+            run = runTasksAndFail(tasks + ['--configuration-cache'] as String[])
+        } else {
+            run = runTasks(tasks + ['--configuration-cache'] as String[])
+        }
 
         File configCacheDir = new File(projectDir, ".gradle/configuration-cache")
         if (configCacheDir.exists() && cleanUp) {
