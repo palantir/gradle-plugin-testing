@@ -17,6 +17,7 @@
 package com.palantir.gradle.plugintesting
 
 import static TestDependencyVersions.resolve
+import com.palantir.gradle.plugintesting.GradleTestVersions
 
 class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
@@ -112,29 +113,37 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
      * this is just a sanity check test to verify that nebula behaves as expected in the default case.  That is, it
      * will fail the test if there are gradle deprecation warnings.
      */
-    def 'fails with gradle deprecation warnings when plugin not applied'() {
+    def 'fails with gradle deprecation warnings when plugin not applied with version: #version'() {
         when:
+        gradleVersion = version
         def result = runTasks('test')
 
         then:
         result.standardOutput.contains('HelloWorldSpec > someTest FAILED')
         result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
         !result.success
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'ignoreDeprecations automatically set when plugin applied'() {
+    def 'ignoreDeprecations automatically set when plugin applied with version: #version'() {
         given:
         applyTestUtilsPlugin()
 
         when:
+        gradleVersion = version
         def result = runTasks('test')
 
         then:
         result.success
         !result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'do not set ignoreDeprecations'() {
+    def 'do not set ignoreDeprecations with version: #version'() {
         given:
         applyTestUtilsPlugin()
         buildFile << """
@@ -144,28 +153,36 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         """.stripIndent(true)
 
         when:
+        gradleVersion = version
         def result = runTasks('test')
 
         then:
         result.standardOutput.contains('HelloWorldSpec > someTest FAILED')
         result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
         !result.success
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'works when applied before other plugins'() {
+    def 'works when applied before other plugins with version: #version'() {
         given:
         prependToBuildFile('''
             apply plugin: 'com.palantir.gradle-plugin-testing'
         ''')
 
         when:
+        gradleVersion = version
         def result = runTasks('test')
 
         then:
         result.success
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'resolve dependencies'() {
+    def 'resolve dependencies with version: #version'() {
         given:
         applyTestUtilsPlugin()
         specUnderTest.text = specUnderTest.text
@@ -181,15 +198,19 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         ''')
 
         when:
+        gradleVersion = version
         def result = runTasks('test')
 
         then:
         result.success
         def generatedBuildFile = file('build/nebulatest/com.testing.HelloWorldSpec/someTest/build.gradle')
         generatedBuildFile.exists()
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'override gradle testing versions'() {
+    def 'override gradle testing versions with version: #version'() {
         given:
         applyTestUtilsPlugin()
         buildFile << """
@@ -206,9 +227,9 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
             //language=groovy
             .replace('//INSERT MORE TESTS HERE', '''
-               def 'test with version: #version'() {
+               def 'test with version: #configuredVersion'() {
                     when:
-                    gradleVersion = version
+                    gradleVersion = configuredVersion
             
                     then:
                     def result = runTasks('test')
@@ -219,19 +240,23 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                     result.success
             
                     where:
-                    version << GradleTestVersions.gradleVersionsForTests
+                    configuredVersion << GradleTestVersions.gradleVersionsForTests
                 }
             '''.stripIndent())
 
         when:
+        gradleVersion = version
         def result = runTasks('test')
 
         then:
         result.standardOutput.contains('test with version: #version > test with version: 7.6.4')
         result.standardOutput.contains('test with version: #version > test with version: 8.10.1')
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'checkUnusedDependencies ignores the plugin'() {
+    def 'checkUnusedDependencies ignores the plugin with version: #version'() {
         given:
         //language=gradle
         prependToBuildFile("""
@@ -264,11 +289,15 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         '''.stripIndent(true)
 
         when:
+        gradleVersion = version
         def result = runTasks('checkUnusedDependencies')
 
         then:
         !result.standardOutput.contains('Found 1 dependencies unused during compilation')
         result.success
+        
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 
     void applyTestUtilsPlugin() {
