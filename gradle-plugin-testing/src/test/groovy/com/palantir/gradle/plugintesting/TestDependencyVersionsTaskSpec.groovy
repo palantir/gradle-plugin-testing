@@ -47,8 +47,7 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
                 //implementation 'com.google.guava:guava:33.3.1-jre'
                 implementation 'org.ow2.asm:asm:9.7.1'
 
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
-                testImplementation 'com.netflix.nebula:nebula-test:10.6.1'
+                testImplementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
 
                 testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0'
             }
@@ -61,8 +60,7 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         outputFile.exists()
         !outputFile.text.contains('null')
         outputFile.text.contains('org.ow2.asm:asm=9.7.1')
-        outputFile.text.contains('org.junit.jupiter:junit-jupiter=5.13.1')
-        outputFile.text.contains('com.netflix.nebula:nebula-test=10.6.1')
+        outputFile.text.contains('org.apache.httpcomponents.client5:httpclient5=5.3.1')
         outputFile.text.contains('com.palantir.gradle.consistentversions:gradle-consistent-versions=2.31.0')
         outputFile.text.contains('com.palantir.gradle.plugintesting:plugin-testing-core')
     }
