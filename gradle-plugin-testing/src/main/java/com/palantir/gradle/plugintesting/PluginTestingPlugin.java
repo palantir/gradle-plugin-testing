@@ -35,8 +35,9 @@ public class PluginTestingPlugin implements Plugin<Project> {
      */
     static final String PLUGIN_VERSION_PROPERTY_NAME = "pluginTestingPluginVersion";
 
+    static final List<String> CORE_MAVEN_NAMES = List.of("plugin-testing-core", "configuration-cache-spec");
+
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
-    private static final List<String> CORE_MAVEN_NAMES = List.of("plugin-testing-core", "configuration-cache-spec");
 
     private static String coreMavenCoordinates(String name) {
         return MAVEN_GROUP + ":" + name;

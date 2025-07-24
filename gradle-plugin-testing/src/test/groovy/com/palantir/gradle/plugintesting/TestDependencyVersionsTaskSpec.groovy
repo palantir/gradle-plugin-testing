@@ -65,8 +65,8 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         outputFile.text.contains('org.junit.jupiter:junit-jupiter=5.13.1')
         outputFile.text.contains('com.netflix.nebula:nebula-test=10.6.2')
         outputFile.text.contains('com.palantir.gradle.consistentversions:gradle-consistent-versions=2.31.0')
-        PluginTestingPlugin.CORE_MAVEN_NAMES.each { coreName ->
-            assert outputFile.text.contains("com.palantir.gradle.plugintesting:${coreName}")
+        PluginTestingPlugin.CORE_MAVEN_NAMES.each { name ->
+            assert outputFile.text.contains("com.palantir.gradle.plugintesting:${name}")
         }
     }
 
@@ -113,8 +113,8 @@ class TestDependencyVersionsTaskSpec extends AbstractTestingPluginSpec {
         outputFile.exists()
         !outputFile.text.contains('null')
         outputFile.text.contains('org.junit.jupiter:junit-jupiter')
-        PluginTestingPlugin.CORE_MAVEN_NAMES.each { coreName ->
-            assert outputFile.text.contains("com.palantir.gradle.plugintesting:${coreName}")
+        PluginTestingPlugin.CORE_MAVEN_NAMES.each { name ->
+            assert outputFile.text.contains("com.palantir.gradle.plugintesting:${name}")
         }
     }
 }
