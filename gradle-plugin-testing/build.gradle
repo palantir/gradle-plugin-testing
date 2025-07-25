@@ -40,5 +40,5 @@ test {
 }
 
 gradleTestUtils {
-    gradleVersions = ['8.8', '8.14.3']
+    gradleVersions = ['8.14.3']
 }
