@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Make `gradle-plugin-testing` compatible with the Configuration-Cache
+  links:
+  - https://github.com/palantir/gradle-plugin-testing/pull/152
