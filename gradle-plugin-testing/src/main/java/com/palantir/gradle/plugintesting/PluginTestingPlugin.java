@@ -17,13 +17,19 @@ package com.palantir.gradle.plugintesting;
 
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -42,6 +48,8 @@ public class PluginTestingPlugin implements Plugin<Project> {
     private static String coreMavenCoordinates(String name) {
         return MAVEN_GROUP + ":" + name;
     }
+
+    private static final Logger log = Logging.getLogger(PluginTestingPlugin.class);
 
     /**
      * Applies the plugin to the given project.
@@ -67,38 +75,47 @@ public class PluginTestingPlugin implements Plugin<Project> {
                     SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
                     NamedDomainObjectProvider<Configuration> testRuntimeConfig =
                             project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
-                    task.getClasspathConfiguration().set(testRuntimeConfig);
+                    Provider<Iterable<ModuleVersionIdentifier>> testRuntimeDependencies = testRuntimeConfig.map(
+                            config -> config.getIncoming().getResolutionResult().getAllComponents().stream()
+                                    .map(component -> {
+                                        ModuleVersionIdentifier moduleInfo = component.getModuleVersion();
+                                        if (moduleInfo == null) {
+                                            log.info(
+                                                    "Component with null module version will not be included in {}: {}",
+                                                    TestDependencyVersionsTask.FILENAME,
+                                                    component.getId());
+                                        }
+                                        return moduleInfo;
+                                    })
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toUnmodifiableSet()));
+                    task.getTestRuntimeDependencies().set(testRuntimeDependencies);
                 });
+
+        Provider<String> testDependenciesFileAbsolutePath = project.provider(() ->
+                testDependencyVersions.get().getOutputFile().get().getAsFile().getAbsolutePath());
 
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.dependsOn(testDependencyVersions);
 
             // need to use the doFirst so that any custom settings on the extension are applied before reading
             // the values and setting the system properties.
-            Action<Task> action = new Action<>() {
-                @Override
-                public void execute(Task _task) {
-                    // add system property for name of file to read for dependency versions
-                    test.systemProperty(
-                            TestDependencyVersions.TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY,
-                            testDependencyVersions
-                                    .get()
-                                    .getOutputFile()
-                                    .get()
-                                    .getAsFile()
-                                    .getAbsolutePath());
+            Action<Task> action = _task -> {
+                // add system property for name of file to read for dependency versions
+                test.systemProperty(
+                        TestDependencyVersions.TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY,
+                        testDependenciesFileAbsolutePath.get());
 
-                    // add system property for what versions of gradle should be used in tests
-                    String versions =
-                            String.join(",", testUtilsExt.getGradleVersions().get());
-                    test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
+                // add system property for what versions of gradle should be used in tests
+                String versions =
+                        String.join(",", testUtilsExt.getGradleVersions().get());
+                test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
 
-                    // add system property to ignore gradle deprecations so that nebula tests don't fail
-                    if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
-                        // from
-                        // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
-                        test.systemProperty("ignoreDeprecations", "true");
-                    }
+                // add system property to ignore gradle deprecations so that nebula tests don't fail
+                if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
+                    // from
+                    // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
+                    test.systemProperty("ignoreDeprecations", "true");
                 }
             };
             test.doFirst(action);

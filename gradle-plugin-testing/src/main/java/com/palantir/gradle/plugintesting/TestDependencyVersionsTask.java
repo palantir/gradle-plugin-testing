@@ -21,37 +21,35 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 @CacheableTask
 public abstract class TestDependencyVersionsTask extends DefaultTask {
+    public static final String FILENAME = "plugin-testing/dependency-versions.properties";
 
     public TestDependencyVersionsTask() {
-        getOutputFile()
-                .convention(getProject()
-                        .getLayout()
-                        .getBuildDirectory()
-                        .file("plugin-testing/dependency-versions.properties"));
+        getOutputFile().convention(getProject().getLayout().getBuildDirectory().file(FILENAME));
     }
 
-    @Classpath
-    abstract Property<Configuration> getClasspathConfiguration();
+    @Input
+    abstract SetProperty<ModuleVersionIdentifier> getTestRuntimeDependencies();
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
     @TaskAction
     public final void doAction() {
-        List<String> depSet = getDependencyStrings(getClasspathConfiguration().get());
-        String depsString = String.join("\n", depSet);
+        String depsString = String.join(
+                "\n", getDependencyStrings(getTestRuntimeDependencies().get()));
         try {
             Files.write(getOutputFile().get().getAsFile().toPath(), depsString.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -62,9 +60,9 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
     /**
      * Returns a list of all dependencies, sorted and deduplicated.
      */
-    private static List<String> getDependencyStrings(Configuration config) {
-        return config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
-                .map(dep -> dep.getModuleGroup() + ":" + dep.getModuleName() + "=" + dep.getModuleVersion())
+    private static List<String> getDependencyStrings(Set<ModuleVersionIdentifier> dependencies) {
+        return dependencies.stream()
+                .map(dep -> dep.getGroup() + ":" + dep.getName() + "=" + dep.getVersion())
                 .sorted()
                 .distinct()
                 .collect(Collectors.toList());
