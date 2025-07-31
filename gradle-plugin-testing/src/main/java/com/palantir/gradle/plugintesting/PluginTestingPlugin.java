@@ -98,27 +98,32 @@ public class PluginTestingPlugin implements Plugin<Project> {
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.dependsOn(testDependencyVersions);
 
-            // need to use the doFirst so that any custom settings on the extension are applied before reading
-            // the values and setting the system properties.
-            Action<Task> action = _task -> {
-                // add system property for name of file to read for dependency versions
-                test.systemProperty(
-                        TestDependencyVersions.TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY,
-                        testDependenciesFileAbsolutePath.get());
+            // doFirst so any custom settings on the extension are applied before reading the values and setting
+            // the system properties.
 
-                // add system property for what versions of gradle should be used in tests
-                String versions =
-                        String.join(",", testUtilsExt.getGradleVersions().get());
-                test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
+            // Do not replace with a lambda! Lambdas aren't build cacheable.
+            // https://github.com/gradle/gradle/issues/5510
+            test.doFirst(new Action<>() {
+                @Override
+                public void execute(Task _task) {
+                    // add system property for name of file to read for dependency versions
+                    test.systemProperty(
+                            TestDependencyVersions.TEST_DEPENDENCIES_FILE_SYSTEM_PROPERTY,
+                            testDependenciesFileAbsolutePath.get());
 
-                // add system property to ignore gradle deprecations so that nebula tests don't fail
-                if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
-                    // from
-                    // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
-                    test.systemProperty("ignoreDeprecations", "true");
+                    // add system property for what versions of gradle should be used in tests
+                    String versions =
+                            String.join(",", testUtilsExt.getGradleVersions().get());
+                    test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
+
+                    // add system property to ignore gradle deprecations so that nebula tests don't fail
+                    if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
+                        // from
+                        // https://github.com/nebula-plugins/nebula-test/blob/main/src/main/groovy/nebula/test/IntegrationBase.groovy
+                        test.systemProperty("ignoreDeprecations", "true");
+                    }
                 }
-            };
-            test.doFirst(action);
+            });
         });
     }
 
