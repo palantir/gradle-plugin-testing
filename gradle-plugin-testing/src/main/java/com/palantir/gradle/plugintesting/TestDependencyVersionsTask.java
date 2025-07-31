@@ -23,8 +23,10 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -36,8 +38,11 @@ import org.gradle.api.tasks.TaskAction;
 public abstract class TestDependencyVersionsTask extends DefaultTask {
     public static final String FILENAME = "plugin-testing/dependency-versions.properties";
 
+    @Inject
+    protected abstract ProjectLayout getProjectLayout();
+
     public TestDependencyVersionsTask() {
-        getOutputFile().convention(getProject().getLayout().getBuildDirectory().file(FILENAME));
+        getOutputFile().convention(getProjectLayout().getBuildDirectory().file(FILENAME));
     }
 
     @Input
