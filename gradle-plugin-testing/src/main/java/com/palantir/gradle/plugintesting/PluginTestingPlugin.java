@@ -17,7 +17,6 @@ package com.palantir.gradle.plugintesting;
 
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.gradle.api.Action;
@@ -27,8 +26,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -48,8 +46,6 @@ public class PluginTestingPlugin implements Plugin<Project> {
     private static String coreMavenCoordinates(String name) {
         return MAVEN_GROUP + ":" + name;
     }
-
-    private static final Logger log = Logging.getLogger(PluginTestingPlugin.class);
 
     /**
      * Applies the plugin to the given project.
@@ -77,17 +73,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
                             project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
                     Provider<Iterable<ModuleVersionIdentifier>> testRuntimeDependencies = testRuntimeConfig.map(
                             config -> config.getIncoming().getResolutionResult().getAllComponents().stream()
-                                    .map(component -> {
-                                        ModuleVersionIdentifier moduleInfo = component.getModuleVersion();
-                                        if (moduleInfo == null) {
-                                            log.info(
-                                                    "Component with null module version will not be included in {}: {}",
-                                                    TestDependencyVersionsTask.FILENAME,
-                                                    component.getId());
-                                        }
-                                        return moduleInfo;
-                                    })
-                                    .filter(Objects::nonNull)
+                                    .map(ResolvedComponentResult::getModuleVersion)
                                     .collect(Collectors.toUnmodifiableSet()));
                     task.getTestRuntimeDependencies().set(testRuntimeDependencies);
                 });
