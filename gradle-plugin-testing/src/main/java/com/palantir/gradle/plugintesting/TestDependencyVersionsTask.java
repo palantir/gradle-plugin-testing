@@ -17,6 +17,7 @@
 package com.palantir.gradle.plugintesting;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,7 +26,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
@@ -36,6 +36,8 @@ import org.gradle.api.tasks.TaskAction;
 
 @CacheableTask
 public abstract class TestDependencyVersionsTask extends DefaultTask {
+    public record TestDependency(String group, String name, String version) implements Serializable {}
+
     public static final String FILENAME = "plugin-testing/dependency-versions.properties";
 
     @Inject
@@ -46,7 +48,7 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
     }
 
     @Input
-    abstract SetProperty<ModuleVersionIdentifier> getTestRuntimeDependencies();
+    abstract SetProperty<TestDependency> getTestRuntimeDependencies();
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
@@ -65,9 +67,9 @@ public abstract class TestDependencyVersionsTask extends DefaultTask {
     /**
      * Returns a list of all dependencies, sorted and deduplicated.
      */
-    private static List<String> getDependencyStrings(Set<ModuleVersionIdentifier> dependencies) {
+    private static List<String> getDependencyStrings(Set<TestDependency> dependencies) {
         return dependencies.stream()
-                .map(dep -> dep.getGroup() + ":" + dep.getName() + "=" + dep.getVersion())
+                .map(dep -> dep.group() + ":" + dep.name() + "=" + dep.version())
                 .sorted()
                 .distinct()
                 .collect(Collectors.toList());

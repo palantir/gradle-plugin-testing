@@ -16,6 +16,7 @@
 package com.palantir.gradle.plugintesting;
 
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
+import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,8 +26,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -71,9 +70,10 @@ public class PluginTestingPlugin implements Plugin<Project> {
                     SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
                     NamedDomainObjectProvider<Configuration> testRuntimeConfig =
                             project.getConfigurations().named(sourceSet.getRuntimeClasspathConfigurationName());
-                    Provider<Iterable<ModuleVersionIdentifier>> testRuntimeDependencies = testRuntimeConfig.map(
-                            config -> config.getIncoming().getResolutionResult().getAllComponents().stream()
-                                    .map(ResolvedComponentResult::getModuleVersion)
+                    Provider<Iterable<TestDependency>> testRuntimeDependencies = testRuntimeConfig.map(
+                            config -> config.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
+                                    .map(dep -> new TestDependency(
+                                            dep.getModuleGroup(), dep.getModuleName(), dep.getModuleVersion()))
                                     .collect(Collectors.toUnmodifiableSet()));
                     task.getTestRuntimeDependencies().set(testRuntimeDependencies);
                 });
