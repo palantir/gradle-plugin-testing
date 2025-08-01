@@ -36,6 +36,6 @@ class ConfigurationCacheTest extends ConfigurationCacheSpec {
         expect:
         def projectVersion = Optional.ofNullable(System.getProperty('projectVersion')).orElseThrow()
         def systemProp = "-P${PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME}=${projectVersion}".toString()
-        runTasksWithConfigurationCache("classes", systemProp)
+        runTasksWithConfigurationCache("test", systemProp)
     }
 }
