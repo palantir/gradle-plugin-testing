@@ -23,6 +23,7 @@ import com.palantir.gradle.testing.project.SubProject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,6 +83,12 @@ public final class GradlePluginTesting implements Extension, ParameterResolver, 
                             .collect(Collectors.joining("/")));
             Path projectDir = classDir.resolve(context.getRequiredTestMethod().getName());
             clearDirectory(projectDir);
+            try {
+                Files.writeString(
+                        projectDir.resolve("settings.gradle"), "rootProject.name = 'root'", StandardOpenOption.CREATE);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not create settings.gradle", e);
+            }
             return projectDir;
         });
     }

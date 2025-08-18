@@ -33,6 +33,8 @@ public final class GradleVersionOutputterTest {
             file('gradle-version').text = GradleVersion.current()
             """);
 
-        gradlew.withArgs("help").buildSuccessfully();
+        gradlew.withArgs("help", "--no-build-cache").buildSuccessfully();
+
+        rootProject.file("foo.txt").assertThat().hasContent("hello");
     }
 }

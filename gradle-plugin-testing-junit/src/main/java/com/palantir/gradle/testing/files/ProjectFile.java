@@ -43,6 +43,10 @@ public interface ProjectFile<T extends ProjectFile<T>> {
         return append(line + "\n");
     }
 
+    default T createEmpty() {
+        return overwrite("");
+    }
+
     default AbstractPathAssert<?> assertThat() {
         return Assertions.assertThat(path());
     }

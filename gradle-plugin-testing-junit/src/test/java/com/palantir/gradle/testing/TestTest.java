@@ -30,6 +30,8 @@ final class TestTest {
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.4,8.12.1")
                 .execute();
 
+        executionResults.allEvents().debug();
+
         System.out.println("executionResults = " + executionResults);
     }
 }

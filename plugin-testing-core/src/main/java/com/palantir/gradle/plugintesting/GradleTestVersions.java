@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  * Utility class to maintain and update canonical list versions of gradle to test against.  This helps verify that a
  * plugin is both backwards and forwards compatible.
  */
-public final class GradleTestVersions {
+public final class GradleTesztVersions {
     static final String TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY = "TEST_GRADLE_VERSIONS";
     static final List<String> DEFAULT_TEST_GRADLE_VERSIONS = Arrays.asList("8.14.3");
 
