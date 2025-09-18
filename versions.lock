@@ -28,17 +28,17 @@ com.fasterxml.jackson.datatype:jackson-datatype-guava:2.19.2 (2 constraints: 793
 
 com.github.ben-manes.caffeine:caffeine:3.2.2 (1 constraints: c01107f5)
 
-com.google.errorprone:error_prone_annotations:2.40.0 (3 constraints: ad1f4950)
+com.google.errorprone:error_prone_annotations:2.41.0 (3 constraints: a91f3e50)
 
 com.google.guava:failureaccess:1.0.3 (2 constraints: f3154f13)
 
-com.google.guava:guava:33.4.8-jre (9 constraints: 4cb9b320)
+com.google.guava:guava:33.5.0-jre (9 constraints: 45b9f412)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
 com.google.inject:guice:5.1.0 (1 constraints: e20b61f3)
 
-com.google.j2objc:j2objc-annotations:3.0.0 (1 constraints: 150aeab4)
+com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
 com.googlecode.concurrent-trees:concurrent-trees:2.6.1 (1 constraints: 761166da)
 
