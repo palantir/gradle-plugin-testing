@@ -202,11 +202,11 @@ com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0 (1 cons
 
 com.palantir.gradle.consistentversions:gradle-consistent-versions-idea:2.31.0 (1 constraints: ea1b1262)
 
-net.bytebuddy:byte-buddy:1.15.11 (1 constraints: 7f0bc9ea)
+net.bytebuddy:byte-buddy:1.17.7 (1 constraints: 560b56df)
 
 one.util:streamex:0.8.3 (1 constraints: bf1b2c46)
 
-org.assertj:assertj-core:3.27.4 (1 constraints: 4205523b)
+org.assertj:assertj-core:3.27.5 (1 constraints: 4305533b)
 
 org.codehaus.woodstox:stax2-api:4.2.2 (2 constraints: 6a278bd2)
 
