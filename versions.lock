@@ -206,7 +206,7 @@ net.bytebuddy:byte-buddy:1.17.7 (1 constraints: 560b56df)
 
 one.util:streamex:0.8.3 (1 constraints: bf1b2c46)
 
-org.assertj:assertj-core:3.27.5 (1 constraints: 4305533b)
+org.assertj:assertj-core:3.27.6 (1 constraints: 4405543b)
 
 org.codehaus.woodstox:stax2-api:4.2.2 (2 constraints: 6a278bd2)
 
