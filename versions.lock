@@ -32,7 +32,7 @@ com.google.errorprone:error_prone_annotations:2.41.0 (3 constraints: a91f3e50)
 
 com.google.guava:failureaccess:1.0.3 (2 constraints: f3154f13)
 
-com.google.guava:guava:33.5.0-jre (9 constraints: 45b9f412)
+com.google.guava:guava:33.5.0-jre (9 constraints: 3eb90c0a)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
@@ -48,7 +48,7 @@ com.googlecode.javaewah:JavaEWAH:1.2.3 (1 constraints: 460e7e50)
 
 com.netflix.nebula:nebula-test:10.6.2 (1 constraints: 3b053b3b)
 
-com.palantir.baseline:gradle-baseline-java:6.57.0 (1 constraints: 44056c3b)
+com.palantir.baseline:gradle-baseline-java:6.58.0 (1 constraints: 45056f3b)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-exceptions:1.9.0 (2 constraints: 792d9a5d)
 
