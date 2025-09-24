@@ -8,5 +8,5 @@ com.palantir.gradle.consistentversions:gradle-consistent-versions = 2.31.0
 org.assertj:* = 3.27.6
 org.junit.jupiter:* = 5.13.4
 org.junit.platform:* = 1.13.4
-org.apache.commons:commons-lang3 = 3.18.0
+org.apache.commons:commons-lang3 = 3.19.0
 org.codehaus.groovy:* = 3.0.25
