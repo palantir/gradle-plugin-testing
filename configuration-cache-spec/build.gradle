@@ -2,7 +2,7 @@ apply plugin: 'groovy'
 apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
-    implementation 'com.netflix.nebula:nebula-test'
+    api 'com.netflix.nebula:nebula-test'
     implementation 'org.codehaus.groovy:groovy'
     implementation 'org.spockframework:spock-core'
     implementation gradleTestKit()
