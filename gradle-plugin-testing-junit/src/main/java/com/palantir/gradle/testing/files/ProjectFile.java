@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.files;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,7 +56,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
         try {
             return Files.readString(path());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -69,7 +70,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
             Files.writeString(path, text, StandardCharsets.UTF_8, allOptions);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 }

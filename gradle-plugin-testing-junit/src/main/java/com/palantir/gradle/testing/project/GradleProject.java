@@ -20,11 +20,12 @@ import com.palantir.gradle.testing.files.GradleSourceSet;
 import com.palantir.gradle.testing.files.arbitrary.ArbitraryFileFactory;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public interface GradleProject extends ArbitraryFileFactory {
-    Path path();
+    @Override Path path();
 
     RootProject rootProject();
 
@@ -34,7 +35,7 @@ public interface GradleProject extends ArbitraryFileFactory {
         try {
             Files.createDirectories(subprojectDir);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
 
         String subprojectPath =

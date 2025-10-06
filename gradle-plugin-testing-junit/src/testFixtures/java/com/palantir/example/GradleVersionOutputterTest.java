@@ -25,10 +25,7 @@ import org.junit.jupiter.api.Test;
 public final class GradleVersionOutputterTest {
     @Test
     void noop_test(Gradlew gradlew, RootProject rootProject) {
-        rootProject
-                .buildFile()
-                .append(
-                        """
+        rootProject.buildFile().append("""
             import org.gradle.util.GradleVersion
             file('gradle-version').text = GradleVersion.current()
             """);

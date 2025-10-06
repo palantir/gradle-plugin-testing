@@ -21,6 +21,7 @@ import com.palantir.gradle.testing.execution.Gradlew;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -87,7 +88,7 @@ public final class GradlePluginTesting implements Extension, ParameterResolver, 
                 Files.writeString(
                         projectDir.resolve("settings.gradle"), "rootProject.name = 'root'", StandardOpenOption.CREATE);
             } catch (IOException e) {
-                throw new RuntimeException("Could not create settings.gradle", e);
+                throw new UncheckedIOException("Could not create settings.gradle", e);
             }
             return projectDir;
         });
@@ -98,7 +99,7 @@ public final class GradlePluginTesting implements Extension, ParameterResolver, 
             FileUtils.deleteDirectory(projectDir.toFile());
             Files.createDirectories(projectDir);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
