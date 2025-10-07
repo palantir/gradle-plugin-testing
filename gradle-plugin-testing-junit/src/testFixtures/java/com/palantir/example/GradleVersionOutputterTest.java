@@ -19,19 +19,52 @@ package com.palantir.example;
 import com.palantir.gradle.testing.GradlePluginTests;
 import com.palantir.gradle.testing.execution.Gradlew;
 import com.palantir.gradle.testing.project.RootProject;
+import com.palantir.gradle.testing.project.SubProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 public final class GradleVersionOutputterTest {
     @Test
     void noop_test(Gradlew gradlew, RootProject rootProject) {
-        rootProject.buildFile().append("""
+        rootProject
+                .buildFile()
+                .append(
+                        """
             import org.gradle.util.GradleVersion
             file('gradle-version').text = GradleVersion.current()
             """);
 
+        SubProject subproject = rootProject.addSubproject("subproject");
+
+        subproject.buildFile().appendLine("apply plugin: 'java-library'");
+
+        subproject
+                .mainSourceSet()
+                .java()
+                .writeClass(
+                        """
+            package app;
+            public static class Main {
+                public static void main(String[] args) {
+                    System.out.println("hello");
+                }
+            }
+            """);
+
+        SubProject subsubproject = subproject.addSubproject("subsubproject");
+
+        subsubproject
+                .mainSourceSet()
+                .srcDir("conjure")
+                .yamlFile("conjure.yml")
+                .append("""
+            looky: here
+            yaml:
+              with: highlighting
+            """);
+
         gradlew.withArgs("help", "--no-build-cache").buildSuccessfully();
 
-        rootProject.file("foo.txt").assertThat().hasContent("hello");
+        rootProject.file("gradle-version").assertThat().hasContent("hello");
     }
 }

@@ -86,7 +86,9 @@ public final class GradlePluginTesting implements Extension, ParameterResolver, 
             clearDirectory(projectDir);
             try {
                 Files.writeString(
-                        projectDir.resolve("settings.gradle"), "rootProject.name = 'root'", StandardOpenOption.CREATE);
+                        projectDir.resolve("settings.gradle"),
+                        "rootProject.name = 'root'\n",
+                        StandardOpenOption.CREATE);
             } catch (IOException e) {
                 throw new UncheckedIOException("Could not create settings.gradle", e);
             }

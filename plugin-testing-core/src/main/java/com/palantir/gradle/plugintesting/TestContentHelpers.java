@@ -64,7 +64,8 @@ public final class TestContentHelpers {
                 }
             %s
             }
-            """.formatted(repository, result);
+            """
+                .formatted(repository, result);
     }
 
     /**

@@ -28,7 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class TestDependencyVersionsTests {
-    private static final String SAMPLE_VERSIONS = """
+    private static final String SAMPLE_VERSIONS =
+            """
         foo:bar=100
         com.palantir:gradle-plugin-testing=1.2.3
         """;
@@ -67,7 +68,9 @@ public class TestDependencyVersionsTests {
     public void addBuildScriptDependencies() {
         String buildScript =
                 TestContentHelpers.addBuildScriptDependencies("foo:bar", "com.palantir:gradle-plugin-testing");
-        assertThat(buildScript).isEqualTo("""
+        assertThat(buildScript)
+                .isEqualTo(
+                        """
             buildscript {
                 dependencies {
                     classpath 'foo:bar:100'
@@ -81,7 +84,9 @@ public class TestDependencyVersionsTests {
     public void addBuildScriptBlock() {
         String buildScript = TestContentHelpers.addBuildScriptBlock(
                 "mavenCentral()", "foo:bar", "com.palantir:gradle-plugin-testing");
-        assertThat(buildScript).isEqualTo("""
+        assertThat(buildScript)
+                .isEqualTo(
+                        """
             buildscript {
                 repositories {
                     mavenCentral()

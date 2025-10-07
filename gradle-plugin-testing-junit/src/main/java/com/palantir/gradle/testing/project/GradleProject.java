@@ -25,7 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public interface GradleProject extends ArbitraryFileFactory {
-    @Override Path path();
+    @Override
+    Path path();
 
     RootProject rootProject();
 
