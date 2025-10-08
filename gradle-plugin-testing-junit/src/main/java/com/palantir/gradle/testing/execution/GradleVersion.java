@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing;
+package com.palantir.gradle.testing.execution;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.junit.jupiter.api.ClassTemplate;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(GradlePluginTesting.class)
-@ClassTemplate
-public @interface GradlePluginTests {}
+public record GradleVersion(String version) {
+    @Override
+    public String toString() {
+        return version;
+    }
+}

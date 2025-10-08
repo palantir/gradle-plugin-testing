@@ -21,9 +21,11 @@ import org.gradle.testkit.runner.GradleRunner;
 
 public final class Gradlew {
     private final Path rootProjectDir;
+    private final GradleVersion gradleVersion;
 
-    public Gradlew(Path rootProjectDir) {
+    public Gradlew(Path rootProjectDir, GradleVersion gradleVersion) {
         this.rootProjectDir = rootProjectDir;
+        this.gradleVersion = gradleVersion;
     }
 
     public GradleInvocation withArgs(String... args) {
@@ -31,7 +33,7 @@ public final class Gradlew {
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(false)
                 .forwardOutput()
-                .withGradleVersion("8.12.1")
+                .withGradleVersion(gradleVersion.version())
                 .withArguments(args));
     }
 }

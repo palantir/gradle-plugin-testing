@@ -16,8 +16,8 @@
 
 package com.palantir.example;
 
-import com.palantir.gradle.testing.GradlePluginTests;
 import com.palantir.gradle.testing.execution.Gradlew;
+import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 @GradlePluginTests
 public final class GradleVersionOutputterTest {
     @Test
-    void noop_test(Gradlew gradlew, RootProject rootProject) {
+    void noop_test(Gradlew gradlew, RootProject rootProject, SubProject subProject) {
         rootProject
                 .buildFile()
                 .append(
@@ -34,11 +34,9 @@ public final class GradleVersionOutputterTest {
             file('gradle-version').text = GradleVersion.current()
             """);
 
-        SubProject subproject = rootProject.addSubproject("subproject");
+        subProject.buildFile().appendLine("apply plugin: 'java-library'");
 
-        subproject.buildFile().appendLine("apply plugin: 'java-library'");
-
-        subproject
+        subProject
                 .mainSourceSet()
                 .java()
                 .writeClass(
@@ -51,9 +49,9 @@ public final class GradleVersionOutputterTest {
             }
             """);
 
-        SubProject subsubproject = subproject.addSubproject("subsubproject");
+        SubProject subSubProject = subProject.addSubproject("subSubProject");
 
-        subsubproject
+        subSubProject
                 .mainSourceSet()
                 .srcDir("conjure")
                 .yamlFile("conjure.yml")
