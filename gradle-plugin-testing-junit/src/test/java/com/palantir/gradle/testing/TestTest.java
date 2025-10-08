@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.testing;
 
-import com.palantir.example.GradleVersionOutputterTest;
+import com.palantir.example.ProjectUsagesTest;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
@@ -26,7 +26,7 @@ final class TestTest {
     @Test
     void test() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(GradleVersionOutputterTest.class))
+                .selectors(DiscoverySelectors.selectClass(ProjectUsagesTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.4,8.12.1")
                 .execute();
 
