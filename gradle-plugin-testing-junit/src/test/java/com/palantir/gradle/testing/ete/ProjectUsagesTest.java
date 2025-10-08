@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.example;
+package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +25,7 @@ import com.palantir.gradle.testing.project.SubProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-class ProjectUsagesTest {
+public class ProjectUsagesTest {
     @Test
     void root_project_parameter(Gradlew gradlew, RootProject rootProject) {
         rootProject.buildFile().append("""

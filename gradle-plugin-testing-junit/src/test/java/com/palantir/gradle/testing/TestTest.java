@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.testing;
 
-import com.palantir.example.ProjectUsagesTest;
+import com.palantir.gradle.testing.ete.ProjectUsagesTest;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
