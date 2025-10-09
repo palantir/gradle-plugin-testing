@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import org.assertj.core.api.AbstractPathAssert;
 import org.assertj.core.api.Assertions;
@@ -42,6 +43,10 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     default T appendLine(String line) {
         return append(line + "\n");
+    }
+
+    default T edit(UnaryOperator<String> editor) {
+        return overwrite(editor.apply(text()));
     }
 
     default T createEmpty() {
