@@ -26,13 +26,13 @@ import org.junit.jupiter.api.io.TempDir;
 
 class JavaSrcDirTest {
     @TempDir
-    Path tempDir;
+    Path srcDirPath;
 
     JavaSrcDir javaSrcDir;
 
     @BeforeEach
     void beforeEach() {
-        javaSrcDir = new JavaSrcDir(tempDir);
+        javaSrcDir = new JavaSrcDir(srcDirPath);
     }
 
     @Nested
@@ -46,7 +46,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("foo/SomeClass.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("foo/SomeClass.java")).hasContent(javaSource);
         }
 
         @Test
@@ -59,7 +59,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("foo/SomeInterface.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("foo/SomeInterface.java")).hasContent(javaSource);
         }
 
         @Test
@@ -72,7 +72,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("foo/SomeRecord.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("foo/SomeRecord.java")).hasContent(javaSource);
         }
 
         @Test
@@ -85,7 +85,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("foo/SomeRecord.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("foo/SomeRecord.java")).hasContent(javaSource);
         }
 
         @Test
@@ -98,7 +98,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("foo/SomeAnnotation.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("foo/SomeAnnotation.java")).hasContent(javaSource);
         }
 
         @Test
@@ -109,7 +109,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("Test.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("Test.java")).hasContent(javaSource);
         }
 
         @Test
@@ -122,7 +122,7 @@ class JavaSrcDirTest {
 
             javaSrcDir.writeClass(javaSource);
 
-            assertThat(tempDir.resolve("foo/bar/baz/Test.java")).hasContent(javaSource);
+            assertThat(srcDirPath.resolve("foo/bar/baz/Test.java")).hasContent(javaSource);
         }
 
         @Test
@@ -135,8 +135,8 @@ class JavaSrcDirTest {
                 }
                 """);
 
-            assertThat(tempDir.resolve("foo/SomeClass.java")).exists();
-            assertThat(tempDir.resolve("foo/NestedClass.java")).doesNotExist();
+            assertThat(srcDirPath.resolve("foo/SomeClass.java")).exists();
+            assertThat(srcDirPath.resolve("foo/NestedClass.java")).doesNotExist();
         }
     }
 
@@ -144,12 +144,15 @@ class JavaSrcDirTest {
     class FileByClass {
         @Test
         void finds_file_by_class_with_package() {
-            javaSrcDir.fileByClassName("foo.bar.baz.Test").assertThat().isEqualTo(tempDir.resolve("foo/bar/baz/Test.java"));
+            javaSrcDir
+                    .fileByClassName("foo.bar.baz.Test")
+                    .assertThat()
+                    .isEqualTo(srcDirPath.resolve("foo/bar/baz/Test.java"));
         }
 
         @Test
         void finds_file_by_class_in_default_package() {
-            javaSrcDir.fileByClassName("Test").assertThat().isEqualTo(tempDir.resolve("Test.java"));
+            javaSrcDir.fileByClassName("Test").assertThat().isEqualTo(srcDirPath.resolve("Test.java"));
         }
     }
 
@@ -160,7 +163,7 @@ class JavaSrcDirTest {
             javaSrcDir
                     .fileByPath("foo/bar/baz/Test.java")
                     .assertThat()
-                    .isEqualTo(tempDir.resolve("foo/bar/baz/Test.java"));
+                    .isEqualTo(srcDirPath.resolve("foo/bar/baz/Test.java"));
         }
     }
 }
