@@ -53,7 +53,11 @@ class JavaSrcDirUsagesTest {
 
         assertThat(gradle.withArgs("run").buildSuccessfully().output()).contains("Hello world!");
 
-        rootProject.mainSourceSet().java().fileByClassName("example.Main").edit(text -> text.replace("world", "universe"));
+        rootProject
+                .mainSourceSet()
+                .java()
+                .fileByClassName("example.Main")
+                .edit(text -> text.replace("world", "universe"));
 
         assertThat(gradle.withArgs("run").buildSuccessfully().output()).contains("Hello universe!");
     }
