@@ -16,7 +16,7 @@
 
 package com.palantir.example;
 
-import com.palantir.gradle.testing.execution.Gradlew;
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 public class MultipleGradleVersionsFixtureTest {
     @Test
     @SuppressWarnings("checkstyle:RegexpSinglelineJava")
-    void testName(Gradlew gradlew, RootProject rootProject) {
+    void testName(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject
                 .buildFile()
                 .append(
@@ -34,6 +34,6 @@ public class MultipleGradleVersionsFixtureTest {
         println "GradleVersion: ${GradleVersion.current().version}"
         """);
 
-        throw new RuntimeException(gradlew.withArgs().buildSuccessfully().output());
+        throw new RuntimeException(gradleInvoker.withArgs().buildSuccessfully().output());
     }
 }

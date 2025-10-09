@@ -16,18 +16,18 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.Gradlew;
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
-final class GradlewParameterResolver implements TerseParameterResolver {
+final class GradleInvokerParameterResolver implements TerseParameterResolver {
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
-        if (parameterContext.getParameter().getType().equals(Gradlew.class)) {
-            return Optional.of(new Gradlew(
+        if (parameterContext.getParameter().getType().equals(GradleInvoker.class)) {
+            return Optional.of(new GradleInvoker(
                     RootProjectStore.rootProjectDir(extensionContext),
                     GradleVersionStore.gradleVersion(extensionContext)));
         }

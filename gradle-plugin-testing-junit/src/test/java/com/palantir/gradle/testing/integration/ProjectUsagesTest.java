@@ -18,7 +18,7 @@ package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.gradle.testing.execution.Gradlew;
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
@@ -27,42 +27,42 @@ import org.junit.jupiter.api.Test;
 @GradlePluginTests
 class ProjectUsagesTest {
     @Test
-    void root_project_parameter(Gradlew gradlew, RootProject rootProject) {
+    void root_project_parameter(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildFile().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradlew.withArgs().buildSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :");
     }
 
     @Test
-    void sub_project_parameter(Gradlew gradlew, SubProject subProject) {
+    void sub_project_parameter(GradleInvoker gradle, SubProject subProject) {
         subProject.buildFile().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradlew.withArgs().buildSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :subProject");
     }
 
     @Test
-    void sub_project_manually(Gradlew gradlew, RootProject rootProject) {
+    void sub_project_manually(GradleInvoker gradle, RootProject rootProject) {
         SubProject subProject = rootProject.addSubproject("subProject");
 
         subProject.buildFile().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradlew.withArgs().buildSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :subProject");
     }
 
     @Test
-    void two_layer_deep_sub_project(Gradlew gradlew, SubProject subProject) {
+    void two_layer_deep_sub_project(GradleInvoker gradle, SubProject subProject) {
         SubProject subSubProject = subProject.addSubproject("subSubProject");
 
         subSubProject.buildFile().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradlew.withArgs().buildSuccessfully().output()).contains("hello from :subProject:subSubProject");
+        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :subProject:subSubProject");
     }
 }

@@ -19,11 +19,11 @@ package com.palantir.gradle.testing.execution;
 import java.nio.file.Path;
 import org.gradle.testkit.runner.GradleRunner;
 
-public final class Gradlew {
+public final class GradleInvoker {
     private final Path rootProjectDir;
     private final GradleVersion gradleVersion;
 
-    public Gradlew(Path rootProjectDir, GradleVersion gradleVersion) {
+    public GradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) {
         this.rootProjectDir = rootProjectDir;
         this.gradleVersion = gradleVersion;
     }
