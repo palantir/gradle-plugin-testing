@@ -22,7 +22,7 @@ import java.nio.file.Path;
 
 public record GradleSourceSet(Path path) {
     public JavaSrcDir java() {
-        return new JavaSrcDir(this);
+        return new JavaSrcDir(path.resolve("java"));
     }
 
     public ArbitrarySrcDir srcDir(String srcDirName) {
