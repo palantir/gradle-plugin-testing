@@ -30,9 +30,9 @@ public class MultipleGradleVersionsFixtureTest {
                 .buildFile()
                 .append(
                         """
-        import org.gradle.util.GradleVersion
-        println "GradleVersion: ${GradleVersion.current().version}"
-        """);
+            import org.gradle.util.GradleVersion
+            println "GradleVersion: ${GradleVersion.current().version}"
+            """);
 
         throw new RuntimeException(gradleInvoker.withArgs().buildSuccessfully().output());
     }

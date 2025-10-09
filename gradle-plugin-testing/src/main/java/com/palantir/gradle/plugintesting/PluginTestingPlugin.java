@@ -31,6 +31,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
 public class PluginTestingPlugin implements Plugin<Project> {
     /**
@@ -52,6 +53,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
      */
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply(JavaGradlePluginPlugin.class);
         project.getExtensions().create(PluginTestingExtension.EXTENSION_NAME, PluginTestingExtension.class);
         // need the SourceSetContainer extension so need to wait until java plugin is applied
         project.getPluginManager().withPlugin("java", _unused -> {

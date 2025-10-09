@@ -28,11 +28,16 @@ import org.junit.jupiter.api.Test;
 class ProjectUsagesTest {
     @Test
     void root_project_parameter(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildFile().append("""
+        rootProject
+                .buildFile()
+                .append(
+                        """
             println "hello from ${path}"
+            println "project name: ${name}"
             """);
 
         assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("project name: root");
     }
 
     @Test
