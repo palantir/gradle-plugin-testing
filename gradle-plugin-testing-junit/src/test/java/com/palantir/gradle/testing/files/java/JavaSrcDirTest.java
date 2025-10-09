@@ -89,6 +89,19 @@ class JavaSrcDirTest {
         }
 
         @Test
+        void writes_annotation_interface_out_to_correct_location() {
+            String javaSource =
+                    """
+                package foo;
+                @interface SomeAnnotation {}
+                """;
+
+            javaSrcDir.writeClass(javaSource);
+
+            assertThat(tempDir.resolve("foo/SomeAnnotation.java")).hasContent(javaSource);
+        }
+
+        @Test
         void handles_default_package() {
             String javaSource = """
                 class Test {}
@@ -110,6 +123,44 @@ class JavaSrcDirTest {
             javaSrcDir.writeClass(javaSource);
 
             assertThat(tempDir.resolve("foo/bar/baz/Test.java")).hasContent(javaSource);
+        }
+
+        @Test
+        void nested_classes_do_not_confuse_it() {
+            javaSrcDir.writeClass(
+                    """
+                package foo;
+                class SomeClass {
+                    class NestedClass {}
+                }
+                """);
+
+            assertThat(tempDir.resolve("foo/SomeClass.java")).exists();
+            assertThat(tempDir.resolve("foo/NestedClass.java")).doesNotExist();
+        }
+    }
+
+    @Nested
+    class FileByClass {
+        @Test
+        void finds_file_by_class_with_package() {
+            javaSrcDir.fileByClass("foo.bar.baz.Test").assertThat().isEqualTo(tempDir.resolve("foo/bar/baz/Test.java"));
+        }
+
+        @Test
+        void finds_file_by_class_in_default_package() {
+            javaSrcDir.fileByClass("Test").assertThat().isEqualTo(tempDir.resolve("Test.java"));
+        }
+    }
+
+    @Nested
+    class FileByPath {
+        @Test
+        void finds_file_by_path() {
+            javaSrcDir
+                    .fileByPath("foo/bar/baz/Test.java")
+                    .assertThat()
+                    .isEqualTo(tempDir.resolve("foo/bar/baz/Test.java"));
         }
     }
 }
