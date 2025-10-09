@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.project;
 
 import com.palantir.gradle.testing.files.gradle.GradleFile;
+import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
 public record RootProject(Path path) implements GradleProject {
@@ -27,5 +28,9 @@ public record RootProject(Path path) implements GradleProject {
 
     public GradleFile settingsFile() {
         return gradleFile("settings.gradle");
+    }
+
+    public PropertiesFile gradlePropertiesFile() {
+        return propertiesFile("gradle.properties");
     }
 }

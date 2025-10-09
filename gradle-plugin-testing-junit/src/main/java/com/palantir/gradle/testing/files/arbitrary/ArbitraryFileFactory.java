@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.files.arbitrary;
 
 import com.palantir.gradle.testing.files.gradle.GradleFile;
+import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import com.palantir.gradle.testing.files.yaml.YamlFile;
 import java.nio.file.Path;
 
@@ -33,6 +34,10 @@ public interface ArbitraryFileFactory {
 
     default YamlFile yamlFile(String path) {
         return new YamlFile(resolvePath(path));
+    }
+
+    default PropertiesFile propertiesFile(String path) {
+        return new PropertiesFile(resolvePath(path));
     }
 
     private Path resolvePath(String path) {

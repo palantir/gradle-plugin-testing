@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  * plugin is both backwards and forwards compatible.
  */
 public final class GradleTestVersions {
-    static final String TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY = "TEST_GRADLE_VERSIONS";
+    static final String TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY = "com.palantir.gradle.testing.gradle_versions_to_test";
     static final List<String> DEFAULT_TEST_GRADLE_VERSIONS = Arrays.asList("8.14.3");
 
     private static final Supplier<List<String>> gradleVersionsSupplier =

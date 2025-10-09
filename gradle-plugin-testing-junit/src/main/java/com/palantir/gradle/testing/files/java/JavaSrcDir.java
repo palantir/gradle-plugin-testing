@@ -33,13 +33,13 @@ public record JavaSrcDir(GradleSourceSet sourceSet) {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Could not find the class name from the source: \n\n" + javaSource));
 
-        String canonicalClassName = packagePath + className;
+        String canonicalClassName = packagePath + "." + className;
 
         return fileByClass(canonicalClassName).overwrite(javaSource);
     }
 
     public JavaFile fileByClass(String canonicalClassName) {
-        return fileByPath(canonicalClassName.replace('.', '/') + '/' + ".java");
+        return fileByPath(canonicalClassName.replace('.', '/') + ".java");
     }
 
     public JavaFile fileByPath(String path) {

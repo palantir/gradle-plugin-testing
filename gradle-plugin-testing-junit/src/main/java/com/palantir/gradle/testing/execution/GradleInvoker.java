@@ -34,6 +34,7 @@ public final class GradleInvoker {
                 .withDebug(false)
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
+                .withPluginClasspath()
                 .withArguments(args));
     }
 }
