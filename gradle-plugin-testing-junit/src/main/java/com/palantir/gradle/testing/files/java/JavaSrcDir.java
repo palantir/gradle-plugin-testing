@@ -36,10 +36,10 @@ public record JavaSrcDir(Path srcDirPath) {
         String canonicalClassName =
                 possiblePackagePath.map(packagePath -> packagePath + ".").orElse("") + className;
 
-        return fileByClass(canonicalClassName).overwrite(javaSource);
+        return fileByClassName(canonicalClassName).overwrite(javaSource);
     }
 
-    public JavaFile fileByClass(String canonicalClassName) {
+    public JavaFile fileByClassName(String canonicalClassName) {
         return fileByPath(canonicalClassName.replace('.', '/') + ".java");
     }
 

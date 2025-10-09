@@ -144,12 +144,12 @@ class JavaSrcDirTest {
     class FileByClass {
         @Test
         void finds_file_by_class_with_package() {
-            javaSrcDir.fileByClass("foo.bar.baz.Test").assertThat().isEqualTo(tempDir.resolve("foo/bar/baz/Test.java"));
+            javaSrcDir.fileByClassName("foo.bar.baz.Test").assertThat().isEqualTo(tempDir.resolve("foo/bar/baz/Test.java"));
         }
 
         @Test
         void finds_file_by_class_in_default_package() {
-            javaSrcDir.fileByClass("Test").assertThat().isEqualTo(tempDir.resolve("Test.java"));
+            javaSrcDir.fileByClassName("Test").assertThat().isEqualTo(tempDir.resolve("Test.java"));
         }
     }
 
