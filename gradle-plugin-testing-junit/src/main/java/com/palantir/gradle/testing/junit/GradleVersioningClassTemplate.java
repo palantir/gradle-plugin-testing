@@ -36,10 +36,8 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
             ExtensionContext context) {
         String gradleVersionsToTestAgainst = context.getConfigurationParameter(
                         "com.palantir.gradle.testing.gradle_versions_to_test")
-                //                .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to
-                // test against. "
-                //                        + "Have you applied the `com.palantir.gradle-testing` plugin?"));
-                .orElse("8.12.1,8.14.3");
+                .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
+                        + "Have you applied the `com.palantir.gradle-testing` plugin to this project?"));
 
         List<String> gradleVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
 

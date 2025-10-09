@@ -18,3 +18,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.junit.platform:junit-platform-testkit'
 }
+
+tasks.named('test', Test) {
+    // We need to set the versions of gradle to test aganist as we don't have the gradle plugin installed
+    // TODO: Ideally we update this with the gradle plugin somehow - perhaps using the previous published version?
+    systemProperty 'com.palantir.gradle.testing.gradle_versions_to_test', '8.12.1,8.14.3'
+}
