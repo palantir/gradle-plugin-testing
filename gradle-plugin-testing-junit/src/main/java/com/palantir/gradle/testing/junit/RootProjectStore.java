@@ -44,8 +44,12 @@ final class RootProjectStore {
                     Stream.concat(context.getEnclosingTestClasses().stream(), Stream.of(context.getRequiredTestClass()))
                             .map(Class::getSimpleName)
                             .collect(Collectors.joining("/")));
-            Path projectDir = classDir.resolve(context.getRequiredTestMethod().getName());
+
+            Path projectDir = classDir.resolve(context.getRequiredTestMethod().getName())
+                    .resolve(GradleVersionStore.gradleVersion(context).version());
+
             clearDirectory(projectDir);
+
             try {
                 Files.writeString(
                         projectDir.resolve("settings.gradle"),
@@ -54,6 +58,7 @@ final class RootProjectStore {
             } catch (IOException e) {
                 throw new UncheckedIOException("Could not create settings.gradle", e);
             }
+
             return projectDir;
         });
     }

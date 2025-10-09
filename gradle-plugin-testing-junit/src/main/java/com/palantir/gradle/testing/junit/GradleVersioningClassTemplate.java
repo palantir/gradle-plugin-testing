@@ -54,8 +54,13 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         }
 
         @Override
+        public void prepareInvocation(ExtensionContext context) {
+            GradleVersionStore.setGradleVersion(context, gradleVersion);
+        }
+
+        @Override
         public List<Extension> getAdditionalExtensions() {
-            return List.of(new GradlewParameterResolver(gradleVersion));
+            return List.of(new GradlewParameterResolver(), new GradleProjectParameterResolver());
         }
     }
 }

@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.MultipleGradleVersionsFixtureTest;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.TestExecutionResult;
@@ -33,26 +34,33 @@ final class GradleVersionsFromJunitParameterTest {
     void runs_tests_with_gradle_versions_from_junit_parameter() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(MultipleGradleVersionsFixtureTest.class))
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.4,8.12.1")
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
 
         assertThat(finished).hasSize(2);
 
-        assertThatTestContainerDescriptorHasDisplayName(finished.get(0), "Gradle 7.6.4");
-        assertThatTestContainerDescriptorHasDisplayName(finished.get(1), "Gradle 8.12.1");
+        assertThatRanWithCorrectGradleVersion(finished.get(0), "7.6.5");
+        assertThatRanWithCorrectGradleVersion(finished.get(1), "8.14.3");
+    }
 
-        List<TestExecutionResult> testExecutionResults = finished.stream()
-                .map(even -> even.getPayload(TestExecutionResult.class).get())
-                .toList();
+    private static void assertThatRanWithCorrectGradleVersion(Event event, String gradleVersion) {
+        assertThatTestContainerDescriptorHasDisplayName(event, "Gradle " + gradleVersion);
 
-        assertThat(testExecutionResults).allSatisfy(result -> {
-            assertThat(result.getStatus()).isEqualTo(Status.FAILED);
+        assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
+            assertThat(testExecutionResult.getStatus()).isEqualTo(Status.FAILED);
+
+            assertThatTestFailureExceptionMessageContains(testExecutionResult, "GradleVersion: " + gradleVersion);
         });
 
-        assertThatTestFailureExceptionMessageContains(testExecutionResults.get(0), "GradleVersion: 7.6.4");
-        assertThatTestFailureExceptionMessageContains(testExecutionResults.get(1), "GradleVersion: 8.12.1");
+        assertThat(Path.of(
+                        "build/gradle-testing",
+                        MultipleGradleVersionsFixtureTest.class.getSimpleName(),
+                        "testName",
+                        gradleVersion,
+                        "build.gradle"))
+                .exists();
     }
 
     private static void assertThatTestContainerDescriptorHasDisplayName(
