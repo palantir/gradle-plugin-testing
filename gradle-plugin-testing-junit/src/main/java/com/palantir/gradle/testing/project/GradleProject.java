@@ -42,12 +42,12 @@ public interface GradleProject extends ArbitraryFileFactory {
         String subprojectPath =
                 rootProject().path().relativize(subprojectDir).toString().replace('/', ':');
 
-        rootProject().settingsFile().appendLine("include '%s'".formatted(subprojectPath));
+        rootProject().settingsGradle().appendLine("include '%s'".formatted(subprojectPath));
 
         return new SubProject(name, subprojectDir, rootProject());
     }
 
-    default GradleFile buildFile() {
+    default GradleFile buildGradle() {
         return gradleFile("build.gradle");
     }
 

@@ -34,7 +34,7 @@ class InvocationResultUsagesTest {
     void a_failing_build_throws_an_error_when_it_was_expected_to_succeed(
             GradleInvoker gradle, RootProject rootProject) {
 
-        rootProject.buildFile().appendLine("throw new RuntimeException('oops')");
+        rootProject.buildGradle().appendLine("throw new RuntimeException('oops')");
 
         GradleInvocation gradleInvocation = gradle.withArgs();
 
@@ -50,7 +50,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void can_get_build_output_after_running_a_successful_build(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildFile().append("""
+        rootProject.buildGradle().append("""
             println 'hello from build'
             """);
 
@@ -68,7 +68,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void excluded_tasks_are_returned_as_optional_empty(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildFile().appendLine("tasks.register('foo')");
+        rootProject.buildGradle().appendLine("tasks.register('foo')");
 
         InvocationResult result = gradle.withArgs("foo", "-x", "foo").buildsSuccessfully();
 
@@ -78,7 +78,7 @@ class InvocationResultUsagesTest {
     @Test
     void task_path_is_correct(GradleInvoker gradle, SubProject subProject) {
         subProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             tasks.register('foo') {
@@ -96,7 +96,7 @@ class InvocationResultUsagesTest {
     @Test
     void can_get_info_about_a_successful_task(GradleInvoker gradle, SubProject subProject) {
         subProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             tasks.register('foo') {
@@ -115,7 +115,7 @@ class InvocationResultUsagesTest {
     @Test
     void can_get_info_about_a_failed_task(GradleInvoker gradle, SubProject subProject) {
         subProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             tasks.register('foo') {
@@ -135,7 +135,7 @@ class InvocationResultUsagesTest {
     @Test
     void can_get_info_about_an_up_to_date_task(GradleInvoker gradle, SubProject subProject) {
         subProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             tasks.register('foo') {
@@ -153,7 +153,7 @@ class InvocationResultUsagesTest {
     @Test
     void can_get_info_about_a_skipped_task(GradleInvoker gradle, SubProject subProject) {
         subProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             tasks.register('foo') {
@@ -170,7 +170,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void can_get_info_about_a_no_source_task(GradleInvoker gradle, SubProject subProject) {
-        subProject.buildFile().append("""
+        subProject.buildGradle().append("""
             tasks.register('foo', Copy) {}
             """);
 

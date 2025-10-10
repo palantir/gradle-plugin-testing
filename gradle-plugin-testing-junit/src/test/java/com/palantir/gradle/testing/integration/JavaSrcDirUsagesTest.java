@@ -41,7 +41,7 @@ class JavaSrcDirUsagesTest {
             """);
 
         rootProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             apply plugin: 'application'

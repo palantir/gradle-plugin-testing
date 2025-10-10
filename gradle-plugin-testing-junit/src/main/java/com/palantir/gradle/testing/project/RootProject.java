@@ -26,7 +26,7 @@ public record RootProject(Path path) implements GradleProject {
         return this;
     }
 
-    public GradleFile settingsFile() {
+    public GradleFile settingsGradle() {
         return gradleFile("settings.gradle");
     }
 

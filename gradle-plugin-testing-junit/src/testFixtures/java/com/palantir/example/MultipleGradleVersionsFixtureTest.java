@@ -27,7 +27,7 @@ public class MultipleGradleVersionsFixtureTest {
     @SuppressWarnings("checkstyle:RegexpSinglelineJava")
     void testName(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             import org.gradle.util.GradleVersion

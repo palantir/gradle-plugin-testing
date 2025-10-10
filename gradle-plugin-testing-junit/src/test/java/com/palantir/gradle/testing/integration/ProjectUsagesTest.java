@@ -29,7 +29,7 @@ class ProjectUsagesTest {
     @Test
     void root_project_parameter(GradleInvoker gradle, RootProject rootProject) {
         rootProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             println "hello from ${path}"
@@ -42,7 +42,7 @@ class ProjectUsagesTest {
 
     @Test
     void sub_project_parameter(GradleInvoker gradle, SubProject subProject) {
-        subProject.buildFile().append("""
+        subProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
@@ -53,7 +53,7 @@ class ProjectUsagesTest {
     void sub_project_manually(GradleInvoker gradle, RootProject rootProject) {
         SubProject subProject = rootProject.addSubproject("subProject");
 
-        subProject.buildFile().append("""
+        subProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
@@ -64,7 +64,7 @@ class ProjectUsagesTest {
     void two_layer_deep_sub_project(GradleInvoker gradle, SubProject subProject) {
         SubProject subSubProject = subProject.addSubproject("subSubProject");
 
-        subSubProject.buildFile().append("""
+        subSubProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 

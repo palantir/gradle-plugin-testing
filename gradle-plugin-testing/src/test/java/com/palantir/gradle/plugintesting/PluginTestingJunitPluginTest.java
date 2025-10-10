@@ -36,7 +36,7 @@ class PluginTestingJunitPluginTest {
             GradleInvoker gradleInvoker, RootProject rootProject) {
 
         rootProject
-                .buildFile()
+                .buildGradle()
                 .append(
                         """
             plugins {
@@ -79,7 +79,7 @@ class PluginTestingJunitPluginTest {
             class TestClass {
                 @Test
                 void testMethod(GradleInvoker gradle, RootProject rootProject) {
-                    rootProject.buildFile().append(\"""
+                    rootProject.buildGradle().append(\"""
                         import org.gradle.util.GradleVersion
                         file('gradle-version') << GradleVersion.current().version
                         \""");
