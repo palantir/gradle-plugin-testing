@@ -84,12 +84,12 @@ class PluginTestingJunitPluginTest {
                         file('gradle-version') << GradleVersion.current().version
                         \""");
 
-                    gradle.withArgs().buildSuccessfully();
+                    gradle.withArgs().buildsSuccessfully();
                 }
             }
             """);
 
-        gradleInvoker.withArgs("test").buildSuccessfully();
+        gradleInvoker.withArgs("test").buildsSuccessfully();
 
         rootProject
                 .buildDir()

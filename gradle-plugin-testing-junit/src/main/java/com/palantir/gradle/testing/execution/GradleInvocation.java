@@ -31,11 +31,11 @@ public final class GradleInvocation {
         return this;
     }
 
-    public BuildOutcome buildSuccessfully() {
+    public BuildOutcome buildsSuccessfully() {
         return new BuildOutcome(gradleRunner.build());
     }
 
-    public BuildOutcome buildWithFailure() {
+    public BuildOutcome buildsWithFailure() {
         return new BuildOutcome(gradleRunner.buildAndFail());
     }
 }

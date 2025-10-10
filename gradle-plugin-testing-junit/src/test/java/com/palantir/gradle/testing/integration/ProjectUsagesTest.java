@@ -36,8 +36,8 @@ class ProjectUsagesTest {
             println "project name: ${name}"
             """);
 
-        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :");
-        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("project name: root");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: root");
     }
 
     @Test
@@ -46,7 +46,7 @@ class ProjectUsagesTest {
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject");
     }
 
     @Test
@@ -57,7 +57,7 @@ class ProjectUsagesTest {
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject");
     }
 
     @Test
@@ -68,6 +68,6 @@ class ProjectUsagesTest {
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildSuccessfully().output()).contains("hello from :subProject:subSubProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject:subSubProject");
     }
 }

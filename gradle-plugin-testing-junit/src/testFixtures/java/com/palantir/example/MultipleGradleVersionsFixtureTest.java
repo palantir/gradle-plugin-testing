@@ -34,6 +34,6 @@ public class MultipleGradleVersionsFixtureTest {
             println "GradleVersion: ${GradleVersion.current().version}"
             """);
 
-        throw new RuntimeException(gradleInvoker.withArgs().buildSuccessfully().output());
+        throw new RuntimeException(gradleInvoker.withArgs().buildsSuccessfully().output());
     }
 }
