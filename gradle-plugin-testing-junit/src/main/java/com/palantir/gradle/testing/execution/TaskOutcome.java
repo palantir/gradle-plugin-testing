@@ -16,26 +16,23 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.util.Map;
-import org.gradle.testkit.runner.GradleRunner;
+public enum TaskOutcome {
+    SUCCESS,
+    FAILED,
+    UP_TO_DATE,
+    SKIPPED,
+    FROM_CACHE,
+    NO_SOURCE;
 
-public final class GradleInvocation {
-    private final GradleRunner gradleRunner;
-
-    GradleInvocation(GradleRunner gradleRunner) {
-        this.gradleRunner = gradleRunner;
-    }
-
-    public GradleInvocation withEnvironment(Map<String, String> environment) {
-        gradleRunner.withEnvironment(environment);
-        return this;
-    }
-
-    public InvocationResult buildsSuccessfully() {
-        return new InvocationResult(gradleRunner.build());
-    }
-
-    public InvocationResult buildsWithFailure() {
-        return new InvocationResult(gradleRunner.buildAndFail());
+    static TaskOutcome fromGradleTaskOutcome(org.gradle.testkit.runner.TaskOutcome gradleTaskOutcome) {
+        return switch (gradleTaskOutcome) {
+            case SUCCESS -> SUCCESS;
+            case FAILED -> FAILED;
+            case UP_TO_DATE -> UP_TO_DATE;
+            case SKIPPED -> SKIPPED;
+            case FROM_CACHE -> FROM_CACHE;
+            case NO_SOURCE -> NO_SOURCE;
+            default -> throw new IllegalArgumentException("Unknown gradle task outcome: " + gradleTaskOutcome);
+        };
     }
 }

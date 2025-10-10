@@ -16,26 +16,20 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.util.Map;
-import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.BuildTask;
 
-public final class GradleInvocation {
-    private final GradleRunner gradleRunner;
+public final class TaskResult {
+    private final BuildTask buildTask;
 
-    GradleInvocation(GradleRunner gradleRunner) {
-        this.gradleRunner = gradleRunner;
+    TaskResult(BuildTask buildTask) {
+        this.buildTask = buildTask;
     }
 
-    public GradleInvocation withEnvironment(Map<String, String> environment) {
-        gradleRunner.withEnvironment(environment);
-        return this;
+    public String path() {
+        return buildTask.getPath();
     }
 
-    public InvocationResult buildsSuccessfully() {
-        return new InvocationResult(gradleRunner.build());
-    }
-
-    public InvocationResult buildsWithFailure() {
-        return new InvocationResult(gradleRunner.buildAndFail());
+    public TaskOutcome outcome() {
+        return TaskOutcome.fromGradleTaskOutcome(buildTask.getOutcome());
     }
 }

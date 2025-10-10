@@ -16,13 +16,13 @@
 
 package com.palantir.gradle.testing.execution;
 
+import java.util.Optional;
 import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.BuildTask;
 
-public final class BuildOutcome {
+public final class InvocationResult {
     private final BuildResult buildResult;
 
-    BuildOutcome(BuildResult buildResult) {
+    InvocationResult(BuildResult buildResult) {
         this.buildResult = buildResult;
     }
 
@@ -30,7 +30,7 @@ public final class BuildOutcome {
         return buildResult.getOutput();
     }
 
-    public BuildTask task(String taskPath) {
-        return buildResult.task(taskPath);
+    public Optional<TaskResult> task(String taskPath) {
+        return Optional.ofNullable(buildResult.task(taskPath)).map(TaskResult::new);
     }
 }
