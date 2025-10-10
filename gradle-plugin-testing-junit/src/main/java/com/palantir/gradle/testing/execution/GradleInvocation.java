@@ -22,7 +22,7 @@ import org.gradle.testkit.runner.GradleRunner;
 public final class GradleInvocation {
     private final GradleRunner gradleRunner;
 
-    public GradleInvocation(GradleRunner gradleRunner) {
+    GradleInvocation(GradleRunner gradleRunner) {
         this.gradleRunner = gradleRunner;
     }
 

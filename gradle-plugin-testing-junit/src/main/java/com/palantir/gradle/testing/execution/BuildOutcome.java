@@ -22,7 +22,7 @@ import org.gradle.testkit.runner.BuildTask;
 public final class BuildOutcome {
     private final BuildResult buildResult;
 
-    public BuildOutcome(BuildResult buildResult) {
+    BuildOutcome(BuildResult buildResult) {
         this.buildResult = buildResult;
     }
 
