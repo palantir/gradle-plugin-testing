@@ -21,6 +21,7 @@ import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
+// This is a test fixture, not a real test. See GradleVersionsFromJunitParameterTest which uses it.
 @GradlePluginTests
 public class MultipleGradleVersionsFixtureTest {
     @Test
@@ -34,6 +35,8 @@ public class MultipleGradleVersionsFixtureTest {
             println "GradleVersion: ${GradleVersion.current().version}"
             """);
 
+        // This exception is just so we can pass the output back up to the JUnit testkit-based test that
+        // is running this fixture.
         throw new RuntimeException(gradleInvoker.withArgs().buildsSuccessfully().output());
     }
 }
