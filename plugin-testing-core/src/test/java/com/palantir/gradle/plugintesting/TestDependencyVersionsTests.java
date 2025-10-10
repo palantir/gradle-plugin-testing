@@ -30,9 +30,9 @@ import org.junit.jupiter.api.io.TempDir;
 public class TestDependencyVersionsTests {
     private static final String SAMPLE_VERSIONS =
             """
-        foo:bar=100
-        com.palantir:gradle-plugin-testing=1.2.3
-        """;
+            foo:bar=100
+            com.palantir:gradle-plugin-testing=1.2.3
+            """;
 
     @TempDir
     static Path tempDir;
@@ -71,13 +71,13 @@ public class TestDependencyVersionsTests {
         assertThat(buildScript)
                 .isEqualTo(
                         """
-            buildscript {
-                dependencies {
-                    classpath 'foo:bar:100'
-                    classpath 'com.palantir:gradle-plugin-testing:1.2.3'
+                buildscript {
+                    dependencies {
+                        classpath 'foo:bar:100'
+                        classpath 'com.palantir:gradle-plugin-testing:1.2.3'
+                    }
                 }
-            }
-            """);
+                """);
     }
 
     @Test
@@ -87,15 +87,15 @@ public class TestDependencyVersionsTests {
         assertThat(buildScript)
                 .isEqualTo(
                         """
-            buildscript {
-                repositories {
-                    mavenCentral()
+                buildscript {
+                    repositories {
+                        mavenCentral()
+                    }
+                    dependencies {
+                        classpath 'foo:bar:100'
+                        classpath 'com.palantir:gradle-plugin-testing:1.2.3'
+                    }
                 }
-                dependencies {
-                    classpath 'foo:bar:100'
-                    classpath 'com.palantir:gradle-plugin-testing:1.2.3'
-                }
-            }
-            """);
+                """);
     }
 }
