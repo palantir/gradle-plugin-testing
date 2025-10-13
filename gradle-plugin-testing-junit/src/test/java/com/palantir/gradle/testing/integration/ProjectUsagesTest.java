@@ -51,7 +51,7 @@ class ProjectUsagesTest {
 
     @Test
     void sub_project_manually(GradleInvoker gradle, RootProject rootProject) {
-        SubProject subProject = rootProject.addSubproject("subProject");
+        SubProject subProject = rootProject.subproject("subProject");
 
         subProject.buildGradle().append("""
             println "hello from ${path}"
@@ -62,7 +62,7 @@ class ProjectUsagesTest {
 
     @Test
     void two_layer_deep_sub_project(GradleInvoker gradle, SubProject subProject) {
-        SubProject subSubProject = subProject.addSubproject("subSubProject");
+        SubProject subSubProject = subProject.subproject("subSubProject");
 
         subSubProject.buildGradle().append("""
             println "hello from ${path}"

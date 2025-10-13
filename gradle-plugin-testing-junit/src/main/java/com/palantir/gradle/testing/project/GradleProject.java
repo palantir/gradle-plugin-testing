@@ -30,7 +30,7 @@ public interface GradleProject extends FileFactory {
 
     RootProject rootProject();
 
-    default SubProject addSubproject(String name) {
+    default SubProject subproject(String name) {
         Path subprojectDir = path().resolve(name);
 
         try {

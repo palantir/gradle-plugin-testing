@@ -31,7 +31,7 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
 
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
             return Optional.of(RootProjectStore.rootProject(extensionContext)
-                    .addSubproject(parameterContext.getParameter().getName()));
+                    .subproject(parameterContext.getParameter().getName()));
         }
 
         return Optional.empty();
