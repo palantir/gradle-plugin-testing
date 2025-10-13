@@ -28,5 +28,5 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(GradleVersioningClassTemplate.class)
 @ClassTemplate
-@DisplayNameGeneration(CustomDisplayNameGenerator.class)
+@DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
 public @interface GradlePluginTests {}
