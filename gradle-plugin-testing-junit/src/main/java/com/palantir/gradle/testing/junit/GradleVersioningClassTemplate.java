@@ -37,7 +37,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         String gradleVersionsToTestAgainst = context.getConfigurationParameter(
                         "com.palantir.gradle.testing.gradle_versions_to_test")
                 .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
-                        + "Have you applied the `com.palantir.gradle-testing` plugin to this project?"));
+                        + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
 
         List<String> gradleVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
 

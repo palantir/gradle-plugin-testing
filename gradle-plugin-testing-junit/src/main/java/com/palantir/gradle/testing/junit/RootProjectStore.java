@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 final class RootProjectStore {
     private static final Namespace NAMESPACE = Namespace.create(GradleProjectParameterResolver.class);
     private static final Path GRADLE_TESTING_DIR =
-            Path.of("build/gradle-testing/").toAbsolutePath();
+            Path.of("build/gradle-plugin-testing/").toAbsolutePath();
     private static final String PROJECT_DIR_KEY = "projectDir";
 
     public static RootProject rootProject(ExtensionContext extensionContext) {

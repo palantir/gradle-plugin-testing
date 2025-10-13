@@ -55,7 +55,7 @@ final class GradleVersionsFromJunitParameterTest {
         });
 
         assertThat(Path.of(
-                        "build/gradle-testing",
+                        "build/gradle-plugin-testing",
                         MultipleGradleVersionsFixtureTest.class.getSimpleName(),
                         "testName",
                         gradleVersion,

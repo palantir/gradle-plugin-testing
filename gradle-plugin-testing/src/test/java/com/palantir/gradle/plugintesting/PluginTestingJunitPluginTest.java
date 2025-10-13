@@ -93,13 +93,13 @@ class PluginTestingJunitPluginTest {
 
         rootProject
                 .buildDir()
-                .file("gradle-testing/TestClass/testMethod/7.6.5/gradle-version")
+                .file("gradle-plugin-testing/TestClass/testMethod/7.6.5/gradle-version")
                 .assertThat()
                 .hasContent("7.6.5");
 
         rootProject
                 .buildDir()
-                .file("gradle-testing/TestClass/testMethod/8.14.3/gradle-version")
+                .file("gradle-plugin-testing/TestClass/testMethod/8.14.3/gradle-version")
                 .assertThat()
                 .hasContent("8.14.3");
     }
