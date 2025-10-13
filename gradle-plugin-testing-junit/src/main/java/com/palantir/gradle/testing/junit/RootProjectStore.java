@@ -16,12 +16,15 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.google.common.collect.Lists;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
@@ -33,6 +36,7 @@ final class RootProjectStore {
     private static final Path GRADLE_TESTING_DIR =
             Path.of("build/gradle-plugin-testing/").toAbsolutePath();
     private static final String PROJECT_DIR_KEY = "projectDir";
+    private static final Pattern INVALID_FILENAME_CHARS = Pattern.compile("[\\\\/:*?\"<>|\\x00-\\x1F]");
 
     public static RootProject rootProject(ExtensionContext extensionContext) {
         return new RootProject(rootProjectDir(extensionContext));
@@ -40,13 +44,12 @@ final class RootProjectStore {
 
     public static Path rootProjectDir(ExtensionContext context) {
         return (Path) context.getStore(NAMESPACE).getOrComputeIfAbsent(PROJECT_DIR_KEY, _ignored -> {
-            Path classDir = GRADLE_TESTING_DIR.resolve(
-                    Stream.concat(context.getEnclosingTestClasses().stream(), Stream.of(context.getRequiredTestClass()))
-                            .map(Class::getSimpleName)
-                            .collect(Collectors.joining("/")));
+            String projectDirFragment = contextsFromBelowRootDownTo(context)
+                    .map(ExtensionContext::getDisplayName)
+                    .map(RootProjectStore::replaceCharsInvalidInFilenames)
+                    .collect(Collectors.joining("/"));
 
-            Path projectDir = classDir.resolve(context.getRequiredTestMethod().getName())
-                    .resolve(GradleVersionStore.gradleVersion(context).version());
+            Path projectDir = GRADLE_TESTING_DIR.resolve(projectDirFragment);
 
             clearDirectory(projectDir);
 
@@ -63,12 +66,34 @@ final class RootProjectStore {
         });
     }
 
+    private static Stream<ExtensionContext> contextsFromBelowRootDownTo(ExtensionContext extensionContext) {
+        return Lists.reverse(contextsUpToAndIncludingRoot(extensionContext)
+                        .takeWhile(context -> context.getParent()
+                                .flatMap(ExtensionContext::getParent)
+                                .isPresent())
+                        .toList())
+                .stream();
+    }
+
+    private static String replaceCharsInvalidInFilenames(String displayName) {
+        return INVALID_FILENAME_CHARS.matcher(displayName).replaceAll("_");
+    }
+
+    private static Stream<ExtensionContext> contextsUpToAndIncludingRoot(ExtensionContext extensionContext) {
+        return Stream.iterate(
+                        Optional.of(extensionContext),
+                        Optional::isPresent,
+                        optionalExtensionContext ->
+                                optionalExtensionContext.get().getParent())
+                .map(Optional::get);
+    }
+
     private static void clearDirectory(Path projectDir) {
         try {
             FileUtils.deleteDirectory(projectDir.toFile());
             Files.createDirectories(projectDir);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException("Failed to recreate the test directory", e);
         }
     }
 

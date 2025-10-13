@@ -16,17 +16,14 @@
 
 package com.palantir.gradle.testing.junit;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.junit.jupiter.api.ClassTemplate;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.extension.ExtendWith;
+import java.lang.reflect.Method;
+import java.util.List;
+import org.junit.jupiter.api.DisplayNameGenerator;
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(GradleVersioningClassTemplate.class)
-@ClassTemplate
-@DisplayNameGeneration(CustomDisplayNameGenerator.class)
-public @interface GradlePluginTests {}
+public final class CustomDisplayNameGenerator extends DisplayNameGenerator.Standard {
+    @Override
+    public String generateDisplayNameForMethod(
+            List<Class<?>> enclosingInstanceTypes, Class<?> testClass, Method testMethod) {
+        return testMethod.getName().replace('_', ' ');
+    }
+}
