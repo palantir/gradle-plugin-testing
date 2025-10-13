@@ -25,7 +25,7 @@ final class GradleVersionStore {
     private static final String KEY = "gradleVersion";
 
     public static GradleVersion gradleVersion(ExtensionContext context) {
-        return (GradleVersion) context.getStore(NAMESPACE).get(KEY);
+        return context.getStore(NAMESPACE).get(KEY, GradleVersion.class);
     }
 
     public static void setGradleVersion(ExtensionContext context, GradleVersion gradleVersion) {
