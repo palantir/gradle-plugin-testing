@@ -18,7 +18,7 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.MultipleGradleVersionsFixtureTest;
+import com.palantir.example.GradleVersionsFromJunitParameterFixtureTest;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ final class GradleVersionsFromJunitParameterTest {
     @Test
     void runs_tests_with_gradle_versions_from_junit_parameter() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(MultipleGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(GradleVersionsFromJunitParameterFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
                 .execute();
 
@@ -56,9 +56,9 @@ final class GradleVersionsFromJunitParameterTest {
 
         assertThat(Path.of(
                         "build/gradle-plugin-testing",
-                        MultipleGradleVersionsFixtureTest.class.getSimpleName(),
-                        "Gradle " + gradleVersion,
+                        GradleVersionsFromJunitParameterFixtureTest.class.getSimpleName(),
                         "test name",
+                        gradleVersion,
                         "build.gradle"))
                 .exists();
     }

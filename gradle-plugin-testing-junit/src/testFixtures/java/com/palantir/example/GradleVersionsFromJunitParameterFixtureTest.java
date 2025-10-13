@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 // This is a test fixture, not a real test. See GradleVersionsFromJunitParameterTest which uses it.
 @GradlePluginTests
-public class MultipleGradleVersionsFixtureTest {
+public class GradleVersionsFromJunitParameterFixtureTest {
     @Test
     void test_name(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject
