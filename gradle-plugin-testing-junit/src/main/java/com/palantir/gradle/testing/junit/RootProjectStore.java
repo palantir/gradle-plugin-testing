@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.junit;
 
 import com.google.common.collect.Lists;
+import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -24,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,12 +46,17 @@ final class RootProjectStore {
 
     public static Path rootProjectDir(ExtensionContext context) {
         return (Path) context.getStore(NAMESPACE).getOrComputeIfAbsent(PROJECT_DIR_KEY, _ignored -> {
-            String projectDirFragment = contextsFromBelowRootDownTo(context)
+            GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
+
+            String projectDirFragmentWithoutGradleVersion = contextsFromBelowRootDownTo(context)
                     .map(ExtensionContext::getDisplayName)
+                    .filter(Predicate.not(Predicate.isEqual("Gradle " + gradleVersion)))
                     .map(RootProjectStore::replaceCharsInvalidInFilenames)
                     .collect(Collectors.joining("/"));
 
-            Path projectDir = GRADLE_TESTING_DIR.resolve(projectDirFragment);
+            Path projectDir = GRADLE_TESTING_DIR
+                    .resolve(projectDirFragmentWithoutGradleVersion)
+                    .resolve(gradleVersion.version());
 
             clearDirectory(projectDir);
 
