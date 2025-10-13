@@ -25,8 +25,7 @@ import org.junit.jupiter.api.Test;
 @GradlePluginTests
 public class MultipleGradleVersionsFixtureTest {
     @Test
-    @SuppressWarnings("checkstyle:RegexpSinglelineJava")
-    void testName(GradleInvoker gradleInvoker, RootProject rootProject) {
+    void test_name(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject
                 .buildGradle()
                 .append(

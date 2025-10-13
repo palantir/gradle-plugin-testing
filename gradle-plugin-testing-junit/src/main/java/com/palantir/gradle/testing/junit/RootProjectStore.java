@@ -68,9 +68,7 @@ final class RootProjectStore {
 
     private static Stream<ExtensionContext> contextsFromBelowRootDownTo(ExtensionContext extensionContext) {
         return Lists.reverse(contextsUpToAndIncludingRoot(extensionContext)
-                        .takeWhile(context -> context.getParent()
-                                .flatMap(ExtensionContext::getParent)
-                                .isPresent())
+                        .takeWhile(context -> context.getParent().isPresent())
                         .toList())
                 .stream();
     }
