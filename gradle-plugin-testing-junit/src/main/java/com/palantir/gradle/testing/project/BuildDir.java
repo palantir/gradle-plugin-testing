@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.testing.project;
 
-import com.palantir.gradle.testing.files.arbitrary.ArbitraryFileFactory;
+import com.palantir.gradle.testing.files.FileFactory;
 import java.nio.file.Path;
 
-public record BuildDir(Path path) implements ArbitraryFileFactory {}
+public record BuildDir(Path path) implements FileFactory {}

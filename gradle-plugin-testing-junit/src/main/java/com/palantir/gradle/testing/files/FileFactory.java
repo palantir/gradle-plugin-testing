@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.arbitrary;
+package com.palantir.gradle.testing.files;
 
+import com.palantir.gradle.testing.files.arbitrary.ArbitraryFile;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import com.palantir.gradle.testing.files.yaml.YamlFile;
 import java.nio.file.Path;
 
-public interface ArbitraryFileFactory {
+public interface FileFactory {
     Path path();
 
     default ArbitraryFile file(String path) {
