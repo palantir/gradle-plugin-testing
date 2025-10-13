@@ -48,7 +48,7 @@ com.googlecode.javaewah:JavaEWAH:1.2.3 (1 constraints: 460e7e50)
 
 com.netflix.nebula:nebula-test:10.6.2 (1 constraints: 3b053b3b)
 
-com.palantir.baseline:gradle-baseline-java:6.64.0 (1 constraints: 4205673b)
+com.palantir.baseline:gradle-baseline-java:6.65.0 (1 constraints: 43056a3b)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-exceptions:1.9.0 (2 constraints: 792d9a5d)
 
