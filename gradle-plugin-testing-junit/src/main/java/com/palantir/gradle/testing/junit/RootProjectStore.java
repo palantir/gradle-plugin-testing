@@ -45,32 +45,33 @@ final class RootProjectStore {
     }
 
     public static Path rootProjectDir(ExtensionContext context) {
-        return (Path) context.getStore(NAMESPACE).getOrComputeIfAbsent(PROJECT_DIR_KEY, _ignored -> {
-            GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
+        return context.getStore(NAMESPACE)
+                .getOrComputeIfAbsent(PROJECT_DIR_KEY, _ignored -> initializeRootProjectDir(context), Path.class);
+    }
 
-            String projectDirFragmentWithoutGradleVersion = contextsFromBelowRootDownTo(context)
-                    .map(ExtensionContext::getDisplayName)
-                    .filter(Predicate.not(Predicate.isEqual("Gradle " + gradleVersion)))
-                    .map(RootProjectStore::replaceCharsInvalidInFilenames)
-                    .collect(Collectors.joining("/"));
+    private static Path initializeRootProjectDir(ExtensionContext context) {
+        GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
 
-            Path projectDir = GRADLE_TESTING_DIR
-                    .resolve(projectDirFragmentWithoutGradleVersion)
-                    .resolve(gradleVersion.version());
+        String projectDirFragmentWithoutGradleVersion = contextsFromBelowRootDownTo(context)
+                .map(ExtensionContext::getDisplayName)
+                .filter(Predicate.not(Predicate.isEqual("Gradle " + gradleVersion)))
+                .map(RootProjectStore::replaceCharsInvalidInFilenames)
+                .collect(Collectors.joining("/"));
 
-            clearDirectory(projectDir);
+        Path projectDir = GRADLE_TESTING_DIR
+                .resolve(projectDirFragmentWithoutGradleVersion)
+                .resolve(gradleVersion.version());
 
-            try {
-                Files.writeString(
-                        projectDir.resolve("settings.gradle"),
-                        "rootProject.name = 'root'\n",
-                        StandardOpenOption.CREATE);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Could not create settings.gradle", e);
-            }
+        clearDirectory(projectDir);
 
-            return projectDir;
-        });
+        try {
+            Files.writeString(
+                    projectDir.resolve("settings.gradle"), "rootProject.name = 'root'\n", StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not create settings.gradle", e);
+        }
+
+        return projectDir;
     }
 
     private static Stream<ExtensionContext> contextsFromBelowRootDownTo(ExtensionContext extensionContext) {
