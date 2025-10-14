@@ -28,11 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class TestDependencyVersionsTests {
-    private static final String SAMPLE_VERSIONS =
-            """
-            foo:bar=100
-            com.palantir:gradle-plugin-testing=1.2.3
-            """;
+    private static final String SAMPLE_VERSIONS = """
+        foo:bar=100
+        com.palantir:gradle-plugin-testing=1.2.3
+        """;
 
     @TempDir
     static Path tempDir;
@@ -68,34 +67,30 @@ public class TestDependencyVersionsTests {
     public void addBuildScriptDependencies() {
         String buildScript =
                 TestContentHelpers.addBuildScriptDependencies("foo:bar", "com.palantir:gradle-plugin-testing");
-        assertThat(buildScript)
-                .isEqualTo(
-                        """
-                buildscript {
-                    dependencies {
-                        classpath 'foo:bar:100'
-                        classpath 'com.palantir:gradle-plugin-testing:1.2.3'
-                    }
+        assertThat(buildScript).isEqualTo("""
+            buildscript {
+                dependencies {
+                    classpath 'foo:bar:100'
+                    classpath 'com.palantir:gradle-plugin-testing:1.2.3'
                 }
-                """);
+            }
+            """);
     }
 
     @Test
     public void addBuildScriptBlock() {
         String buildScript = TestContentHelpers.addBuildScriptBlock(
                 "mavenCentral()", "foo:bar", "com.palantir:gradle-plugin-testing");
-        assertThat(buildScript)
-                .isEqualTo(
-                        """
-                buildscript {
-                    repositories {
-                        mavenCentral()
-                    }
-                    dependencies {
-                        classpath 'foo:bar:100'
-                        classpath 'com.palantir:gradle-plugin-testing:1.2.3'
-                    }
+        assertThat(buildScript).isEqualTo("""
+            buildscript {
+                repositories {
+                    mavenCentral()
                 }
-                """);
+                dependencies {
+                    classpath 'foo:bar:100'
+                    classpath 'com.palantir:gradle-plugin-testing:1.2.3'
+                }
+            }
+            """);
     }
 }
