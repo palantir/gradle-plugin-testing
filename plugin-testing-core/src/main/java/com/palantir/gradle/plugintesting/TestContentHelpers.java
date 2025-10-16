@@ -58,14 +58,13 @@ public final class TestContentHelpers {
         // indent the extra level for being in the buildscript block
         String result = depBlock.replaceAll("(?m)^", "    ");
         return """
-                buildscript {
-                    repositories {
-                        %s
-                    }
-                %s
+            buildscript {
+                repositories {
+                    %s
                 }
-                """
-                .formatted(repository, result);
+            %s
+            }
+            """.formatted(repository, result);
     }
 
     /**

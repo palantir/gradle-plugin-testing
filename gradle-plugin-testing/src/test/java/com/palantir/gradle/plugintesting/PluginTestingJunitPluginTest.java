@@ -35,10 +35,7 @@ class PluginTestingJunitPluginTest {
     void correct_versions_from_extension_are_used_by_junit_library(
             GradleInvoker gradleInvoker, RootProject rootProject) {
 
-        rootProject
-                .buildGradle()
-                .append(
-                        """
+        rootProject.buildGradle().append("""
             plugins {
                 id 'com.palantir.gradle-plugin-testing'
                 id 'java-gradle-plugin'
@@ -63,11 +60,7 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        rootProject
-                .testSourceSet()
-                .java()
-                .writeClass(
-                        """
+        rootProject.testSourceSet().java().writeClass("""
             package test;
 
             import com.palantir.gradle.testing.execution.GradleInvoker;

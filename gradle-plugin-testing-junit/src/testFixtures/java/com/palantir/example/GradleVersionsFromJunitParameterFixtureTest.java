@@ -26,10 +26,7 @@ import org.junit.jupiter.api.Test;
 public class GradleVersionsFromJunitParameterFixtureTest {
     @Test
     void test_name(GradleInvoker gradleInvoker, RootProject rootProject) {
-        rootProject
-                .buildGradle()
-                .append(
-                        """
+        rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"
             """);

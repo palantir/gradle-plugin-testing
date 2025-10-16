@@ -27,11 +27,7 @@ import org.junit.jupiter.api.Test;
 class JavaSrcDirUsagesTest {
     @Test
     void can_use_java_src_dir(GradleInvoker gradle, RootProject rootProject) {
-        rootProject
-                .mainSourceSet()
-                .java()
-                .writeClass(
-                        """
+        rootProject.mainSourceSet().java().writeClass("""
             package example;
             public class Main {
                 public static void main(String[] args) {
@@ -40,10 +36,7 @@ class JavaSrcDirUsagesTest {
             }
             """);
 
-        rootProject
-                .buildGradle()
-                .append(
-                        """
+        rootProject.buildGradle().append("""
             apply plugin: 'application'
 
             application {

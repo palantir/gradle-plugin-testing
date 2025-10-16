@@ -1,6 +1,6 @@
 com.fasterxml.jackson.*:* = 2.19.2
-org.apache.commons:commons-lang3 = 3.17.0
-com.google.guava:guava = 33.4.0-jre
+org.apache.commons:commons-lang3 = 3.19.0
+com.google.guava:guava = 33.5.0-jre
 com.palantir.baseline:gradle-baseline-java = 6.8.0
 org.assertj:* = 3.27.2
 org.junit.jupiter:* = 5.13.4

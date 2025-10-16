@@ -51,8 +51,7 @@ class JavaSrcDirTest {
 
         @Test
         void writes_interface_out_to_correct_location() {
-            String javaSource =
-                    """
+            String javaSource = """
                 package foo;
                 interface SomeInterface {}
                 """;
@@ -64,8 +63,7 @@ class JavaSrcDirTest {
 
         @Test
         void writes_record_out_to_correct_location() {
-            String javaSource =
-                    """
+            String javaSource = """
                 package foo;
                 record SomeRecord(int hi) {}
                 """;
@@ -77,8 +75,7 @@ class JavaSrcDirTest {
 
         @Test
         void writes_enum_out_to_correct_location() {
-            String javaSource =
-                    """
+            String javaSource = """
                 package foo;
                 enum SomeRecord(int hi) {}
                 """;
@@ -90,8 +87,7 @@ class JavaSrcDirTest {
 
         @Test
         void writes_annotation_interface_out_to_correct_location() {
-            String javaSource =
-                    """
+            String javaSource = """
                 package foo;
                 @interface SomeAnnotation {}
                 """;
@@ -114,8 +110,7 @@ class JavaSrcDirTest {
 
         @Test
         void handles_multiple_nested_package() {
-            String javaSource =
-                    """
+            String javaSource = """
                 package foo.bar.baz;
                 class Test {}
                 """;
@@ -127,8 +122,7 @@ class JavaSrcDirTest {
 
         @Test
         void nested_classes_do_not_confuse_it() {
-            javaSrcDir.writeClass(
-                    """
+            javaSrcDir.writeClass("""
                 package foo;
                 class SomeClass {
                     class NestedClass {}

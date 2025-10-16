@@ -28,10 +28,7 @@ import org.junit.jupiter.api.Test;
 class ProjectUsagesTest {
     @Test
     void root_project_parameter(GradleInvoker gradle, RootProject rootProject) {
-        rootProject
-                .buildGradle()
-                .append(
-                        """
+        rootProject.buildGradle().append("""
             println "hello from ${path}"
             println "project name: ${name}"
             """);

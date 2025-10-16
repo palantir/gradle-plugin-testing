@@ -77,10 +77,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void task_path_is_correct(GradleInvoker gradle, SubProject subProject) {
-        subProject
-                .buildGradle()
-                .append(
-                        """
+        subProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
             }
@@ -95,10 +92,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void can_get_info_about_a_successful_task(GradleInvoker gradle, SubProject subProject) {
-        subProject
-                .buildGradle()
-                .append(
-                        """
+        subProject.buildGradle().append("""
             tasks.register('foo') {
                 // Needs a task action to not be up-to-date
                 doLast {}
@@ -114,10 +108,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void can_get_info_about_a_failed_task(GradleInvoker gradle, SubProject subProject) {
-        subProject
-                .buildGradle()
-                .append(
-                        """
+        subProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {
                     throw new RuntimeException('oops')
@@ -134,10 +125,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void can_get_info_about_an_up_to_date_task(GradleInvoker gradle, SubProject subProject) {
-        subProject
-                .buildGradle()
-                .append(
-                        """
+        subProject.buildGradle().append("""
             tasks.register('foo') {
                 // No task actions -> up-to-date
             }
@@ -152,10 +140,7 @@ class InvocationResultUsagesTest {
 
     @Test
     void can_get_info_about_a_skipped_task(GradleInvoker gradle, SubProject subProject) {
-        subProject
-                .buildGradle()
-                .append(
-                        """
+        subProject.buildGradle().append("""
             tasks.register('foo') {
                 onlyIf { false }
             }
