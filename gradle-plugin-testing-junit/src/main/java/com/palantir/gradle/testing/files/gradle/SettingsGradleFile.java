@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
@@ -44,7 +45,7 @@ public record SettingsGradleFile(Path path) implements GradleFile {
         @Language("Gradle")
         String includeLine = "include '%s'".formatted(projectPath);
 
-        if (text().contains(includeLine)) {
+        if (Files.exists(path) && text().contains(includeLine)) {
             return this;
         }
 
