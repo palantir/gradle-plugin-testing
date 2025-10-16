@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 import org.gradle.testkit.runner.GradleRunner;
 
@@ -23,6 +25,7 @@ public final class GradleInvoker {
     private final Path rootProjectDir;
     private final GradleVersion gradleVersion;
 
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public GradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) {
         this.rootProjectDir = rootProjectDir;
         this.gradleVersion = gradleVersion;

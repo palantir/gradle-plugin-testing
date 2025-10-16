@@ -16,11 +16,16 @@
 
 package com.palantir.gradle.testing.project;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
 public record RootProject(Path path) implements GradleProject {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public RootProject {}
+
     @Override
     public RootProject rootProject() {
         return this;

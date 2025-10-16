@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGenerator;
 
-public final class GradlePluginTestingDisplayNameGenerator extends DisplayNameGenerator.Standard {
+final class GradlePluginTestingDisplayNameGenerator extends DisplayNameGenerator.Standard {
     @Override
     public String generateDisplayNameForMethod(
             List<Class<?>> enclosingInstanceTypes, Class<?> testClass, Method testMethod) {

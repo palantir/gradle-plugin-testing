@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.java;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -26,6 +28,9 @@ public record JavaSrcDir(Path srcDirPath) {
     private static final Pattern PACKAGE_PATTERN = Pattern.compile("package\\s+([^;]+);");
     private static final Pattern CLASS_PATTERN =
             Pattern.compile("(?:class|interface|record|enum|@interface)\\s+(\\w+)");
+
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public JavaSrcDir {}
 
     public JavaFile writeClass(@Language("Java") String javaSource) {
         Optional<String> possiblePackagePath = possiblyExtractGroup(PACKAGE_PATTERN, javaSource);

@@ -16,7 +16,12 @@
 
 package com.palantir.gradle.testing.project;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.FileFactory;
 import java.nio.file.Path;
 
-public record BuildDir(Path path) implements FileFactory {}
+public record BuildDir(Path path) implements FileFactory {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public BuildDir {}
+}

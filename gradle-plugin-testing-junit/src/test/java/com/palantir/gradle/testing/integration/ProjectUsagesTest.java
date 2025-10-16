@@ -67,4 +67,19 @@ class ProjectUsagesTest {
 
         assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject:subSubProject");
     }
+
+    @Test
+    void can_request_the_same_subproject_multiple_times_without_issue(GradleInvoker gradle, RootProject rootProject) {
+        SubProject subProject = rootProject.subproject("subProject");
+        SubProject sameSubProject = rootProject.subproject("subProject");
+
+        assertThat(sameSubProject.path()).isEqualTo(subProject.path());
+        rootProject.settingsGradle().assertThat().content().containsOnlyOnce("subProject");
+
+        subProject.buildGradle().append("""
+            println "hello from ${path}"
+            """);
+
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject");
+    }
 }

@@ -16,11 +16,16 @@
 
 package com.palantir.gradle.testing.files.java;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
 
 public record JavaFile(Path path) implements ProjectFile<JavaFile> {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public JavaFile {}
+
     @Override
     public JavaFile overwrite(@Language("Java") String text) {
         return ProjectFile.super.overwrite(text);

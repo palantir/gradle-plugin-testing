@@ -17,22 +17,21 @@
 package com.palantir.gradle.testing.files.gradle;
 
 import com.palantir.gradle.testing.files.ProjectFile;
-import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
 
-public record GradleFile(Path path) implements ProjectFile<GradleFile> {
+public interface GradleFile extends ProjectFile<GradleFile> {
     @Override
-    public GradleFile overwrite(@Language("Gradle") String text) {
+    default GradleFile overwrite(@Language("Gradle") String text) {
         return ProjectFile.super.overwrite(text);
     }
 
     @Override
-    public GradleFile append(@Language("Gradle") String text) {
+    default GradleFile append(@Language("Gradle") String text) {
         return ProjectFile.super.append(text);
     }
 
     @Override
-    public GradleFile appendLine(@Language("Gradle") String line) {
+    default GradleFile appendLine(@Language("Gradle") String line) {
         return ProjectFile.super.appendLine(line);
     }
 }

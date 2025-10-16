@@ -14,14 +14,26 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.arbitrary;
+package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
-import com.palantir.gradle.testing.files.FileFactory;
 import java.nio.file.Path;
+import org.intellij.lang.annotations.Language;
 
-public record ArbitrarySrcDir(Path path) implements FileFactory {
+public record SettingsGradleFile(Path path) implements GradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public ArbitrarySrcDir {}
+    public SettingsGradleFile {}
+
+    public SettingsGradleFile include(String projectPath) {
+        @Language("Gradle")
+        String includeLine = "include '%s'".formatted(projectPath);
+
+        if (text().contains(includeLine)) {
+            return this;
+        }
+
+        appendLine(includeLine);
+        return this;
+    }
 }

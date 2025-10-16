@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.files;
 
 import com.palantir.gradle.testing.files.arbitrary.ArbitraryFile;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
+import com.palantir.gradle.testing.files.gradle.RegularGradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import com.palantir.gradle.testing.files.yaml.YamlFile;
 import java.nio.file.Path;
@@ -30,7 +31,7 @@ public interface FileFactory {
     }
 
     default GradleFile gradleFile(String path) {
-        return new GradleFile(resolvePath(path));
+        return new RegularGradleFile(resolvePath(path));
     }
 
     default YamlFile yamlFile(String path) {

@@ -16,11 +16,16 @@
 
 package com.palantir.gradle.testing.files;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.arbitrary.ArbitrarySrcDir;
 import com.palantir.gradle.testing.files.java.JavaSrcDir;
 import java.nio.file.Path;
 
 public record GradleSourceSet(Path path) {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public GradleSourceSet {}
+
     public JavaSrcDir java() {
         return new JavaSrcDir(path.resolve("java"));
     }

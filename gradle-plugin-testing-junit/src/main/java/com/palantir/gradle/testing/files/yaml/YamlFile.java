@@ -16,11 +16,16 @@
 
 package com.palantir.gradle.testing.files.yaml;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
 
 public record YamlFile(Path path) implements ProjectFile<YamlFile> {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public YamlFile {}
+
     @Override
     public YamlFile overwrite(@Language("YAML") String text) {
         return ProjectFile.super.overwrite(text);

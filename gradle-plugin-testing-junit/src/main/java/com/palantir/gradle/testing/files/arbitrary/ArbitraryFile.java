@@ -16,7 +16,12 @@
 
 package com.palantir.gradle.testing.files.arbitrary;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 
-public record ArbitraryFile(Path path) implements ProjectFile<ArbitraryFile> {}
+public record ArbitraryFile(Path path) implements ProjectFile<ArbitraryFile> {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public ArbitraryFile {}
+}
