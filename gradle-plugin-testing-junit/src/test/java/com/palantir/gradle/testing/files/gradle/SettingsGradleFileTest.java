@@ -36,7 +36,7 @@ class SettingsGradleFileTest {
         void set_root_project_name() {
             settingsGradleFile.rootProjectName("blahblah");
 
-            settingsGradleFile.assertThat().content().contains("rootProject.name = 'blahblah'");
+            settingsGradleFile.assertThat().hasContent("rootProject.name = 'blahblah'\n");
         }
 
         @Test
@@ -44,8 +44,17 @@ class SettingsGradleFileTest {
             settingsGradleFile.rootProjectName("first");
             settingsGradleFile.rootProjectName("second");
 
-            settingsGradleFile.assertThat().content().contains("rootProject.name = 'second'");
+            settingsGradleFile.assertThat().hasContent("rootProject.name = 'second'\n");
             settingsGradleFile.assertThat().content().doesNotContain("first");
+        }
+
+        @Test
+        void maintains_ending_newlines() {
+            settingsGradleFile.append("something already here\n\n");
+
+            settingsGradleFile.rootProjectName("name");
+
+            settingsGradleFile.assertThat().hasContent("rootProject.name = 'name'\nsomething already here\n\n");
         }
     }
 

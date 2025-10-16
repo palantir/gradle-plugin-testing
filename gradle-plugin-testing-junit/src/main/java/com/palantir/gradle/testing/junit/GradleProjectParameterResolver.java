@@ -26,14 +26,30 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         if (parameterContext.getParameter().getType().equals(RootProject.class)) {
-            return Optional.of(RootProjectStore.rootProject(extensionContext));
+            return Optional.of(rootProjectFor(parameterContext, extensionContext));
         }
 
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
-            return Optional.of(RootProjectStore.rootProject(extensionContext)
-                    .subproject(parameterContext.getParameter().getName()));
+            return Optional.of(rootProjectFor(parameterContext, extensionContext)
+                    .subproject(projectNameFromParameter(parameterContext)));
         }
 
         return Optional.empty();
+    }
+
+    private RootProject rootProjectFor(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        RootProject rootProject = RootProjectStore.rootProject(extensionContext);
+        rootProject.settingsGradle().rootProjectName(projectNameFromParameter(parameterContext));
+        return rootProject;
+    }
+
+    private String projectNameFromParameter(ParameterContext parameterContext) {
+        String paramName = parameterContext.getParameter().getName();
+
+        if (paramName.endsWith("Project")) {
+            return paramName.substring(0, paramName.lastIndexOf("Project"));
+        }
+
+        return paramName;
     }
 }

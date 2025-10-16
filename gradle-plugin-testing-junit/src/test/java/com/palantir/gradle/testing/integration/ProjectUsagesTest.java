@@ -38,48 +38,78 @@ class ProjectUsagesTest {
     }
 
     @Test
-    void sub_project_parameter(GradleInvoker gradle, SubProject subProject) {
-        subProject.buildGradle().append("""
+    void root_project_parameter_with_custom_name_ending_in_project(GradleInvoker gradle, RootProject serviceProject) {
+        serviceProject.buildGradle().append("""
+            println "hello from ${path}"
+            println "project name: ${name}"
+            """);
+
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: service");
+    }
+
+    @Test
+    void root_project_parameter_with_custom_name_not_ending_in_project(GradleInvoker gradle, RootProject service) {
+        service.buildGradle().append("""
+            println "hello from ${path}"
+            println "project name: ${name}"
+            """);
+
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: service");
+    }
+
+    @Test
+    void sub_project_parameter_ending_in_project(GradleInvoker gradle, SubProject assetProject) {
+        assetProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :asset");
+    }
+
+    void sub_project_parameter_ending_not_ending_in_project(GradleInvoker gradle, SubProject service) {
+        service.buildGradle().append("""
+            println "hello from ${path}"
+            """);
+
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :service");
     }
 
     @Test
     void sub_project_manually(GradleInvoker gradle, RootProject rootProject) {
-        SubProject subProject = rootProject.subproject("subProject");
+        SubProject subProject = rootProject.subproject("something");
 
         subProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :something");
     }
 
     @Test
-    void two_layer_deep_sub_project(GradleInvoker gradle, SubProject subProject) {
-        SubProject subSubProject = subProject.subproject("subSubProject");
+    void two_layer_deep_sub_project(GradleInvoker gradle, SubProject serviceProject) {
+        SubProject subSubProject = serviceProject.subproject("under-service");
 
         subSubProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject:subSubProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :service:under-service");
     }
 
     @Test
     void can_request_the_same_subproject_multiple_times_without_issue(GradleInvoker gradle, RootProject rootProject) {
-        SubProject subProject = rootProject.subproject("subProject");
-        SubProject sameSubProject = rootProject.subproject("subProject");
+        SubProject subProject = rootProject.subproject("subproject");
+        SubProject sameSubProject = rootProject.subproject("subproject");
 
         assertThat(sameSubProject.path()).isEqualTo(subProject.path());
-        rootProject.settingsGradle().assertThat().content().containsOnlyOnce("subProject");
+        rootProject.settingsGradle().assertThat().content().containsOnlyOnce("subproject");
 
         subProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
-        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subProject");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subproject");
     }
 }
