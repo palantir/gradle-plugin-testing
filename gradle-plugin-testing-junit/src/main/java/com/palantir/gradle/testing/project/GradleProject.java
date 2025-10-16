@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.project;
 
+import com.palantir.gradle.testing.files.BuildDir;
 import com.palantir.gradle.testing.files.FileFactory;
 import com.palantir.gradle.testing.files.GradleSourceSet;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
