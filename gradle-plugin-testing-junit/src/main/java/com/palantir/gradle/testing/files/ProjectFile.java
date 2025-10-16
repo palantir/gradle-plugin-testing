@@ -58,7 +58,9 @@ public interface ProjectFile<T extends ProjectFile<T>> {
     }
 
     default T edit(FileEditor editor) {
-        return overwrite(editor.edit(text()));
+        String text = Files.exists(path()) ? text() : "";
+
+        return overwrite(editor.edit(text));
     }
 
     default T createEmpty() {
