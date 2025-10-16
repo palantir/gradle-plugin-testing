@@ -13,7 +13,7 @@ dependencies {
     compileOnlyApi gradleApi()
 
     // VERY INTENTIONALLY we are not exposing test kit as api. We want people to use our own types and not the
-    // test kit types directly. This also means we do expose test kit types in our API and have wrappers for all
+    // test kit types directly. This also means we do not expose test kit types in our API and have wrappers for all
     // of them. The upside of this is we have places to hang extra useful behaviour everywhere and can gracefully
     // handle breaking changes or additions of gradle api, or even change up the behaviour entirely, eg allow
     // users to execute gradle via the gradlew script, and still provide the same or similar types.

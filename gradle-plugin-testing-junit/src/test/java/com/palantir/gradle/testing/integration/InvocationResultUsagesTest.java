@@ -60,7 +60,7 @@ class InvocationResultUsagesTest {
     }
 
     @Test
-    void non_exsistent_tasks_are_returned_as_optional_empty(GradleInvoker gradle) {
+    void non_existent_tasks_are_returned_as_optional_empty(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
         assertThat(result.task(":i-dont-exist")).isEmpty();
