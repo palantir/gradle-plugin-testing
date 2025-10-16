@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -64,12 +63,8 @@ final class RootProjectStore {
 
         clearDirectory(projectDir);
 
-        try {
-            Files.writeString(
-                    projectDir.resolve("settings.gradle"), "rootProject.name = 'root'\n", StandardOpenOption.CREATE);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not create settings.gradle", e);
-        }
+        RootProject rootProject = new RootProject(projectDir);
+        rootProject.settingsGradle().rootProjectName("root");
 
         return projectDir;
     }

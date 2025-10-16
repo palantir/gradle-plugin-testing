@@ -43,9 +43,9 @@ public interface GradleProject extends FileFactory {
         String subprojectPath =
                 rootProject().path().relativize(subprojectDir).toString().replace('/', ':');
 
-        rootProject().settingsGradle().appendLine("include '%s'".formatted(subprojectPath));
+        rootProject().settingsGradle().include(subprojectPath);
 
-        return new SubProject(name, subprojectDir, rootProject());
+        return new SubProject(subprojectDir, rootProject());
     }
 
     default GradleFile buildGradle() {

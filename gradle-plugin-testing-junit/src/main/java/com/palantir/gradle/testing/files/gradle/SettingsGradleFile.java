@@ -19,11 +19,27 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 
 public record SettingsGradleFile(Path path) implements GradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public SettingsGradleFile {}
+    public SettingsGradleFile(Path path) {
+        this.path = path;
+        createEmpty();
+    }
+
+    public SettingsGradleFile rootProjectName(String rootProjectName) {
+        edit(text -> {
+            return text.lines()
+                    .filter(line -> !line.startsWith("rootProject.name"))
+                    .collect(Collectors.joining("\n"));
+        });
+
+        prependLine("rootProject.name = '%s'".formatted(rootProjectName));
+
+        return this;
+    }
 
     public SettingsGradleFile include(String projectPath) {
         @Language("Gradle")

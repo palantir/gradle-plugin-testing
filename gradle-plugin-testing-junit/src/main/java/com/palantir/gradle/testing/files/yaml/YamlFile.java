@@ -40,4 +40,14 @@ public record YamlFile(Path path) implements ProjectFile<YamlFile> {
     public YamlFile appendLine(@Language("YAML") String line) {
         return ProjectFile.super.appendLine(line);
     }
+
+    @Override
+    public YamlFile prepend(@Language("YAML") String text) {
+        return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    public YamlFile prependLine(@Language("YAML") String line) {
+        return ProjectFile.super.prependLine(line);
+    }
 }

@@ -34,4 +34,14 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     default GradleFile appendLine(@Language("Gradle") String line) {
         return ProjectFile.super.appendLine(line);
     }
+
+    @Override
+    default GradleFile prepend(@Language("Gradle") String text) {
+        return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    default GradleFile prependLine(@Language("Gradle") String line) {
+        return ProjectFile.super.prependLine(line);
+    }
 }

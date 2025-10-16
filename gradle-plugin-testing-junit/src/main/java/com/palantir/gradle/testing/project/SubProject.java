@@ -20,7 +20,7 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 
-public record SubProject(String name, Path path, RootProject rootProject) implements GradleProject {
+public record SubProject(Path path, RootProject rootProject) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public SubProject {}
 }

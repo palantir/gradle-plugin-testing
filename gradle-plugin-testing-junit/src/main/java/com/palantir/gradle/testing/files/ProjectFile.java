@@ -31,7 +31,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
     Path path();
 
     default T overwrite(String text) {
-        writeString(path(), text);
+        writeString(path(), text, StandardOpenOption.TRUNCATE_EXISTING);
         return (T) this;
     }
 
@@ -42,6 +42,15 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     default T appendLine(String line) {
         return append(line + "\n");
+    }
+
+    default T prepend(String text) {
+        edit(existingText -> text + existingText);
+        return (T) this;
+    }
+
+    default T prependLine(String line) {
+        return prepend(line + "\n");
     }
 
     interface FileEditor {

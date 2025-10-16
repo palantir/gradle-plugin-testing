@@ -44,4 +44,14 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     public PropertiesFile appendLine(@Language("Properties") String line) {
         return ProjectFile.super.appendLine(line);
     }
+
+    @Override
+    public PropertiesFile prepend(@Language("Properties") String text) {
+        return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    public PropertiesFile prependLine(@Language("Properties") String line) {
+        return ProjectFile.super.prependLine(line);
+    }
 }

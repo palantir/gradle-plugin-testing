@@ -40,4 +40,14 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     public JavaFile appendLine(@Language("Java") String line) {
         return ProjectFile.super.appendLine(line);
     }
+
+    @Override
+    public JavaFile prepend(@Language("Java") String text) {
+        return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    public JavaFile prependLine(@Language("Java") String line) {
+        return ProjectFile.super.prependLine(line);
+    }
 }
