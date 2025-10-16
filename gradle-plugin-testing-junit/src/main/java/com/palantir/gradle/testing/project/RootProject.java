@@ -22,6 +22,11 @@ import com.palantir.gradle.testing.files.gradle.SettingsGradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
+/**
+ * When injected as a parameter JUnit, the parameter name will determine the project name. If the parameter name ends
+ * in "Project", the project name will be the name of the parameter with the "Project" removed. Otherwise the project
+ * name will just be the parameter name.
+ */
 public record RootProject(Path path) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public RootProject {}
