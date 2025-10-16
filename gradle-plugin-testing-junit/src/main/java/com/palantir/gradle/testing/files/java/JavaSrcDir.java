@@ -24,7 +24,8 @@ import org.intellij.lang.annotations.Language;
 
 public record JavaSrcDir(Path srcDirPath) {
     private static final Pattern PACKAGE_PATTERN = Pattern.compile("package\\s+([^;]+);");
-    private static final Pattern CLASS_PATTERN = Pattern.compile("(?:class|interface|record|enum)\\s+(\\w+)");
+    private static final Pattern CLASS_PATTERN =
+            Pattern.compile("(?:class|interface|record|enum|@interface)\\s+(\\w+)");
 
     public JavaFile writeClass(@Language("Java") String javaSource) {
         Optional<String> possiblePackagePath = possiblyExtractGroup(PACKAGE_PATTERN, javaSource);
