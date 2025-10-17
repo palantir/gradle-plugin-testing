@@ -200,6 +200,6 @@ org.junit.jupiter:junit-jupiter:5.13.4 (2 constraints: c1103aef)
 
 org.junit.jupiter:junit-jupiter-engine:5.13.4 (3 constraints: bb1c050f)
 
-org.junit.platform:junit-platform-launcher:1.13.4 (2 constraints: 6e1b2078)
+org.junit.platform:junit-platform-launcher:1.13.4 (3 constraints: a8209455)
 
-org.junit.platform:junit-platform-testkit:1.13.4 (1 constraints: 4009aa9e)
+org.junit.platform:junit-platform-testkit:1.13.4 (2 constraints: 7a0e8171)
