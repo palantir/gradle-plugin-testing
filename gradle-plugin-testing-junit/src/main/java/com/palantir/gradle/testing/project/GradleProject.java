@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.project;
 
+import com.google.common.base.Preconditions;
 import com.palantir.gradle.testing.files.BuildDir;
 import com.palantir.gradle.testing.files.FileFactory;
 import com.palantir.gradle.testing.files.GradleSourceSet;
@@ -32,6 +33,8 @@ public interface GradleProject extends FileFactory {
     RootProject rootProject();
 
     default SubProject subproject(String name) {
+        Preconditions.checkArgument(!name.contains(":"), "Subproject names must not %s contain colons", name);
+
         Path subprojectDir = path().resolve(name);
 
         try {
