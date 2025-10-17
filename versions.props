@@ -1,4 +1,5 @@
-com.fasterxml.jackson.*:* = 2.19.2
+com.fasterxml.jackson.*:* = 2.20.0
+com.fasterxml.jackson.core:jackson-annotations = 2.20
 org.apache.commons:commons-lang3 = 3.19.0
 com.google.guava:guava = 33.5.0-jre
 com.palantir.baseline:gradle-baseline-java = 6.8.0

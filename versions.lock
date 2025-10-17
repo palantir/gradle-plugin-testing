@@ -162,17 +162,17 @@ org.spockframework:spock-junit4:2.3-groovy-3.0 (1 constraints: 7a1000b0)
 
 [Test dependencies]
 
-com.fasterxml.jackson:jackson-bom:2.19.2 (5 constraints: a86567af)
+com.fasterxml.jackson:jackson-bom:2.20.0 (4 constraints: 7c51043e)
 
-com.fasterxml.jackson.core:jackson-annotations:2.19.2 (4 constraints: 624f7e49)
+com.fasterxml.jackson.core:jackson-annotations:2.20 (5 constraints: 9952198e)
 
-com.fasterxml.jackson.core:jackson-core:2.19.2 (4 constraints: 624f7e49)
+com.fasterxml.jackson.core:jackson-core:2.20.0 (4 constraints: 3a4f923a)
 
-com.fasterxml.jackson.core:jackson-databind:2.19.2 (3 constraints: d53cd1d3)
+com.fasterxml.jackson.core:jackson-databind:2.20.0 (3 constraints: b73c10cc)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.19.2 (2 constraints: ad2a7f1a)
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0 (2 constraints: a32a7817)
 
-com.fasterxml.jackson.datatype:jackson-datatype-guava:2.19.2 (2 constraints: ad2a7f1a)
+com.fasterxml.jackson.datatype:jackson-datatype-guava:2.20.0 (2 constraints: a32a7817)
 
 com.fasterxml.woodstox:woodstox-core:7.1.1 (1 constraints: 3d174926)
 
