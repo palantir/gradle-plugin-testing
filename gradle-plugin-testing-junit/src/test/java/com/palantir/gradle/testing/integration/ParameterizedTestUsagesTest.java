@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Nested;
@@ -27,9 +29,15 @@ final class ParameterizedTestUsagesTest {
     @Nested
     class NestedClass {
         @ParameterizedTest(name = "{index}: {0}")
-        @ValueSource(strings = {"foo", "bar", "baz"})
+        @ValueSource(strings = "foo")
         void a_test_with_params_has_one_directory_per_param(String param, RootProject rootProject) {
-            // TODO(callumr): Actually test this properly
+            assertThat(param).isIn("foo");
+
+            assertThat(rootProject.path().toString())
+                    .describedAs("Each parameter gets it's own test directory, handles 'bad' characters like colons")
+                    .contains("ParameterizedTestUsagesTest/NestedClass/"
+                            + "a test with params has one directory per param/"
+                            + "1_ foo");
         }
     }
 }
