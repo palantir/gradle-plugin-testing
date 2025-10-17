@@ -1,0 +1,33 @@
+/*
+ * (c) Copyright 2025 Palantir Technologies Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.palantir.gradle.testing.project;
+
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
+import java.nio.file.Path;
+
+/**
+ * When injected as a parameter by JUnit, the parameter name will determine the project name. If the parameter name ends
+ * in "Project", the project name will be the name of the parameter with the "Project" removed. Otherwise the project
+ * name will just be the parameter name.
+ * <br>
+ * When injected as a parameter by JUnit, the subproject will be a direct suproject of the root project.
+ */
+public record SubProject(Path path, RootProject rootProject) implements GradleProject {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public SubProject {}
+}

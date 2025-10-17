@@ -1,0 +1,36 @@
+apply plugin: 'java-library'
+apply plugin: 'java-test-fixtures'
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    api 'org.junit.jupiter:junit-jupiter-api'
+    api 'org.assertj:assertj-core'
+
+    api 'org.jetbrains:annotations'
+    // Just so people can get Gradle autocomplete in text blocks in intellij injected with the
+    // Gradle language fragments
+    compileOnlyApi gradleApi()
+
+    // VERY INTENTIONALLY we are not exposing test kit as api. We want people to use our own types and not the
+    // test kit types directly. This also means we do not expose test kit types in our API and have wrappers for all
+    // of them. The upside of this is we have places to hang extra useful behaviour everywhere and can gracefully
+    // handle breaking changes or additions of gradle api, or even change up the behaviour entirely, eg allow
+    // users to execute gradle via the gradlew script, and still provide the same or similar types.
+    implementation gradleTestKit()
+
+    implementation 'commons-io:commons-io'
+    implementation 'com.google.guava:guava'
+
+    testImplementation 'org.junit.platform:junit-platform-testkit'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+    testFixturesImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testFixturesImplementation 'org.junit.jupiter:junit-jupiter-params'
+}
+
+tasks.named('test', Test) {
+    // We need to set the versions of gradle to test against as we don't have the gradle plugin installed
+    // TODO: Ideally we update this with the gradle plugin somehow - perhaps using the previous published version?
+    systemProperty 'com.palantir.gradle.testing.gradle_versions_to_test', '7.6.5,8.14.3,9.1.0'
+}

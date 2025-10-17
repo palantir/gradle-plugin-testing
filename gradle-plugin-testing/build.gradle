@@ -8,6 +8,7 @@ dependencies {
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
 
+    testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.codehaus.groovy:groovy'
@@ -32,12 +33,17 @@ gradlePlugin {
     }
 }
 
-test {
+tasks.named('test', Test) {
     systemProperty 'projectVersion', project.version
 
+    // We need to set the versions of gradle to test against as we don't have the gradle plugin installed
+    // TODO: Ideally we update this with the gradle plugin somehow - perhaps using the previous published version?
+    systemProperty 'com.palantir.gradle.testing.gradle_versions_to_test', '7.6.5,8.14.3'
+
     // Added as a jar the so in nebula-tests needs to exist in maven local
-    dependsOn tasks.findByPath(':plugin-testing-core:publishToMavenLocal')
-    dependsOn tasks.findByPath(':configuration-cache-spec:publishToMavenLocal')
+    dependsOn ':plugin-testing-core:publishToMavenLocal'
+    dependsOn ':configuration-cache-spec:publishToMavenLocal'
+    dependsOn ':gradle-plugin-testing-junit:publishToMavenLocal'
 }
 
 gradleTestUtils {
