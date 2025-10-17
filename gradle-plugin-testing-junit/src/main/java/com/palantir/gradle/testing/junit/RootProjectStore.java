@@ -63,9 +63,6 @@ final class RootProjectStore {
 
         clearDirectory(projectDir);
 
-        RootProject rootProject = new RootProject(projectDir);
-        rootProject.settingsGradle().rootProjectName("root");
-
         return projectDir;
     }
 
