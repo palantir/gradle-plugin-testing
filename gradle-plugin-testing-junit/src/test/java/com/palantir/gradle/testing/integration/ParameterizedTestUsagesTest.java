@@ -31,7 +31,7 @@ final class ParameterizedTestUsagesTest {
         @ParameterizedTest(name = "{index}: {0}")
         @ValueSource(strings = "foo")
         void a_test_with_params_has_one_directory_per_param(String param, RootProject rootProject) {
-            assertThat(param).isIn("foo");
+            assertThat(param).isEqualTo("foo");
 
             assertThat(rootProject.path().toString())
                     .describedAs("Each parameter gets it's own test directory, handles 'bad' characters like colons")
