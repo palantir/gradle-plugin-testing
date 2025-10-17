@@ -2,6 +2,7 @@ apply plugin: 'java-library'
 apply plugin: 'java-test-fixtures'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.palantir.external-publish-jar'
+apply plugin: 'com.palantir.gradle-plugin-testing'
 
 dependencies {
     api 'org.junit.jupiter:junit-jupiter-api'
