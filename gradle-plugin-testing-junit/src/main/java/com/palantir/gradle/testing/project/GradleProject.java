@@ -34,6 +34,7 @@ public interface GradleProject extends FileFactory {
 
     default SubProject subproject(String name) {
         Preconditions.checkArgument(!name.contains(":"), "Subproject names must not %s contain colons", name);
+        Preconditions.checkArgument(!name.contains("/"), "Subproject names must not %s contain slashes", name);
 
         Path subprojectDir = path().resolve(name);
 

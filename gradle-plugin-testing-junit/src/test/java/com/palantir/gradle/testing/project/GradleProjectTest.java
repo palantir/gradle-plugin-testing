@@ -48,5 +48,12 @@ class GradleProjectTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("sub:name");
         }
+
+        @Test
+        void explodes_if_the_subproject_contains_slashes() {
+            assertThatThrownBy(() -> gradleProject.subproject("sub/name"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("sub/name");
+        }
     }
 }
