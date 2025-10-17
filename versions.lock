@@ -18,13 +18,13 @@ com.diffplug.spotless:spotless-lib-extra:3.3.1 (1 constraints: 1713d42d)
 
 com.diffplug.spotless:spotless-plugin-gradle:7.2.1 (1 constraints: c3111af5)
 
-com.fasterxml.jackson.core:jackson-annotations:2.19.2 (5 constraints: 6664f6b2)
+com.fasterxml.jackson.core:jackson-annotations:2.20 (6 constraints: 0568715f)
 
-com.fasterxml.jackson.core:jackson-core:2.19.2 (3 constraints: a5408176)
+com.fasterxml.jackson.core:jackson-core:2.20.0 (3 constraints: 8740c06e)
 
-com.fasterxml.jackson.core:jackson-databind:2.19.2 (3 constraints: 994614d4)
+com.fasterxml.jackson.core:jackson-databind:2.20.0 (3 constraints: 85461ccc)
 
-com.fasterxml.jackson.datatype:jackson-datatype-guava:2.19.2 (2 constraints: 7930da46)
+com.fasterxml.jackson.datatype:jackson-datatype-guava:2.20.0 (2 constraints: 7930da46)
 
 com.github.ben-manes.caffeine:caffeine:3.2.2 (1 constraints: c01107f5)
 
@@ -188,7 +188,7 @@ org.tukaani:xz:1.9 (1 constraints: 6b09e995)
 
 [Test dependencies]
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.19.2 (1 constraints: f01b1e62)
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0 (1 constraints: f01b1e62)
 
 com.fasterxml.woodstox:woodstox-core:7.1.1 (1 constraints: 3d174926)
 
