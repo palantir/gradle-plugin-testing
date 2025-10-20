@@ -123,7 +123,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
             project.getPluginManager().apply(SuppressibleErrorPronePlugin.class);
 
             String errorProneJarCoordinate = coreMavenCoordinates("gradle-plugin-testing-error-prone") + ":"
-                    + jarImplementationVerisonOrTestVersion(project);
+                    + jarImplementationVersionOrTestVersion(project);
 
             project.getDependencies().add("errorprone", errorProneJarCoordinate);
         });
@@ -143,7 +143,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
     private static void addTestDependency(Project project) {
         SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
         SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-        String version = jarImplementationVerisonOrTestVersion(project);
+        String version = jarImplementationVersionOrTestVersion(project);
 
         String testImplConfigName = testSourceSet.getImplementationConfigurationName();
         project.getConfigurations().named(testImplConfigName).configure(conf -> {
@@ -159,7 +159,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
         });
     }
 
-    private static String jarImplementationVerisonOrTestVersion(Project project) {
+    private static String jarImplementationVersionOrTestVersion(Project project) {
         String version = Optional.ofNullable((String) project.findProperty(PLUGIN_VERSION_PROPERTY_NAME))
                 .or(() -> Optional.ofNullable(
                         PluginTestingPlugin.class.getPackage().getImplementationVersion()))
