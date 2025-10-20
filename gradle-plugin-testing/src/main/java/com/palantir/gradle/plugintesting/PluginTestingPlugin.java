@@ -160,10 +160,9 @@ public class PluginTestingPlugin implements Plugin<Project> {
     }
 
     private static String jarImplementationVersionOrTestVersion(Project project) {
-        String version = Optional.ofNullable((String) project.findProperty(PLUGIN_VERSION_PROPERTY_NAME))
+        return Optional.ofNullable((String) project.findProperty(PLUGIN_VERSION_PROPERTY_NAME))
                 .or(() -> Optional.ofNullable(
                         PluginTestingPlugin.class.getPackage().getImplementationVersion()))
                 .orElseThrow(() -> new RuntimeException("PluginTestingPlugin implementation version not found"));
-        return version;
     }
 }
