@@ -27,6 +27,7 @@ import com.google.errorprone.matchers.Matchers;
 import com.google.errorprone.util.ASTHelpers;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.VariableTree;
 import java.util.stream.StreamSupport;
 
 @AutoService(BugChecker.class)
@@ -36,8 +37,9 @@ import java.util.stream.StreamSupport;
     `SubProject`. These will remain around after the test completes in the `build/gradle-plugin-testing` \
     directory, aiding debugging.
     """)
-public final class GradleTestTemporaryFile extends BugChecker implements BugChecker.MethodInvocationTreeMatcher {
-    private static final Matcher<ExpressionTree> MATCHER = Matchers.staticMethod()
+public final class GradleTestTemporaryFile extends BugChecker
+        implements BugChecker.MethodInvocationTreeMatcher, BugChecker.VariableTreeMatcher {
+    private static final Matcher<ExpressionTree> MANUAL_TEMPORARY_METHOD_MATCHER = Matchers.staticMethod()
             .onClassAny(
                     "java.io.File",
                     "java.nio.file.Files",
@@ -52,19 +54,35 @@ public final class GradleTestTemporaryFile extends BugChecker implements BugChec
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
-        if (!MATCHER.matches(tree, state)) {
+        if (!MANUAL_TEMPORARY_METHOD_MATCHER.matches(tree, state)) {
             return Description.NO_MATCH;
         }
 
-        boolean withinGradlePluginTestsClass = StreamSupport.stream(
-                        state.getPath().spliterator(), false)
-                .anyMatch(parentTree -> ASTHelpers.hasAnnotation(
-                        parentTree, "com.palantir.gradle.testing.junit.GradlePluginTests", state));
+        boolean withinGradlePluginTestsClass = withinGradlePluginTestsClass(state);
 
         if (!withinGradlePluginTestsClass) {
             return Description.NO_MATCH;
         }
 
         return describeMatch(tree);
+    }
+
+    @Override
+    public Description matchVariable(VariableTree tree, VisitorState state) {
+        if (!ASTHelpers.hasAnnotation(tree, "org.junit.jupiter.api.io.TempDir", state)) {
+            return Description.NO_MATCH;
+        }
+
+        if (!withinGradlePluginTestsClass(state)) {
+            return Description.NO_MATCH;
+        }
+
+        return describeMatch(tree);
+    }
+
+    private static boolean withinGradlePluginTestsClass(VisitorState state) {
+        return StreamSupport.stream(state.getPath().spliterator(), false)
+                .anyMatch(parentTree -> ASTHelpers.hasAnnotation(
+                        parentTree, "com.palantir.gradle.testing.junit.GradlePluginTests", state));
     }
 }

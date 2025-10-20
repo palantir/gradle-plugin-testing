@@ -32,10 +32,15 @@ class GradleTestTemporaryFileTest {
             import java.nio.file.Files;
             import java.nio.file.Path;
             import org.apache.commons.io.FileUtils;
+            import org.junit.jupiter.api.io.TempDir;
 
             @GradlePluginTests
             class TestClass {
-                void test() throws Exception {
+                // BUG: Diagnostic contains: GradleTestTemporaryFile
+                @TempDir Path tempDirField;
+
+                // BUG: Diagnostic contains: GradleTestTemporaryFile
+                void test(@TempDir Path tempDir) throws Exception {
                     // BUG: Diagnostic contains: GradleTestTemporaryFile
                     Files.createTempDirectory("prefix");
                     // BUG: Diagnostic contains: GradleTestTemporaryFile
@@ -58,6 +63,9 @@ class GradleTestTemporaryFileTest {
                     // BUG: Diagnostic contains: GradleTestTemporaryFile
                     FileUtils.getTempDirectoryPath();
                 }
+
+                // BUG: Diagnostic contains: GradleTestTemporaryFile
+                void someMethod(@TempDir Path tempDir) {}
             }
             """).doTest();
     }
@@ -67,9 +75,13 @@ class GradleTestTemporaryFileTest {
         // language=Java
         compilationTestHelper.addSourceLines("TestClass.java", """
             import java.nio.file.Files;
+            import java.nio.file.Path;
+            import org.junit.jupiter.api.io.TempDir;
 
             class TestClass {
-                void test() throws Exception {
+                @TempDir Path tempDirField;
+
+                void test(@TempDir Path tempDir) throws Exception {
                     Files.createTempFile("prefix", "suffix");
                 }
             }
@@ -81,16 +93,24 @@ class GradleTestTemporaryFileTest {
         // language=Java
         compilationTestHelper.addSourceLines("TestClass.java", """
             import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import java.nio.file.Path;
             import java.nio.file.Files;
+            import org.junit.jupiter.api.io.TempDir;
 
             class TestClass {
-                void test() throws Exception {
+                @TempDir Path tempDirField;
+
+                void test(@TempDir Path tempDir) throws Exception {
                     Files.createTempFile("prefix", "suffix");
                 }
 
                 @GradlePluginTests
                 class Nested {
-                    void nested_test() throws Exception {
+                    // BUG: Diagnostic contains: GradleTestTemporaryFile
+                    @TempDir Path nestedTempDirField;
+
+                    // BUG: Diagnostic contains: GradleTestTemporaryFile
+                    void nested_test(@TempDir Path tempDir) throws Exception {
                         // BUG: Diagnostic contains: GradleTestTemporaryFile
                         Files.createTempFile("prefix", "suffix");
                     }
