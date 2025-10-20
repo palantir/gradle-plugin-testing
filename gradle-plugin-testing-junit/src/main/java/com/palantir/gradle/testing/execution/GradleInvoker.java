@@ -34,7 +34,7 @@ public final class GradleInvoker {
     public GradleInvocation withArgs(String... args) {
         return new GradleInvocation(GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
-                .withDebug(true)
+                .withDebug(false)
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
