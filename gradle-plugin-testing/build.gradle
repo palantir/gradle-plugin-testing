@@ -7,6 +7,7 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 dependencies {
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
+    implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
 
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
@@ -44,6 +45,7 @@ tasks.named('test', Test) {
     dependsOn ':plugin-testing-core:publishToMavenLocal'
     dependsOn ':configuration-cache-spec:publishToMavenLocal'
     dependsOn ':gradle-plugin-testing-junit:publishToMavenLocal'
+    dependsOn ':gradle-plugin-testing-error-prone:publishToMavenLocal'
 }
 
 gradleTestUtils {
