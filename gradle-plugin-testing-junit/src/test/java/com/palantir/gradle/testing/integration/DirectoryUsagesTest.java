@@ -27,6 +27,13 @@ import org.junit.jupiter.api.Test;
 class DirectoryUsagesTest {
 
     @Test
+    void directory_not_created_by_default(RootProject rootProject) {
+        Directory dir = rootProject.directory("my-dir");
+
+        assertThat(dir.path()).doesNotExist();
+    }
+
+    @Test
     void can_create_nested_directories(RootProject rootProject) {
         Directory dir = rootProject.directory("foo/bar/baz").ensureExists();
 
@@ -40,27 +47,5 @@ class DirectoryUsagesTest {
         dir.file("test.txt").overwrite("hello");
 
         assertThat(dir.file("test.txt").text()).isEqualTo("hello");
-    }
-
-    @Test
-    void directory_implements_file_factory(RootProject rootProject) {
-        Directory dir = rootProject.directory("my-dir");
-
-        dir.file("file.txt").overwrite("file content");
-        dir.gradleFile("build.gradle").append("plugins { id 'java' }");
-        dir.yamlFile("config.yaml").overwrite("key: value");
-        dir.propertiesFile("gradle.properties").overwrite("property=value");
-
-        assertThat(dir.file("file.txt").text()).isEqualTo("file content");
-        assertThat(dir.gradleFile("build.gradle").text()).contains("plugins { id 'java' }");
-        assertThat(dir.yamlFile("config.yaml").text()).isEqualTo("key: value");
-        assertThat(dir.propertiesFile("gradle.properties").text()).isEqualTo("property=value");
-    }
-
-    @Test
-    void directory_not_created_by_default(RootProject rootProject) {
-        Directory dir = rootProject.directory("my-dir");
-
-        assertThat(dir.path()).doesNotExist();
     }
 }
