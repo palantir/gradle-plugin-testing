@@ -31,7 +31,7 @@ public interface FileFactory {
     }
 
     default Directory directory(String path) {
-        return new Directory(resolvePath(path)).ensureExists();
+        return new Directory(resolvePath(path));
     }
 
     default GradleFile gradleFile(String path) {

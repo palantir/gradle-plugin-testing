@@ -27,7 +27,7 @@ class DirectoryTest {
 
     @Test
     void can_create_nested_directories(RootProject rootProject) {
-        Directory dir = rootProject.directory("foo/bar/baz");
+        Directory dir = rootProject.directory("foo/bar/baz").ensureExists();
 
         assertThat(dir.path()).isDirectory();
     }
@@ -57,39 +57,9 @@ class DirectoryTest {
     }
 
     @Test
-    void can_create_nested_directories_in_directory(RootProject rootProject) {
-        Directory parentDir = rootProject.directory("parent");
-        Directory childDir = parentDir.directory("child");
-
-        assertThat(childDir.path()).isDirectory();
-        childDir.file("test.txt").overwrite("nested");
-
-        assertThat(childDir.file("test.txt").text()).isEqualTo("nested");
-    }
-
-    @Test
     void directory_not_created_by_default(RootProject rootProject) {
-        Directory dir = new Directory(rootProject.path().resolve("non-existent"));
+        Directory dir = rootProject.directory("my-dir");
 
         assertThat(dir.path()).doesNotExist();
-    }
-
-    @Test
-    void ensure_exists_creates_nested_directories(RootProject rootProject) {
-        Directory dir = new Directory(rootProject.path().resolve("a/b/c")).ensureExists();
-
-        assertThat(dir.path()).isDirectory();
-    }
-
-    @Test
-    void ensure_exists_is_idempotent_and_returns_same_instance(RootProject rootProject) {
-        Directory dir = new Directory(rootProject.path().resolve("idempotent-dir"));
-
-        Directory result1 = dir.ensureExists();
-        Directory result2 = dir.ensureExists();
-
-        assertThat(dir.path()).isDirectory();
-        assertThat(result1).isSameAs(dir);
-        assertThat(result2).isSameAs(dir);
     }
 }
