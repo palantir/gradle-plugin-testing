@@ -29,7 +29,7 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     public PropertiesFile {}
 
     public PropertiesFile appendProperty(String key, String value) {
-        return appendLine("%s=%s".formatted(key, value));
+        return appendLine("%s=%s", key, value);
     }
 
     @Override
@@ -45,7 +45,8 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     }
 
     @Override
-    public PropertiesFile appendLine(@Language("Properties") String line, Object... args) {
+    @FormatMethod
+    public PropertiesFile appendLine(@Language("Properties") @FormatString String line, Object... args) {
         return ProjectFile.super.appendLine(line, args);
     }
 
@@ -56,7 +57,8 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     }
 
     @Override
-    public PropertiesFile prependLine(@Language("Properties") String line, Object... args) {
+    @FormatMethod
+    public PropertiesFile prependLine(@Language("Properties") @FormatString String line, Object... args) {
         return ProjectFile.super.prependLine(line, args);
     }
 }

@@ -41,7 +41,8 @@ public record YamlFile(Path path) implements ProjectFile<YamlFile> {
     }
 
     @Override
-    public YamlFile appendLine(@Language("YAML") String line, Object... args) {
+    @FormatMethod
+    public YamlFile appendLine(@Language("YAML") @FormatString String line, Object... args) {
         return ProjectFile.super.appendLine(line, args);
     }
 
@@ -52,7 +53,8 @@ public record YamlFile(Path path) implements ProjectFile<YamlFile> {
     }
 
     @Override
-    public YamlFile prependLine(@Language("YAML") String line, Object... args) {
+    @FormatMethod
+    public YamlFile prependLine(@Language("YAML") @FormatString String line, Object... args) {
         return ProjectFile.super.prependLine(line, args);
     }
 }

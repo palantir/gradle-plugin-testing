@@ -35,7 +35,8 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     }
 
     @Override
-    default GradleFile appendLine(@Language("Gradle") String line, Object... args) {
+    @FormatMethod
+    default GradleFile appendLine(@Language("Gradle") @FormatString String line, Object... args) {
         return ProjectFile.super.appendLine(line, args);
     }
 
@@ -46,7 +47,8 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     }
 
     @Override
-    default GradleFile prependLine(@Language("Gradle") String line, Object... args) {
+    @FormatMethod
+    default GradleFile prependLine(@Language("Gradle") @FormatString String line, Object... args) {
         return ProjectFile.super.prependLine(line, args);
     }
 }
