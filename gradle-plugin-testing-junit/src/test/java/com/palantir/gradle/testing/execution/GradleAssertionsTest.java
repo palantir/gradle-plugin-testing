@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.assertions;
+package com.palantir.gradle.testing.execution;
 
-import static com.palantir.gradle.testing.assertions.GradleAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.InvocationResult;
-import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
@@ -43,15 +39,14 @@ class GradleAssertionsTest {
         InvocationResult firstRun = gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(firstRun)
-                .task(":foo")
+        firstRun.assertTask(":foo")
                 .as("First run should execute the task")
                 .hasOutcome()
                 .as("First run task outcome should not be cached")
                 .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
 
-        assertThat(secondRun)
-                .task(":foo")
+        secondRun
+                .assertTask(":foo")
                 .as("Second run should have task cached")
                 .hasOutcome()
                 .as("Second run task outcome should be cached")
@@ -68,7 +63,7 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result).task(":foo").as("Task should have correct path").hasPath(":foo");
+        result.assertTask(":foo").as("Task should have correct path").hasPath(":foo");
     }
 
     @Test
@@ -79,7 +74,7 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result).as("Build output should contain expected message").hasOutput("hello from build");
+        result.assertOutput().as("Build output should contain expected message").contains("hello from build");
     }
 
     @Test
@@ -92,8 +87,7 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> assertThat(result)
-                        .task(":foo")
+        assertThatThrownBy(() -> result.assertTask(":foo")
                         .as("Task should be present")
                         .hasOutcome()
                         .as("Task outcome validation")
@@ -112,8 +106,7 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> assertThat(result)
-                        .task(":foo")
+        assertThatThrownBy(() -> result.assertTask(":foo")
                         .as("Task should be present")
                         .hasOutcome()
                         .as("Task outcome validation")
@@ -126,8 +119,7 @@ class GradleAssertionsTest {
     void fluent_assertions_fail_when_task_is_not_present(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThatThrownBy(() -> assertThat(result)
-                        .task(":nonexistent")
+        assertThatThrownBy(() -> result.assertTask(":nonexistent")
                         .as("Task should not be present")
                         .hasOutcome())
                 .isInstanceOf(AssertionError.class);
@@ -137,8 +129,7 @@ class GradleAssertionsTest {
     void can_check_task_is_empty(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result)
-                .task(":nonexistent")
+        result.assertTask(":nonexistent")
                 .as("Non-existent task should be empty")
                 .isEmpty();
     }

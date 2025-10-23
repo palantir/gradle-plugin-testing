@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.assertions;
+package com.palantir.gradle.testing.execution;
 
-import com.palantir.gradle.testing.execution.TaskOutcome;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.assertj.core.api.AbstractObjectAssert;
 
-public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAssert, TaskOutcome> {
+final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAssert, TaskOutcome> {
 
     TaskOutcomeAssert(TaskOutcome taskOutcome) {
         super(taskOutcome, TaskOutcomeAssert.class);

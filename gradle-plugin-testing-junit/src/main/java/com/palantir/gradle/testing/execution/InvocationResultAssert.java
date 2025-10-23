@@ -14,35 +14,18 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.assertions;
+package com.palantir.gradle.testing.execution;
 
-import com.palantir.gradle.testing.execution.InvocationResult;
-import com.palantir.gradle.testing.execution.TaskResult;
-import org.assertj.core.api.AbstractObjectAssert;
+import java.util.Optional;
 import org.assertj.core.api.OptionalAssert;
 
-public final class InvocationResultAssert extends AbstractObjectAssert<InvocationResultAssert, InvocationResult> {
+final class InvocationResultAssert {
 
-    InvocationResultAssert(InvocationResult invocationResult) {
-        super(invocationResult, InvocationResultAssert.class);
-    }
-
-    public TaskResultOptionalAssert task(String taskPath) {
-        isNotNull();
-        return new TaskResultOptionalAssert(actual.task(taskPath));
-    }
-
-    public InvocationResultAssert hasOutput(String expectedOutput) {
-        isNotNull();
-        if (!actual.output().contains(expectedOutput)) {
-            failWithMessage("Expected output to contain <%s> but was <%s>", expectedOutput, actual.output());
-        }
-        return this;
-    }
+    private InvocationResultAssert() {}
 
     public static final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
 
-        TaskResultOptionalAssert(java.util.Optional<TaskResult> optional) {
+        TaskResultOptionalAssert(Optional<TaskResult> optional) {
             super(optional);
         }
 
@@ -54,6 +37,15 @@ public final class InvocationResultAssert extends AbstractObjectAssert<Invocatio
         public TaskOutcomeAssert hasOutcome() {
             isPresent();
             return new TaskOutcomeAssert(actual.get().outcome());
+        }
+
+        public TaskResultOptionalAssert hasOutcome(TaskOutcome expected) {
+            isPresent();
+            TaskOutcome actualOutcome = actual.get().outcome();
+            if (actualOutcome != expected) {
+                failWithMessage("Expected task outcome to be <%s> but was <%s>", expected, actualOutcome);
+            }
+            return this;
         }
 
         public TaskResultOptionalAssert hasPath(String expectedPath) {

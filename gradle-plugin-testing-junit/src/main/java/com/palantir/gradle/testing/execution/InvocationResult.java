@@ -33,4 +33,30 @@ public final class InvocationResult {
     public Optional<TaskResult> task(String taskPath) {
         return Optional.ofNullable(buildResult.task(taskPath)).map(TaskResult::new);
     }
+
+    /**
+     * Returns an assertion object for fluent task assertion chaining.
+     * <p>
+     * Usage:
+     * <pre>
+     * invocationResult.assertTask(":myTask")
+     *     .hasOutcome()
+     *     .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
+     * </pre>
+     */
+    public InvocationResultAssert.TaskResultOptionalAssert assertTask(String taskPath) {
+        return new InvocationResultAssert.TaskResultOptionalAssert(task(taskPath));
+    }
+
+    /**
+     * Returns an assertion object for fluent output assertion chaining.
+     * <p>
+     * Usage:
+     * <pre>
+     * invocationResult.assertOutput().contains("BUILD SUCCESSFUL");
+     * </pre>
+     */
+    public org.assertj.core.api.AbstractStringAssert<?> assertOutput() {
+        return org.assertj.core.api.Assertions.assertThat(output());
+    }
 }
