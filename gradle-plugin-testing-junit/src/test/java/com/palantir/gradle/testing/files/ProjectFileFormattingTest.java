@@ -37,6 +37,17 @@ class ProjectFileFormattingTest {
     }
 
     @Test
+    void can_format_override_manually(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("""
+            tasks.register('%s') {
+                doLast {}
+            }
+            """.formatted("myTask"));
+
+        assertThat(rootProject.buildGradle().text()).contains("tasks.register('myTask')");
+    }
+
+    @Test
     void can_format_append(RootProject rootProject) {
         rootProject.buildGradle().overwrite("plugins { id 'java' }\n");
         rootProject.buildGradle().append("""
@@ -51,8 +62,29 @@ class ProjectFileFormattingTest {
     }
 
     @Test
+    void can_format_append_manually(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("plugins { id 'java' }\n");
+        rootProject.buildGradle().append("""
+            tasks.register('%s') {
+                doLast {}
+            }
+            """.formatted("myTask"));
+
+        assertThat(rootProject.buildGradle().text())
+                .contains("plugins { id 'java' }")
+                .contains("tasks.register('myTask')");
+    }
+
+    @Test
     void can_format_appendLine(RootProject rootProject) {
         rootProject.buildGradle().appendLine("version = '%s'", "1.0.0");
+
+        assertThat(rootProject.buildGradle().text()).isEqualTo("version = '1.0.0'\n");
+    }
+
+    @Test
+    void can_format_appendLine_manually(RootProject rootProject) {
+        rootProject.buildGradle().appendLine("version = '%s'".formatted("1.0.0"));
 
         assertThat(rootProject.buildGradle().text()).isEqualTo("version = '1.0.0'\n");
     }
@@ -70,9 +102,29 @@ class ProjectFileFormattingTest {
     }
 
     @Test
+    void can_format_prepend_manually(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("task foo {}\n");
+        rootProject.buildGradle().prepend("""
+            tasks.register('%s') {
+                doLast {}
+            }
+            """.formatted("myTask"));
+
+        assertThat(rootProject.buildGradle().text()).startsWith("tasks.register('myTask')");
+    }
+
+    @Test
     void can_format_prependLine(RootProject rootProject) {
         rootProject.buildGradle().overwrite("task foo {}");
         rootProject.buildGradle().prependLine("version = '%s'", "1.0.0");
+
+        assertThat(rootProject.buildGradle().text()).startsWith("version = '1.0.0'\n");
+    }
+
+    @Test
+    void can_format_prependLine_manually(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("task foo {}");
+        rootProject.buildGradle().prependLine("version = '%s'".formatted("1.0.0"));
 
         assertThat(rootProject.buildGradle().text()).startsWith("version = '1.0.0'\n");
     }

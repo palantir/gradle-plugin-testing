@@ -29,9 +29,19 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     }
 
     @Override
+    default GradleFile overwrite(@Language("Gradle") String text) {
+        return ProjectFile.super.overwrite(text);
+    }
+
+    @Override
     @FormatMethod
     default GradleFile append(@Language("Gradle") @FormatString String text, Object... args) {
         return ProjectFile.super.append(text, args);
+    }
+
+    @Override
+    default GradleFile append(@Language("Gradle") String text) {
+        return ProjectFile.super.append(text);
     }
 
     @Override
@@ -44,6 +54,11 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     @FormatMethod
     default GradleFile prepend(@Language("Gradle") @FormatString String text, Object... args) {
         return ProjectFile.super.prepend(text, args);
+    }
+
+    @Override
+    default GradleFile prepend(@Language("Gradle") String text) {
+        return ProjectFile.super.prepend(text);
     }
 
     @Override

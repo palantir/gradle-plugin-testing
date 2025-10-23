@@ -34,7 +34,11 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T overwrite(@FormatString String text, Object... args) {
-        writeString(path(), format(text, args), StandardOpenOption.TRUNCATE_EXISTING);
+        return overwrite(args.length > 0 ? text.formatted(args) : text);
+    }
+
+    default T overwrite(String text) {
+        writeString(path(), text, StandardOpenOption.TRUNCATE_EXISTING);
         return (T) this;
     }
 
@@ -48,9 +52,13 @@ public interface ProjectFile<T extends ProjectFile<T>> {
         return append(format(text, args));
     }
 
+    default T appendLine(String line) {
+        return append(line + "\n");
+    }
+
     @FormatMethod
     default T appendLine(@FormatString String line, Object... args) {
-        return append(format(line, args) + "\n");
+        return appendLine(format(line, args));
     }
 
     default T prepend(String text) {
@@ -63,9 +71,13 @@ public interface ProjectFile<T extends ProjectFile<T>> {
         return prepend(format(text, args));
     }
 
+    default T prependLine(String line) {
+        return prepend(line + "\n");
+    }
+
     @FormatMethod
     default T prependLine(@FormatString String line, Object... args) {
-        return prepend(format(line, args) + "\n");
+        return prependLine(format(line, args));
     }
 
     @FormatMethod
@@ -79,9 +91,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     default T edit(FileEditor editor) {
         String text = Files.exists(path()) ? text() : "";
-        String editedText = editor.edit(text);
-        writeString(path(), editedText, StandardOpenOption.TRUNCATE_EXISTING);
-        return (T) this;
+        return overwrite(editor.edit(text));
     }
 
     default T createEmpty() {
