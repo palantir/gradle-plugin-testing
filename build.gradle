@@ -42,7 +42,7 @@ allprojects {
     apply plugin: 'com.palantir.jakarta-package-alignment'
 
     repositories {
-        mavenCentral()
+        mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
         gradlePluginPortal()
     }
 
