@@ -35,9 +35,19 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     }
 
     @Override
+    public JavaFile overwrite(@Language("Java") String text) {
+        return ProjectFile.super.overwrite(text);
+    }
+
+    @Override
     @FormatMethod
     public JavaFile append(@Language("Java") @FormatString String text, Object... args) {
         return ProjectFile.super.append(text, args);
+    }
+
+    @Override
+    public JavaFile append(@Language("Java") String text) {
+        return ProjectFile.super.append(text);
     }
 
     @Override
@@ -50,6 +60,11 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     @FormatMethod
     public JavaFile prepend(@Language("Java") @FormatString String text, Object... args) {
         return ProjectFile.super.prepend(text, args);
+    }
+
+    @Override
+    public JavaFile prepend(@Language("Java") String text) {
+        return ProjectFile.super.prepend(text);
     }
 
     @Override

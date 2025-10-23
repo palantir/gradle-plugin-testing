@@ -39,9 +39,19 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     }
 
     @Override
+    public PropertiesFile overwrite(@Language("Properties") String text) {
+        return ProjectFile.super.overwrite(text);
+    }
+
+    @Override
     @FormatMethod
     public PropertiesFile append(@Language("Properties") @FormatString String text, Object... args) {
         return ProjectFile.super.append(text, args);
+    }
+
+    @Override
+    public PropertiesFile append(@Language("Properties") String text) {
+        return ProjectFile.super.append(text);
     }
 
     @Override
@@ -54,6 +64,11 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     @FormatMethod
     public PropertiesFile prepend(@Language("Properties") @FormatString String text, Object... args) {
         return ProjectFile.super.prepend(text, args);
+    }
+
+    @Override
+    public PropertiesFile prepend(@Language("Properties") String text) {
+        return ProjectFile.super.prepend(text);
     }
 
     @Override
