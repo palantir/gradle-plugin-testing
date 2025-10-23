@@ -30,6 +30,10 @@ public interface FileFactory {
         return new ArbitraryFile(resolvePath(path));
     }
 
+    default Directory directory(String path) {
+        return new Directory(resolvePath(path));
+    }
+
     default GradleFile gradleFile(String path) {
         return new RegularGradleFile(resolvePath(path));
     }
