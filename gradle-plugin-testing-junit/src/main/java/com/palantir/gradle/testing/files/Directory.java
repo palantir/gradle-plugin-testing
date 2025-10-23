@@ -24,11 +24,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 public record Directory(Path path) implements FileFactory {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public Directory {
+    public Directory {}
+
+    public Directory ensureExists() {
         try {
             Files.createDirectories(path);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        return this;
     }
 }
