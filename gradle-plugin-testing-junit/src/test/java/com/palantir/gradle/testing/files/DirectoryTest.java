@@ -29,14 +29,14 @@ class DirectoryTest {
     void can_create_directory(RootProject rootProject) {
         Directory dir = rootProject.directory("my-dir");
 
-        dir.assertThat().isDirectory();
+        assertThat(dir.path()).isDirectory();
     }
 
     @Test
     void can_create_nested_directories(RootProject rootProject) {
         Directory dir = rootProject.directory("foo/bar/baz");
 
-        dir.assertThat().isDirectory();
+        assertThat(dir.path()).isDirectory();
     }
 
     @Test
@@ -68,7 +68,7 @@ class DirectoryTest {
         Directory parentDir = rootProject.directory("parent");
         Directory childDir = parentDir.directory("child");
 
-        childDir.assertThat().isDirectory();
+        assertThat(childDir.path()).isDirectory();
         childDir.file("test.txt").overwrite("nested");
 
         assertThat(childDir.file("test.txt").text()).isEqualTo("nested");

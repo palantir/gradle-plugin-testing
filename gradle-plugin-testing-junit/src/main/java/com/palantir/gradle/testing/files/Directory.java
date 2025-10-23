@@ -22,9 +22,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.assertj.core.api.AbstractPathAssert;
-import org.assertj.core.api.Assertions;
-
 public record Directory(Path path) implements FileFactory {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public Directory {
@@ -33,9 +30,5 @@ public record Directory(Path path) implements FileFactory {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public AbstractPathAssert<?> assertThat() {
-        return Assertions.assertThat(path);
     }
 }
