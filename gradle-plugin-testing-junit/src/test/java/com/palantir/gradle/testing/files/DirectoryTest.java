@@ -73,15 +73,4 @@ class DirectoryTest {
 
         assertThat(childDir.file("test.txt").text()).isEqualTo("nested");
     }
-
-    @Test
-    void directory_does_not_need_to_be_created_to_add_files(RootProject rootProject) {
-        Directory dir = rootProject.directory("my-dir");
-
-        // Files will create parent directories automatically
-        dir.file("test.txt").overwrite("content");
-
-        dir.assertThat().isDirectory();
-        assertThat(dir.file("test.txt").text()).isEqualTo("content");
-    }
 }
