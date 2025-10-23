@@ -137,6 +137,9 @@ class GradleAssertionsTest {
     void can_check_task_is_empty(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result).task(":nonexistent").as("Non-existent task should be empty").isEmpty();
+        assertThat(result)
+                .task(":nonexistent")
+                .as("Non-existent task should be empty")
+                .isEmpty();
     }
 }

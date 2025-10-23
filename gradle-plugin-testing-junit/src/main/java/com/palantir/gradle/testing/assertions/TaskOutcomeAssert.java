@@ -30,10 +30,7 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     public TaskOutcomeAssert isIn(TaskOutcome... expectedOutcomes) {
         isNotNull();
         if (!contains(expectedOutcomes)) {
-            failWithMessage(
-                    "Expected task outcome to be in %s but was <%s>",
-                    formatOutcomes(expectedOutcomes),
-                    actual);
+            failWithMessage("Expected task outcome to be in %s but was <%s>", formatOutcomes(expectedOutcomes), actual);
         }
         return this;
     }
@@ -42,9 +39,7 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
         isNotNull();
         if (contains(excludedOutcomes)) {
             failWithMessage(
-                    "Expected task outcome not to be in %s but was <%s>",
-                    formatOutcomes(excludedOutcomes),
-                    actual);
+                    "Expected task outcome not to be in %s but was <%s>", formatOutcomes(excludedOutcomes), actual);
         }
         return this;
     }

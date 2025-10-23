@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -30,27 +32,35 @@ import org.assertj.core.api.Assertions;
 public interface ProjectFile<T extends ProjectFile<T>> {
     Path path();
 
-    default T overwrite(String text) {
-        writeString(path(), text, StandardOpenOption.TRUNCATE_EXISTING);
+    @FormatMethod
+    default T overwrite(@FormatString String text, Object... args) {
+        writeString(path(), args.length > 0 ? text.formatted(args) : text, StandardOpenOption.TRUNCATE_EXISTING);
         return (T) this;
     }
 
-    default T append(String text) {
-        writeString(path(), text, StandardOpenOption.APPEND);
+    @FormatMethod
+    default T append(@FormatString String text, Object... args) {
+        writeString(path(), args.length > 0 ? text.formatted(args) : text, StandardOpenOption.APPEND);
         return (T) this;
     }
 
-    default T appendLine(String line) {
-        return append(line + "\n");
-    }
-
-    default T prepend(String text) {
-        edit(existingText -> text + existingText);
+    default T appendLine(String line, Object... args) {
+        String formattedLine = args.length > 0 ? line.formatted(args) : line;
+        writeString(path(), formattedLine + "\n", StandardOpenOption.APPEND);
         return (T) this;
     }
 
-    default T prependLine(String line) {
-        return prepend(line + "\n");
+    @FormatMethod
+    default T prepend(@FormatString String text, Object... args) {
+        String formattedText = args.length > 0 ? text.formatted(args) : text;
+        edit(existingText -> formattedText + existingText);
+        return (T) this;
+    }
+
+    default T prependLine(String line, Object... args) {
+        String formattedLine = args.length > 0 ? line.formatted(args) : line;
+        edit(existingText -> formattedLine + "\n" + existingText);
+        return (T) this;
     }
 
     interface FileEditor {
@@ -59,8 +69,9 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     default T edit(FileEditor editor) {
         String text = Files.exists(path()) ? text() : "";
-
-        return overwrite(editor.edit(text));
+        String editedText = editor.edit(text);
+        writeString(path(), editedText, StandardOpenOption.TRUNCATE_EXISTING);
+        return (T) this;
     }
 
     default T createEmpty() {
