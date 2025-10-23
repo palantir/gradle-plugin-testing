@@ -48,16 +48,8 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     }
 
     /**
-     * Adds dependencies to the dependencies block using the 'implementation' configuration.
-     * Example: {@code buildGradle().addDependencies("com.google.guava:guava:31.1-jre")}
-     */
-    default GradleFile addDependencies(String... dependencies) {
-        return addDependency("implementation", dependencies);
-    }
-
-    /**
-     * Adds a dependency to the dependencies block with a specific configuration (string-based).
-     * Example: {@code buildGradle().addDependency("testImplementation", "junit:junit:4.13.2")}
+     * Adds dependencies to the dependencies block with a specific configuration.
+     * Example: {@code buildGradle().addDependency("implementation", "com.google.guava:guava:31.1-jre")}
      *
      * @param configuration the Gradle configuration (e.g., "implementation", "testImplementation", "api")
      * @param dependencies the dependency coordinates

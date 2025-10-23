@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 class GradleFileTest {
     @Test
     void addDependencies_single_dependency_with_default_configuration(RootProject rootProject) {
-        rootProject.buildGradle().addDependencies("com.google.guava:guava:31.1-jre");
+        rootProject.buildGradle().addDependency("implementation", "com.google.guava:guava:31.1-jre");
 
         assertThat(rootProject.buildGradle().text()).contains("""
             dependencies {
@@ -37,7 +37,7 @@ class GradleFileTest {
 
     @Test
     void addDependencies_multiple_dependencies_with_default_configuration(RootProject rootProject) {
-        rootProject.buildGradle().addDependencies("com.google.guava:guava:31.1-jre", "org.slf4j:slf4j-api:2.0.0");
+        rootProject.buildGradle().addDependency("implementation", "com.google.guava:guava:31.1-jre", "org.slf4j:slf4j-api:2.0.0");
 
         assertThat(rootProject.buildGradle().text()).contains("""
             dependencies {
@@ -62,7 +62,7 @@ class GradleFileTest {
     void addDependencies_can_be_chained(RootProject rootProject) {
         rootProject
                 .buildGradle()
-                .addDependencies("com.google.guava:guava:31.1-jre")
+                .addDependency("implementation", "com.google.guava:guava:31.1-jre")
                 .addDependency("testImplementation", "junit:junit:4.13.2");
 
         assertThat(rootProject.buildGradle().text()).contains("""
