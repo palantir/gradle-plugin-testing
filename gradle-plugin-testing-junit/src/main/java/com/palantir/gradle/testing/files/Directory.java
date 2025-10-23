@@ -31,7 +31,7 @@ public record Directory(Path path) implements FileFactory {
         try {
             Files.createDirectories(path);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException("Failed to ensure directory at %s exists".formatted(path), e);
         }
         return this;
     }
