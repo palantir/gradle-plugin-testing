@@ -41,7 +41,8 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     }
 
     @Override
-    public JavaFile appendLine(@Language("Java") String line, Object... args) {
+    @FormatMethod
+    public JavaFile appendLine(@Language("Java") @FormatString String line, Object... args) {
         return ProjectFile.super.appendLine(line, args);
     }
 
@@ -52,7 +53,8 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     }
 
     @Override
-    public JavaFile prependLine(@Language("Java") String line, Object... args) {
+    @FormatMethod
+    public JavaFile prependLine(@Language("Java") @FormatString String line, Object... args) {
         return ProjectFile.super.prependLine(line, args);
     }
 }

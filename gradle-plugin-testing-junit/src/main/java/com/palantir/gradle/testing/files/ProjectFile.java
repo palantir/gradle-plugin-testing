@@ -34,33 +34,43 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T overwrite(@FormatString String text, Object... args) {
-        writeString(path(), args.length > 0 ? text.formatted(args) : text, StandardOpenOption.TRUNCATE_EXISTING);
+        writeString(path(), format(text, args), StandardOpenOption.TRUNCATE_EXISTING);
+        return (T) this;
+    }
+
+    default T append(String text) {
+        writeString(path(), text, StandardOpenOption.APPEND);
         return (T) this;
     }
 
     @FormatMethod
     default T append(@FormatString String text, Object... args) {
-        writeString(path(), args.length > 0 ? text.formatted(args) : text, StandardOpenOption.APPEND);
-        return (T) this;
+        return append(format(text, args));
     }
 
-    default T appendLine(String line, Object... args) {
-        String formattedLine = args.length > 0 ? line.formatted(args) : line;
-        writeString(path(), formattedLine + "\n", StandardOpenOption.APPEND);
+    @FormatMethod
+    default T appendLine(@FormatString String line, Object... args) {
+        return append(format(line, args) + "\n");
+    }
+
+    default T prepend(String text) {
+        edit(existingText -> text + existingText);
         return (T) this;
     }
 
     @FormatMethod
     default T prepend(@FormatString String text, Object... args) {
-        String formattedText = args.length > 0 ? text.formatted(args) : text;
-        edit(existingText -> formattedText + existingText);
-        return (T) this;
+        return prepend(format(text, args));
     }
 
-    default T prependLine(String line, Object... args) {
-        String formattedLine = args.length > 0 ? line.formatted(args) : line;
-        edit(existingText -> formattedLine + "\n" + existingText);
-        return (T) this;
+    @FormatMethod
+    default T prependLine(@FormatString String line, Object... args) {
+        return prepend(format(line, args) + "\n");
+    }
+
+    @FormatMethod
+    private static String format(String text, Object... args) {
+        return args.length > 0 ? text.formatted(args) : text;
     }
 
     interface FileEditor {

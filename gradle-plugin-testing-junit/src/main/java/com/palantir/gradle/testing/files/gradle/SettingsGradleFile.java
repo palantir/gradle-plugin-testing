@@ -36,20 +36,20 @@ public record SettingsGradleFile(Path path) implements GradleFile {
                     .collect(Collectors.joining("\n"));
         });
 
-        prependLine("rootProject.name = '%s'".formatted(rootProjectName));
+        prependLine("rootProject.name = '%s'", rootProjectName);
 
         return this;
     }
 
     public SettingsGradleFile include(String projectPath) {
         @Language("Gradle")
-        String includeLine = "include '%s'".formatted(projectPath);
+        String includeLine = "include '%s'";
 
-        if (Files.exists(path) && text().contains(includeLine)) {
+        if (Files.exists(path) && text().contains(includeLine.formatted(projectPath))) {
             return this;
         }
 
-        appendLine(includeLine);
+        appendLine(includeLine, projectPath);
         return this;
     }
 }
