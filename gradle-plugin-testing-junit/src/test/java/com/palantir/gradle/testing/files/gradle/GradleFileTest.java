@@ -37,7 +37,9 @@ class GradleFileTest {
 
     @Test
     void addDependencies_multiple_dependencies_with_default_configuration(RootProject rootProject) {
-        rootProject.buildGradle().addDependency("implementation", "com.google.guava:guava:31.1-jre", "org.slf4j:slf4j-api:2.0.0");
+        rootProject
+                .buildGradle()
+                .addDependency("implementation", "com.google.guava:guava:31.1-jre", "org.slf4j:slf4j-api:2.0.0");
 
         assertThat(rootProject.buildGradle().text()).contains("""
             dependencies {
