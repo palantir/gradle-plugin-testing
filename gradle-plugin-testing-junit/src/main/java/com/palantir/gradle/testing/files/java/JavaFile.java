@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.java;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
@@ -27,27 +29,30 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     public JavaFile {}
 
     @Override
-    public JavaFile overwrite(@Language("Java") String text) {
-        return ProjectFile.super.overwrite(text);
+    @FormatMethod
+    public JavaFile overwrite(@Language("Java") @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
     }
 
     @Override
-    public JavaFile append(@Language("Java") String text) {
-        return ProjectFile.super.append(text);
+    @FormatMethod
+    public JavaFile append(@Language("Java") @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
     }
 
     @Override
-    public JavaFile appendLine(@Language("Java") String line) {
-        return ProjectFile.super.appendLine(line);
+    public JavaFile appendLine(@Language("Java") String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
     }
 
     @Override
-    public JavaFile prepend(@Language("Java") String text) {
-        return ProjectFile.super.prepend(text);
+    @FormatMethod
+    public JavaFile prepend(@Language("Java") @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
     }
 
     @Override
-    public JavaFile prependLine(@Language("Java") String line) {
-        return ProjectFile.super.prependLine(line);
+    public JavaFile prependLine(@Language("Java") String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 }

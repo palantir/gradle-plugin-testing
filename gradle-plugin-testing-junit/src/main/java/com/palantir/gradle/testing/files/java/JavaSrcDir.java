@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.files.java;
 
+import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
@@ -32,7 +33,8 @@ public record JavaSrcDir(Path srcDirPath) {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public JavaSrcDir {}
 
-    public JavaFile writeClass(@Language("Java") String javaSource) {
+    @FormatMethod
+    public JavaFile writeClass(@Language("Java") String javaSource, Object... args) {
         Optional<String> possiblePackagePath = possiblyExtractGroup(PACKAGE_PATTERN, javaSource);
 
         String className = possiblyExtractGroup(CLASS_PATTERN, javaSource)
@@ -42,7 +44,7 @@ public record JavaSrcDir(Path srcDirPath) {
         String canonicalClassName =
                 possiblePackagePath.map(packagePath -> packagePath + ".").orElse("") + className;
 
-        return fileByClassName(canonicalClassName).overwrite(javaSource);
+        return fileByClassName(canonicalClassName).overwrite(javaSource, args);
     }
 
     public JavaFile fileByClassName(String canonicalClassName) {

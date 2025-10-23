@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.properties;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
@@ -31,27 +33,30 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     }
 
     @Override
-    public PropertiesFile overwrite(@Language("Properties") String text) {
-        return ProjectFile.super.overwrite(text);
+    @FormatMethod
+    public PropertiesFile overwrite(@Language("Properties") @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
     }
 
     @Override
-    public PropertiesFile append(@Language("Properties") String text) {
-        return ProjectFile.super.append(text);
+    @FormatMethod
+    public PropertiesFile append(@Language("Properties") @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
     }
 
     @Override
-    public PropertiesFile appendLine(@Language("Properties") String line) {
-        return ProjectFile.super.appendLine(line);
+    public PropertiesFile appendLine(@Language("Properties") String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
     }
 
     @Override
-    public PropertiesFile prepend(@Language("Properties") String text) {
-        return ProjectFile.super.prepend(text);
+    @FormatMethod
+    public PropertiesFile prepend(@Language("Properties") @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
     }
 
     @Override
-    public PropertiesFile prependLine(@Language("Properties") String line) {
-        return ProjectFile.super.prependLine(line);
+    public PropertiesFile prependLine(@Language("Properties") String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 }

@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.yaml;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
@@ -27,27 +29,30 @@ public record YamlFile(Path path) implements ProjectFile<YamlFile> {
     public YamlFile {}
 
     @Override
-    public YamlFile overwrite(@Language("YAML") String text) {
-        return ProjectFile.super.overwrite(text);
+    @FormatMethod
+    public YamlFile overwrite(@Language("YAML") @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
     }
 
     @Override
-    public YamlFile append(@Language("YAML") String text) {
-        return ProjectFile.super.append(text);
+    @FormatMethod
+    public YamlFile append(@Language("YAML") @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
     }
 
     @Override
-    public YamlFile appendLine(@Language("YAML") String line) {
-        return ProjectFile.super.appendLine(line);
+    public YamlFile appendLine(@Language("YAML") String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
     }
 
     @Override
-    public YamlFile prepend(@Language("YAML") String text) {
-        return ProjectFile.super.prepend(text);
+    @FormatMethod
+    public YamlFile prepend(@Language("YAML") @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
     }
 
     @Override
-    public YamlFile prependLine(@Language("YAML") String line) {
-        return ProjectFile.super.prependLine(line);
+    public YamlFile prependLine(@Language("YAML") String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 }

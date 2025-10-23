@@ -16,32 +16,37 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.palantir.gradle.testing.files.ProjectFile;
 import org.intellij.lang.annotations.Language;
 
 public interface GradleFile extends ProjectFile<GradleFile> {
     @Override
-    default GradleFile overwrite(@Language("Gradle") String text) {
-        return ProjectFile.super.overwrite(text);
+    @FormatMethod
+    default GradleFile overwrite(@Language("Gradle") @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
     }
 
     @Override
-    default GradleFile append(@Language("Gradle") String text) {
-        return ProjectFile.super.append(text);
+    @FormatMethod
+    default GradleFile append(@Language("Gradle") @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
     }
 
     @Override
-    default GradleFile appendLine(@Language("Gradle") String line) {
-        return ProjectFile.super.appendLine(line);
+    default GradleFile appendLine(@Language("Gradle") String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
     }
 
     @Override
-    default GradleFile prepend(@Language("Gradle") String text) {
-        return ProjectFile.super.prepend(text);
+    @FormatMethod
+    default GradleFile prepend(@Language("Gradle") @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
     }
 
     @Override
-    default GradleFile prependLine(@Language("Gradle") String line) {
-        return ProjectFile.super.prependLine(line);
+    default GradleFile prependLine(@Language("Gradle") String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 }
