@@ -32,14 +32,14 @@ import org.assertj.core.api.Assertions;
 public interface ProjectFile<T extends ProjectFile<T>> {
     Path path();
 
-    @FormatMethod
-    default T overwrite(@FormatString String text, Object... args) {
-        return overwrite(args.length > 0 ? text.formatted(args) : text);
-    }
-
     default T overwrite(String text) {
         writeString(path(), text, StandardOpenOption.TRUNCATE_EXISTING);
         return (T) this;
+    }
+
+    @FormatMethod
+    default T overwrite(@FormatString String text, Object... args) {
+        return overwrite(args.length > 0 ? text.formatted(args) : text);
     }
 
     default T append(String text) {
