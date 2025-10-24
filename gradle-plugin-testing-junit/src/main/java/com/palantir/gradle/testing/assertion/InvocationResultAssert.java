@@ -14,40 +14,43 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing.assertion;
 
-import com.palantir.gradle.testing.assertion.InvocationResultAssert;
-import java.util.Optional;
-import org.gradle.testkit.runner.BuildResult;
+import com.palantir.gradle.testing.execution.InvocationResult;
+import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.api.Assertions;
 
-public final class InvocationResult {
-    private final BuildResult buildResult;
+public final class InvocationResultAssert {
 
-    InvocationResult(BuildResult buildResult) {
-        this.buildResult = buildResult;
-    }
+    private final InvocationResult invocationResult;
 
-    public String output() {
-        return buildResult.getOutput();
-    }
-
-    public Optional<TaskResult> task(String taskPath) {
-        return Optional.ofNullable(buildResult.task(taskPath)).map(TaskResult::new);
+    public InvocationResultAssert(InvocationResult invocationResult) {
+        this.invocationResult = invocationResult;
     }
 
     /**
-     * Returns an assertion object for fluent assertion chaining.
+     * Returns an assertion object for fluent task assertion chaining.
      * <p>
      * Usage:
      * <pre>
      * invocationResult.assertThat().task(":myTask")
      *     .hasOutcome()
      *     .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
-     *
+     * </pre>
+     */
+    public TaskResultOptionalAssert task(String taskPath) {
+        return new TaskResultOptionalAssert(invocationResult.task(taskPath));
+    }
+
+    /**
+     * Returns an assertion object for fluent output assertion chaining.
+     * <p>
+     * Usage:
+     * <pre>
      * invocationResult.assertThat().output().contains("BUILD SUCCESSFUL");
      * </pre>
      */
-    public InvocationResultAssert assertThat() {
-        return new InvocationResultAssert(this);
+    public AbstractStringAssert<?> output() {
+        return Assertions.assertThat(invocationResult.output());
     }
 }

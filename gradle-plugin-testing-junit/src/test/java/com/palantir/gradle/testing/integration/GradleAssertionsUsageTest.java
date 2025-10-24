@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.execution.InvocationResult;
+import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-class GradleAssertionsTest {
+class GradleAssertionsUsageTest {
 
     @Test
     void can_use_fluent_assertions_for_task_outcome_not_in(GradleInvoker gradle, RootProject rootProject) {
@@ -39,14 +42,16 @@ class GradleAssertionsTest {
         InvocationResult firstRun = gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
 
-        firstRun.assertTask(":foo")
+        firstRun.assertThat()
+                .task(":foo")
                 .as("First run should execute the task")
                 .hasOutcome()
                 .as("First run task outcome should not be cached")
                 .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
 
         secondRun
-                .assertTask(":foo")
+                .assertThat()
+                .task(":foo")
                 .as("Second run should have task cached")
                 .hasOutcome()
                 .as("Second run task outcome should be cached")
@@ -63,7 +68,7 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertTask(":foo").as("Task should have correct path").hasPath(":foo");
+        result.assertThat().task(":foo").as("Task should have correct path").hasPath(":foo");
     }
 
     @Test
@@ -74,7 +79,7 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        result.assertOutput().as("Build output should contain expected message").contains("hello from build");
+        result.assertThat().output().as("Build output should contain expected message").contains("hello from build");
     }
 
     @Test
@@ -87,7 +92,8 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertTask(":foo")
+        assertThatThrownBy(() -> result.assertThat()
+                        .task(":foo")
                         .as("Task should be present")
                         .hasOutcome()
                         .as("Task outcome validation")
@@ -106,7 +112,8 @@ class GradleAssertionsTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertTask(":foo")
+        assertThatThrownBy(() -> result.assertThat()
+                        .task(":foo")
                         .as("Task should be present")
                         .hasOutcome()
                         .as("Task outcome validation")
@@ -119,7 +126,8 @@ class GradleAssertionsTest {
     void fluent_assertions_fail_when_task_is_not_present(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertTask(":nonexistent")
+        assertThatThrownBy(() -> result.assertThat()
+                        .task(":nonexistent")
                         .as("Task should not be present")
                         .hasOutcome())
                 .isInstanceOf(AssertionError.class);
@@ -129,7 +137,8 @@ class GradleAssertionsTest {
     void can_check_task_is_empty(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        result.assertTask(":nonexistent")
+        result.assertThat()
+                .task(":nonexistent")
                 .as("Non-existent task should be empty")
                 .isEmpty();
     }
