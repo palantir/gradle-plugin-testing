@@ -20,11 +20,12 @@ import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
 import com.palantir.gradle.testing.files.ProjectFile;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public interface GradleFile extends ProjectFile<GradleFile> {
     @Override
     @FormatMethod
-    default GradleFile overwrite(@Language("Gradle") @FormatString String text, Object... args) {
+    default GradleFile overwrite(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
         return ProjectFile.super.overwrite(text, args);
     }
 
@@ -35,7 +36,7 @@ public interface GradleFile extends ProjectFile<GradleFile> {
 
     @Override
     @FormatMethod
-    default GradleFile append(@Language("Gradle") @FormatString String text, Object... args) {
+    default GradleFile append(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
         return ProjectFile.super.append(text, args);
     }
 
@@ -46,7 +47,7 @@ public interface GradleFile extends ProjectFile<GradleFile> {
 
     @Override
     @FormatMethod
-    default GradleFile appendLine(@Language("Gradle") @FormatString String line, Object... args) {
+    default GradleFile appendLine(@Language("Gradle") @PrintFormat @FormatString String line, Object... args) {
         return ProjectFile.super.appendLine(line, args);
     }
 
@@ -57,7 +58,7 @@ public interface GradleFile extends ProjectFile<GradleFile> {
 
     @Override
     @FormatMethod
-    default GradleFile prepend(@Language("Gradle") @FormatString String text, Object... args) {
+    default GradleFile prepend(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
         return ProjectFile.super.prepend(text, args);
     }
 
@@ -68,7 +69,7 @@ public interface GradleFile extends ProjectFile<GradleFile> {
 
     @Override
     @FormatMethod
-    default GradleFile prependLine(@Language("Gradle") @FormatString String line, Object... args) {
+    default GradleFile prependLine(@Language("Gradle") @PrintFormat @FormatString String line, Object... args) {
         return ProjectFile.super.prependLine(line, args);
     }
 

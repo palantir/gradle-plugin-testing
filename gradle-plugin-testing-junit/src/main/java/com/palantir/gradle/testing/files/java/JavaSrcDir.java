@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public record JavaSrcDir(Path srcDirPath) {
     private static final Pattern PACKAGE_PATTERN = Pattern.compile("package\\s+([^;]+);");
@@ -47,7 +48,7 @@ public record JavaSrcDir(Path srcDirPath) {
     }
 
     @FormatMethod
-    public JavaFile writeClass(@Language("Java") String javaSource, Object... args) {
+    public JavaFile writeClass(@Language("Java") @PrintFormat String javaSource, Object... args) {
         return writeClass(javaSource.formatted(args));
     }
 

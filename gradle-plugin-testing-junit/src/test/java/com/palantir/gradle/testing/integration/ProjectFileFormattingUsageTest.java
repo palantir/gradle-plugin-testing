@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files;
+package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +23,7 @@ import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-class ProjectFileFormattingTest {
+class ProjectFileFormattingUsageTest {
 
     @Test
     void can_format_overwrite(RootProject rootProject) {

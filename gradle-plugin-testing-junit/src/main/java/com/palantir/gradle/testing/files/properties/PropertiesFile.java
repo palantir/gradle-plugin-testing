@@ -23,6 +23,7 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
@@ -34,7 +35,7 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
 
     @Override
     @FormatMethod
-    public PropertiesFile overwrite(@Language("Properties") @FormatString String text, Object... args) {
+    public PropertiesFile overwrite(@Language("Properties") @PrintFormat @FormatString String text, Object... args) {
         return ProjectFile.super.overwrite(text, args);
     }
 
@@ -45,7 +46,7 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
 
     @Override
     @FormatMethod
-    public PropertiesFile append(@Language("Properties") @FormatString String text, Object... args) {
+    public PropertiesFile append(@Language("Properties") @PrintFormat @FormatString String text, Object... args) {
         return ProjectFile.super.append(text, args);
     }
 
@@ -56,7 +57,7 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
 
     @Override
     @FormatMethod
-    public PropertiesFile appendLine(@Language("Properties") @FormatString String line, Object... args) {
+    public PropertiesFile appendLine(@Language("Properties") @PrintFormat @FormatString String line, Object... args) {
         return ProjectFile.super.appendLine(line, args);
     }
 
@@ -67,7 +68,7 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
 
     @Override
     @FormatMethod
-    public PropertiesFile prepend(@Language("Properties") @FormatString String text, Object... args) {
+    public PropertiesFile prepend(@Language("Properties") @PrintFormat @FormatString String text, Object... args) {
         return ProjectFile.super.prepend(text, args);
     }
 
@@ -78,7 +79,7 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
 
     @Override
     @FormatMethod
-    public PropertiesFile prependLine(@Language("Properties") @FormatString String line, Object... args) {
+    public PropertiesFile prependLine(@Language("Properties") @PrintFormat @FormatString String line, Object... args) {
         return ProjectFile.super.prependLine(line, args);
     }
 
