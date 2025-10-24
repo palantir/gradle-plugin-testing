@@ -29,7 +29,7 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile rootProjectName(String rootProjectName) {
         edit(existingText -> {
             String newLine = "rootProject.name = '%s'".formatted(rootProjectName);
-            if (existingText.matches("(?s).*^rootProject\\.name\\s*=.*$.*")) {
+            if (existingText.matches("(?sm).*^rootProject\\.name\\s*=.*$.*")) {
                 return existingText.replaceAll("(?m)^rootProject\\.name\\s*=.*$", newLine);
             }
             return existingText + "\n" + newLine;

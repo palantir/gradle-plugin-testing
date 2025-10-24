@@ -56,6 +56,27 @@ class SettingsGradleFileTest {
 
             settingsGradleFile.assertThat().hasContent("rootProject.name = 'name'\nsomething already here\n\n");
         }
+
+        @Test
+        void replaces_insitu() {
+            settingsGradleFile.overwrite("""
+                // before
+
+                rootProject.name = 'init'
+
+                // after
+                """);
+
+            settingsGradleFile.rootProjectName("name");
+
+            settingsGradleFile.assertThat().hasContent("""
+                // before
+
+                rootProject.name = 'name'
+
+                // after
+                """);
+        }
     }
 
     @Nested
