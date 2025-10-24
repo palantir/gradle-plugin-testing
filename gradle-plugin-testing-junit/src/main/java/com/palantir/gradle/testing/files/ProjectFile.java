@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -35,13 +37,28 @@ public interface ProjectFile<T extends ProjectFile<T>> {
         return (T) this;
     }
 
+    @FormatMethod
+    default T overwrite(@FormatString String text, Object... args) {
+        return overwrite(text.formatted(args));
+    }
+
     default T append(String text) {
         writeString(path(), text, StandardOpenOption.APPEND);
         return (T) this;
     }
 
+    @FormatMethod
+    default T append(@FormatString String text, Object... args) {
+        return append(text.formatted(args));
+    }
+
     default T appendLine(String line) {
         return append(line + "\n");
+    }
+
+    @FormatMethod
+    default T appendLine(@FormatString String line, Object... args) {
+        return appendLine(line.formatted(args));
     }
 
     default T prepend(String text) {
@@ -49,8 +66,18 @@ public interface ProjectFile<T extends ProjectFile<T>> {
         return (T) this;
     }
 
+    @FormatMethod
+    default T prepend(@FormatString String text, Object... args) {
+        return prepend(text.formatted(args));
+    }
+
     default T prependLine(String line) {
         return prepend(line + "\n");
+    }
+
+    @FormatMethod
+    default T prependLine(@FormatString String line, Object... args) {
+        return prependLine(line.formatted(args));
     }
 
     interface FileEditor {
@@ -59,7 +86,6 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     default T edit(FileEditor editor) {
         String text = Files.exists(path()) ? text() : "";
-
         return overwrite(editor.edit(text));
     }
 

@@ -16,19 +16,34 @@
 
 package com.palantir.gradle.testing.files.yaml;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public record YamlFile(Path path) implements ProjectFile<YamlFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public YamlFile {}
 
     @Override
+    @FormatMethod
+    public YamlFile overwrite(@Language("YAML") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
+    }
+
+    @Override
     public YamlFile overwrite(@Language("YAML") String text) {
         return ProjectFile.super.overwrite(text);
+    }
+
+    @Override
+    @FormatMethod
+    public YamlFile append(@Language("YAML") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
     }
 
     @Override
@@ -37,13 +52,31 @@ public record YamlFile(Path path) implements ProjectFile<YamlFile> {
     }
 
     @Override
+    @FormatMethod
+    public YamlFile appendLine(@Language("YAML") @PrintFormat @FormatString String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
+    }
+
+    @Override
     public YamlFile appendLine(@Language("YAML") String line) {
         return ProjectFile.super.appendLine(line);
     }
 
     @Override
+    @FormatMethod
+    public YamlFile prepend(@Language("YAML") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
+    }
+
+    @Override
     public YamlFile prepend(@Language("YAML") String text) {
         return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    @FormatMethod
+    public YamlFile prependLine(@Language("YAML") @PrintFormat @FormatString String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 
     @Override

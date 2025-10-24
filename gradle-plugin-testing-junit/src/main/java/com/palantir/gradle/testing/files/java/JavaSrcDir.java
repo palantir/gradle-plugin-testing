@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.java;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
@@ -23,6 +25,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public record JavaSrcDir(Path srcDirPath) {
     private static final Pattern PACKAGE_PATTERN = Pattern.compile("package\\s+([^;]+);");
@@ -43,6 +46,11 @@ public record JavaSrcDir(Path srcDirPath) {
                 possiblePackagePath.map(packagePath -> packagePath + ".").orElse("") + className;
 
         return fileByClassName(canonicalClassName).overwrite(javaSource);
+    }
+
+    @FormatMethod
+    public JavaFile writeClass(@Language("Java") @PrintFormat @FormatString String javaSource, Object... args) {
+        return writeClass(javaSource.formatted(args));
     }
 
     public JavaFile fileByClassName(String canonicalClassName) {
