@@ -29,7 +29,20 @@ import org.junit.jupiter.api.Test;
 class GradleAssertionsUsageTest {
 
     @Test
-    void can_use_fluent_assertions_for_task_outcome_not_in(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_outcome(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        result.assertThat().task(":foo").as("Task should have SUCCESS outcome").hasOutcome(TaskOutcome.SUCCESS);
+    }
+
+    @Test
+    void can_check_task_is_up_to_date(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 outputs.file('foo.txt')
@@ -39,27 +52,18 @@ class GradleAssertionsUsageTest {
             }
             """);
 
-        InvocationResult firstRun = gradle.withArgs("foo").buildsSuccessfully();
+        gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
-
-        firstRun.assertThat()
-                .task(":foo")
-                .as("First run should execute the task")
-                .hasOutcome()
-                .as("First run task outcome should not be cached")
-                .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
 
         secondRun
                 .assertThat()
                 .task(":foo")
-                .as("Second run should have task cached")
-                .hasOutcome()
-                .as("Second run task outcome should be cached")
-                .isIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
+                .as("Second run should be up to date")
+                .hasOutcome(TaskOutcome.UP_TO_DATE);
     }
 
     @Test
-    void can_use_fluent_assertions_for_task_path(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_path(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
@@ -72,7 +76,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_use_fluent_assertions_for_output(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_output(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             println 'hello from build'
             """);
@@ -86,27 +90,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void fluent_assertions_fail_when_outcome_is_in_excluded_list(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildGradle().append("""
-            tasks.register('foo') {
-                // No action - will be UP_TO_DATE
-            }
-            """);
-
-        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
-
-        assertThatThrownBy(() -> result.assertThat()
-                        .task(":foo")
-                        .as("Task should be present")
-                        .hasOutcome()
-                        .as("Task outcome validation")
-                        .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE))
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected task outcome not to be in");
-    }
-
-    @Test
-    void fluent_assertions_fail_when_outcome_is_not_in_expected_list(GradleInvoker gradle, RootProject rootProject) {
+    void assertion_fails_when_outcome_does_not_match(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
@@ -117,22 +101,20 @@ class GradleAssertionsUsageTest {
 
         assertThatThrownBy(() -> result.assertThat()
                         .task(":foo")
-                        .as("Task should be present")
-                        .hasOutcome()
-                        .as("Task outcome validation")
-                        .isIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE))
+                        .as("Task outcome should match")
+                        .hasOutcome(TaskOutcome.UP_TO_DATE))
                 .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected task outcome to be in");
+                .hasMessageContaining("Expected task outcome to be <UP_TO_DATE> but was <SUCCESS>");
     }
 
     @Test
-    void fluent_assertions_fail_when_task_is_not_present(GradleInvoker gradle) {
+    void assertion_fails_when_task_is_not_present(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
         assertThatThrownBy(() -> result.assertThat()
                         .task(":nonexistent")
                         .as("Task should not be present")
-                        .hasOutcome())
+                        .hasOutcome(TaskOutcome.SUCCESS))
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Expecting Optional to contain a value but it was empty");
     }

@@ -32,11 +32,6 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
         return (TaskResultOptionalAssert) super.as(description, args);
     }
 
-    public TaskOutcomeAssert hasOutcome() {
-        isPresent();
-        return new TaskOutcomeAssert(actual.get().outcome());
-    }
-
     public TaskResultOptionalAssert hasOutcome(TaskOutcome expected) {
         isPresent();
         TaskOutcome actualOutcome = actual.get().outcome();

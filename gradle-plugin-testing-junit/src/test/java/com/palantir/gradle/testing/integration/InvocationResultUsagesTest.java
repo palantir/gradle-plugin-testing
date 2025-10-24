@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.palantir.gradle.testing.execution.GradleInvocation;
@@ -56,14 +55,14 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result.output()).contains("hello from build");
+        result.assertThat().output().contains("hello from build");
     }
 
     @Test
     void non_existent_tasks_are_returned_as_optional_empty(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result.task(":i-dont-exist")).isEmpty();
+        result.assertThat().task(":i-dont-exist").isEmpty();
     }
 
     @Test
@@ -72,7 +71,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo", "-x", "foo").buildsSuccessfully();
 
-        assertThat(result.task(":foo")).isEmpty();
+        result.assertThat().task(":foo").isEmpty();
     }
 
     @Test
@@ -85,9 +84,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.path()).isEqualTo(":sub:foo");
-        });
+        result.assertThat().task(":sub:foo").hasPath(":sub:foo");
     }
 
     @Test
@@ -101,9 +98,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
-        });
+        result.assertThat().task(":sub:foo").hasOutcome(TaskOutcome.SUCCESS);
     }
 
     @Test
@@ -118,9 +113,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.FAILED);
-        });
+        result.assertThat().task(":sub:foo").hasOutcome(TaskOutcome.FAILED);
     }
 
     @Test
@@ -133,9 +126,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
-        });
+        result.assertThat().task(":sub:foo").hasOutcome(TaskOutcome.UP_TO_DATE);
     }
 
     @Test
@@ -148,9 +139,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SKIPPED);
-        });
+        result.assertThat().task(":sub:foo").hasOutcome(TaskOutcome.SKIPPED);
     }
 
     @Test
@@ -161,8 +150,6 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.NO_SOURCE);
-        });
+        result.assertThat().task(":sub:foo").hasOutcome(TaskOutcome.NO_SOURCE);
     }
 }
