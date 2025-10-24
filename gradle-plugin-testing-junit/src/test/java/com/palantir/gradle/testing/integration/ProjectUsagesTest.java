@@ -22,10 +22,18 @@ import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class ProjectUsagesTest {
+    @BeforeEach
+    void beforeEach(RootProject rootProject) {
+        rootProject
+                .settingsGradle()
+                .prependLine("plugins { id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0' }");
+    }
+
     @Test
     void root_project_parameter(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""

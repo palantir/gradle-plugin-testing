@@ -34,7 +34,7 @@ public record SettingsGradleFile(Path path) implements GradleFile {
                 .filter(line -> !line.startsWith("rootProject.name"))
                 .collect(Collectors.joining("\n")));
 
-        prependLine("rootProject.name = '%s'".formatted(rootProjectName));
+        appendLine("rootProject.name = '%s'".formatted(rootProjectName));
 
         return this;
     }
