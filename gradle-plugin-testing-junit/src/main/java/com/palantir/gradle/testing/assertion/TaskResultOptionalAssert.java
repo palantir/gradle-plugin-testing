@@ -23,7 +23,7 @@ import org.assertj.core.api.OptionalAssert;
 
 public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
 
-    public TaskResultOptionalAssert(Optional<TaskResult> optional) {
+    TaskResultOptionalAssert(Optional<TaskResult> optional) {
         super(optional);
     }
 

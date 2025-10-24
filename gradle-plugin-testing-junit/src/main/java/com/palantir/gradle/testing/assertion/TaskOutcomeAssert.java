@@ -23,7 +23,7 @@ import org.assertj.core.api.AbstractObjectAssert;
 
 public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAssert, TaskOutcome> {
 
-    public TaskOutcomeAssert(TaskOutcome taskOutcome) {
+    TaskOutcomeAssert(TaskOutcome taskOutcome) {
         super(taskOutcome, TaskOutcomeAssert.class);
     }
 
