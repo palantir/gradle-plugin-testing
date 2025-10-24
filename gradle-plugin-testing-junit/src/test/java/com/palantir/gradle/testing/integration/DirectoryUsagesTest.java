@@ -18,7 +18,7 @@ package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.gradle.testing.files.arbitrary.ArbitrarySrcDir;
+import com.palantir.gradle.testing.files.Directory;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
@@ -28,22 +28,22 @@ class DirectoryUsagesTest {
 
     @Test
     void directory_not_created_by_default(RootProject rootProject) {
-        ArbitrarySrcDir dir = rootProject.directory("my-dir");
+        Directory dir = rootProject.directory("my-dir");
 
         assertThat(dir.path()).doesNotExist();
     }
 
     @Test
     void can_create_nested_directories(RootProject rootProject) {
-        ArbitrarySrcDir dir = rootProject.directory("foo/bar/baz");
-        dir.ensureExists();
+        Directory dir = rootProject.directory("foo/bar/baz");
+        dir.mkdirs();
 
         assertThat(dir.path()).isDirectory();
     }
 
     @Test
     void can_create_files_in_directory(RootProject rootProject) {
-        ArbitrarySrcDir dir = rootProject.directory("my-dir");
+        Directory dir = rootProject.directory("my-dir");
 
         dir.file("test.txt").overwrite("hello");
 

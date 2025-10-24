@@ -27,10 +27,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface FileFactory {
+public interface Directory {
     Path path();
 
-    default FileFactory ensureExists() {
+    default Directory mkdirs() {
         try {
             Files.createDirectories(path());
         } catch (IOException e) {
@@ -43,7 +43,7 @@ public interface FileFactory {
         return new ArbitraryFile(resolvePath(path));
     }
 
-    default ArbitrarySrcDir directory(String path) {
+    default Directory directory(String path) {
         return new ArbitrarySrcDir(resolvePath(path));
     }
 
