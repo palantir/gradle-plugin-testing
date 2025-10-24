@@ -133,7 +133,8 @@ class GradleAssertionsUsageTest {
                         .task(":nonexistent")
                         .as("Task should not be present")
                         .hasOutcome())
-                .isInstanceOf(AssertionError.class);
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Expecting Optional to contain a value but it was empty");
     }
 
     @Test
