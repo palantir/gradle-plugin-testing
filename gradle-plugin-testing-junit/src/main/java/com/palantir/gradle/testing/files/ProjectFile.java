@@ -39,7 +39,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T overwrite(@FormatString String text, Object... args) {
-        return overwrite(args.length > 0 ? text.formatted(args) : text);
+        return overwrite(text.formatted(args));
     }
 
     default T append(String text) {
@@ -49,7 +49,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T append(@FormatString String text, Object... args) {
-        return append(format(text, args));
+        return append(text.formatted(args));
     }
 
     default T appendLine(String line) {
@@ -58,7 +58,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T appendLine(@FormatString String line, Object... args) {
-        return appendLine(format(line, args));
+        return appendLine(line.formatted(args));
     }
 
     default T prepend(String text) {
@@ -68,7 +68,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T prepend(@FormatString String text, Object... args) {
-        return prepend(format(text, args));
+        return prepend(text.formatted(args));
     }
 
     default T prependLine(String line) {
@@ -77,12 +77,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
 
     @FormatMethod
     default T prependLine(@FormatString String line, Object... args) {
-        return prependLine(format(line, args));
-    }
-
-    @FormatMethod
-    private static String format(String text, Object... args) {
-        return args.length > 0 ? text.formatted(args) : text;
+        return prependLine(line.formatted(args));
     }
 
     interface FileEditor {

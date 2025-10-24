@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.files.java;
 
 import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
@@ -48,7 +49,7 @@ public record JavaSrcDir(Path srcDirPath) {
     }
 
     @FormatMethod
-    public JavaFile writeClass(@Language("Java") @PrintFormat String javaSource, Object... args) {
+    public JavaFile writeClass(@Language("Java") @PrintFormat @FormatString String javaSource, Object... args) {
         return writeClass(javaSource.formatted(args));
     }
 
