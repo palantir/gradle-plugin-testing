@@ -33,9 +33,8 @@ import java.util.stream.StreamSupport;
 @AutoService(BugChecker.class)
 @BugPattern(severity = SeverityLevel.ERROR, summary = """
     Avoid using temporary directories or files in Gradle tests, as it can be hard to view the \
-    contents of it for debugging. Instead, just make a directory or file using `RootProject` or \
-    `SubProject`. These will remain around after the test completes in the `build/gradle-plugin-testing` \
-    directory, aiding debugging.
+    contents for debugging. Instead, make a directory or file using `RootProject` or \
+    `SubProject`, which will remain in `build/gradle-plugin-testing` after the test completes.
     """)
 public final class GradleTestTemporaryFile extends BugChecker
         implements BugChecker.MethodInvocationTreeMatcher, BugChecker.VariableTreeMatcher {
