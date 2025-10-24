@@ -79,7 +79,10 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        result.assertThat().output().as("Build output should contain expected message").contains("hello from build");
+        result.assertThat()
+                .output()
+                .as("Build output should contain expected message")
+                .contains("hello from build");
     }
 
     @Test
