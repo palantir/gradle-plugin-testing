@@ -54,7 +54,7 @@ class SettingsGradleFileTest {
 
             settingsGradleFile.rootProjectName("name");
 
-            settingsGradleFile.assertThat().hasContent("something already here\n\nrootProject.name = 'name'\n");
+            settingsGradleFile.assertThat().hasContent("rootProject.name = 'name'\nsomething already here\n\n");
         }
     }
 

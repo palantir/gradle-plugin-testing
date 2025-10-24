@@ -16,12 +16,10 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 
 public record SettingsGradleFile(Path path) implements GradleFile {
@@ -29,13 +27,13 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile {}
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        edit(text -> Splitter.on('\n')
-                .splitToStream(text)
-                .filter(line -> !line.startsWith("rootProject.name"))
-                .collect(Collectors.joining("\n")));
-
-        appendLine("rootProject.name = '%s'".formatted(rootProjectName));
-
+        edit(existingText -> {
+            String newLine = "rootProject.name = '%s'".formatted(rootProjectName);
+            if (existingText.matches("(?s).*^rootProject\\.name\\s*=.*$.*")) {
+                return existingText.replaceAll("(?m)^rootProject\\.name\\s*=.*$", newLine);
+            }
+            return existingText + "\n" + newLine;
+        });
         return this;
     }
 
