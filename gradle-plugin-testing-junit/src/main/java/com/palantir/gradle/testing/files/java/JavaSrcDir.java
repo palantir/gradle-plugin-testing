@@ -33,8 +33,7 @@ public record JavaSrcDir(Path srcDirPath) {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public JavaSrcDir {}
 
-    @FormatMethod
-    public JavaFile writeClass(@Language("Java") String javaSource, Object... args) {
+    public JavaFile writeClass(@Language("Java") String javaSource) {
         Optional<String> possiblePackagePath = possiblyExtractGroup(PACKAGE_PATTERN, javaSource);
 
         String className = possiblyExtractGroup(CLASS_PATTERN, javaSource)
@@ -44,7 +43,12 @@ public record JavaSrcDir(Path srcDirPath) {
         String canonicalClassName =
                 possiblePackagePath.map(packagePath -> packagePath + ".").orElse("") + className;
 
-        return fileByClassName(canonicalClassName).overwrite(javaSource, args);
+        return fileByClassName(canonicalClassName).overwrite(javaSource);
+    }
+
+    @FormatMethod
+    public JavaFile writeClass(@Language("Java") String javaSource, Object... args) {
+        return writeClass(javaSource.formatted(args));
     }
 
     public JavaFile fileByClassName(String canonicalClassName) {
