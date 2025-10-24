@@ -58,9 +58,7 @@ public final class GradleTestTemporaryFile extends BugChecker
             return Description.NO_MATCH;
         }
 
-        boolean withinGradlePluginTestsClass = withinGradlePluginTestsClass(state);
-
-        if (!withinGradlePluginTestsClass) {
+        if (!withinGradlePluginTestsClass(state)) {
             return Description.NO_MATCH;
         }
 
