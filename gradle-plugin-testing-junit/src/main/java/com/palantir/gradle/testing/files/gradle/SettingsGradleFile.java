@@ -32,7 +32,7 @@ public record SettingsGradleFile(Path path) implements GradleFile {
             if (existingText.matches("(?sm).*^rootProject\\.name\\s*=.*$.*")) {
                 return existingText.replaceAll("(?m)^rootProject\\.name\\s*=.*$", newLine);
             }
-            return existingText + "\n" + newLine;
+            return existingText + newLine + "\n";
         });
         return this;
     }
