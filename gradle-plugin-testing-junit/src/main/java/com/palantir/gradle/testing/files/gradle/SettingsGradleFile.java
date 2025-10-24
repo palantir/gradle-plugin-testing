@@ -29,12 +29,10 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile {}
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        edit(text -> {
-            return Splitter.on('\n')
-                    .splitToStream(text)
-                    .filter(line -> !line.startsWith("rootProject.name"))
-                    .collect(Collectors.joining("\n"));
-        });
+        edit(text -> Splitter.on('\n')
+                .splitToStream(text)
+                .filter(line -> !line.startsWith("rootProject.name"))
+                .collect(Collectors.joining("\n")));
 
         prependLine("rootProject.name = '%s'".formatted(rootProjectName));
 
