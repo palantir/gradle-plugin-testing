@@ -23,17 +23,11 @@ import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class ProjectUsagesTest {
-    @BeforeEach
-    void beforeEach(RootProject rootProject) {
-        rootProject
-                .settingsGradle()
-                .prependLine("plugins { id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0' }");
-    }
-
     @Test
     void root_project_parameter(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
@@ -76,6 +70,7 @@ class ProjectUsagesTest {
         assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :asset");
     }
 
+    @Test
     void sub_project_parameter_ending_not_ending_in_project(GradleInvoker gradle, SubProject service) {
         service.buildGradle().append("""
             println "hello from ${path}"
@@ -119,5 +114,22 @@ class ProjectUsagesTest {
             """);
 
         assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subproject");
+    }
+
+    @Nested
+    class BeforeEachChecks {
+        @BeforeEach
+        void beforeEach(RootProject rootProject) {
+            rootProject
+                    .settingsGradle()
+                    .prependLine("plugins { id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0' }");
+        }
+
+        @Test
+        void before_each_works_with_plugin_block(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().appendLine("println 'hello'");
+
+            assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello");
+        }
     }
 }
