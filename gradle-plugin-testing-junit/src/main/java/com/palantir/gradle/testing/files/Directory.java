@@ -16,8 +16,8 @@
 
 package com.palantir.gradle.testing.files;
 
+import com.palantir.gradle.testing.files.arbitrary.ArbitraryDirectory;
 import com.palantir.gradle.testing.files.arbitrary.ArbitraryFile;
-import com.palantir.gradle.testing.files.arbitrary.ArbitrarySrcDir;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import com.palantir.gradle.testing.files.gradle.RegularGradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
@@ -30,7 +30,7 @@ import java.nio.file.Path;
 public interface Directory {
     Path path();
 
-    default Directory mkdirs() {
+    default Directory createDirectories() {
         try {
             Files.createDirectories(path());
         } catch (IOException e) {
@@ -44,7 +44,7 @@ public interface Directory {
     }
 
     default Directory directory(String path) {
-        return new ArbitrarySrcDir(resolvePath(path));
+        return new ArbitraryDirectory(resolvePath(path));
     }
 
     default GradleFile gradleFile(String path) {

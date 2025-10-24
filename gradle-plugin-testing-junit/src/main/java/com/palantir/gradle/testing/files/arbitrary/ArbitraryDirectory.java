@@ -21,7 +21,7 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.Directory;
 import java.nio.file.Path;
 
-public record ArbitrarySrcDir(Path path) implements Directory {
+public record ArbitraryDirectory(Path path) implements Directory {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public ArbitrarySrcDir {}
+    public ArbitraryDirectory {}
 }

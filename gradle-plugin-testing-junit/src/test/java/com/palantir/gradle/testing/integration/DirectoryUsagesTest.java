@@ -36,7 +36,7 @@ class DirectoryUsagesTest {
     @Test
     void can_create_nested_directories(RootProject rootProject) {
         Directory dir = rootProject.directory("foo/bar/baz");
-        dir.mkdirs();
+        dir.createDirectories();
 
         assertThat(dir.path()).isDirectory();
     }
