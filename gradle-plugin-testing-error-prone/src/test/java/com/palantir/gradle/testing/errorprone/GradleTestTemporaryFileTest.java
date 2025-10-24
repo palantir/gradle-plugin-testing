@@ -17,16 +17,13 @@
 package com.palantir.gradle.testing.errorprone;
 
 import com.google.errorprone.CompilationTestHelper;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 class GradleTestTemporaryFileTest {
-    private final CompilationTestHelper compilationTestHelper =
-            CompilationTestHelper.newInstance(GradleTestTemporaryFile.class, getClass());
-
     @Test
     void pick_up_manually_created_temporary_files_in_gradle_testing_class() {
-        // language=Java
-        compilationTestHelper.addSourceLines("TestClass.java", """
+        test("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import java.io.File;
             import java.nio.file.Files;
@@ -67,13 +64,12 @@ class GradleTestTemporaryFileTest {
                 // BUG: Diagnostic contains: GradleTestTemporaryFile
                 void someMethod(@TempDir Path tempDir) {}
             }
-            """).doTest();
+            """);
     }
 
     @Test
     void allow_temporary_file_creation_outside_of_gradle_plugin_tests() {
-        // language=Java
-        compilationTestHelper.addSourceLines("TestClass.java", """
+        test("""
             import java.nio.file.Files;
             import java.nio.file.Path;
             import org.junit.jupiter.api.io.TempDir;
@@ -85,16 +81,16 @@ class GradleTestTemporaryFileTest {
                     Files.createTempFile("prefix", "suffix");
                 }
             }
-            """).doTest();
+            """);
     }
 
     @Test
     void allow_temporary_file_in_outer_class_if_nested_class_is_used_with_gradle_plugin_tests() {
-        // language=Java
-        compilationTestHelper.addSourceLines("TestClass.java", """
+        test("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import java.nio.file.Path;
             import java.nio.file.Files;
+            import org.junit.jupiter.api.Nested;
             import org.junit.jupiter.api.io.TempDir;
 
             class TestClass {
@@ -104,8 +100,9 @@ class GradleTestTemporaryFileTest {
                     Files.createTempFile("prefix", "suffix");
                 }
 
+                @Nested
                 @GradlePluginTests
-                class Nested {
+                class NestedClass {
                     // BUG: Diagnostic contains: GradleTestTemporaryFile
                     @TempDir Path nestedTempDirField;
 
@@ -116,6 +113,38 @@ class GradleTestTemporaryFileTest {
                     }
                 }
             }
-            """).doTest();
+            """);
+    }
+
+    @Test
+    void catch_instances_inside_nested_classes() {
+        test("""
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import java.nio.file.Path;
+            import java.nio.file.Files;
+            import org.junit.jupiter.api.Nested;
+            import org.junit.jupiter.api.io.TempDir;
+
+            @GradlePluginTests
+            class TestClass {
+                @Nested
+                class NestedClass {
+                    // BUG: Diagnostic contains: GradleTestTemporaryFile
+                    @TempDir Path nestedTempDirField;
+
+                    // BUG: Diagnostic contains: GradleTestTemporaryFile
+                    void nested_test(@TempDir Path tempDir) throws Exception {
+                        // BUG: Diagnostic contains: GradleTestTemporaryFile
+                        Files.createTempFile("prefix", "suffix");
+                    }
+                }
+            }
+            """);
+    }
+
+    private void test(@Language("Java") String javaCode) {
+        CompilationTestHelper compilationTestHelper =
+                CompilationTestHelper.newInstance(GradleTestTemporaryFile.class, getClass());
+        compilationTestHelper.addSourceLines("TestClass.java", javaCode).doTest();
     }
 }
