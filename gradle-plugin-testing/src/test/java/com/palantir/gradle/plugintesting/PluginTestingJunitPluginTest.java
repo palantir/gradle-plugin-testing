@@ -117,7 +117,7 @@ class PluginTestingJunitPluginTest {
                     options.errorprone {
                         // By default, suppressible-error-prone includes the build directory in the excluded paths,
                         // meaning our test error-prone never runs
-                        // TODO: setup error-prone authoring plugin for suppressible-error-prone that disables this
+                        // TODO(callumr): setup error-prone authoring plugin for suppressible-error-prone that disables this
                         excludedPaths = ''
                     }
                 }
