@@ -46,9 +46,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
             Matchers.instanceMethod().onExactClass("java.lang.String").named("formatted"),
             Matchers.staticMethod().onClass("java.lang.String").named("format"));
 
-    private static final Matcher<ExpressionTree> TARGET_METHOD = Matchers.anyOf(
-            Matchers.instanceMethod().onDescendantOf("com.palantir.gradle.testing.files.ProjectFile"),
-            Matchers.instanceMethod().onDescendantOf("com.palantir.gradle.testing.files.java.JavaSrcDir"));
+    private static final String LIBRARY_PACKAGE = "com.palantir.gradle.testing.";
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
@@ -56,7 +54,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
             return Description.NO_MATCH;
         }
 
-        if (!TARGET_METHOD.matches(tree, state)) {
+        if (!isLibraryMethod(tree, state)) {
             return Description.NO_MATCH;
         }
 
@@ -82,6 +80,14 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
         }
 
         return Description.NO_MATCH;
+    }
+
+    private static boolean isLibraryMethod(MethodInvocationTree tree, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
+                .map(Symbol.MethodSymbol::enclClass)
+                .map(classSymbol -> classSymbol.getQualifiedName().toString())
+                .filter(className -> className.startsWith(LIBRARY_PACKAGE))
+                .isPresent();
     }
 
     private static boolean hasFormatMethodOverload(MethodInvocationTree tree, VisitorState state) {
