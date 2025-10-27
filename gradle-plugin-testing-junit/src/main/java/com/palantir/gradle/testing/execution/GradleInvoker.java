@@ -24,20 +24,41 @@ import org.gradle.testkit.runner.GradleRunner;
 public final class GradleInvoker {
     private final Path rootProjectDir;
     private final GradleVersion gradleVersion;
+    private final boolean configurationCacheEnabled;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public GradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) {
+        this(rootProjectDir, gradleVersion, false);
+    }
+
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public GradleInvoker(Path rootProjectDir, GradleVersion gradleVersion, boolean configurationCacheEnabled) {
         this.rootProjectDir = rootProjectDir;
         this.gradleVersion = gradleVersion;
+        this.configurationCacheEnabled = configurationCacheEnabled;
     }
 
     public GradleInvocation withArgs(String... args) {
-        return new GradleInvocation(GradleRunner.create()
+        GradleRunner runner = GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(false)
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
-                .withPluginClasspath()
-                .withArguments(args));
+                .withPluginClasspath();
+
+        if (configurationCacheEnabled) {
+            String[] argsWithConfigCache = new String[args.length + 1];
+            System.arraycopy(args, 0, argsWithConfigCache, 0, args.length);
+            argsWithConfigCache[args.length] = "--configuration-cache";
+            runner = runner.withArguments(argsWithConfigCache);
+        } else {
+            runner = runner.withArguments(args);
+        }
+
+        return new GradleInvocation(runner, gradleVersion, configurationCacheEnabled);
+    }
+
+    public boolean isConfigurationCacheEnabled() {
+        return configurationCacheEnabled;
     }
 }

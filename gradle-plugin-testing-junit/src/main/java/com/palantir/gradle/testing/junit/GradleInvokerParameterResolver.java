@@ -29,7 +29,8 @@ final class GradleInvokerParameterResolver implements TerseParameterResolver {
         if (parameterContext.getParameter().getType().equals(GradleInvoker.class)) {
             return Optional.of(new GradleInvoker(
                     RootProjectStore.rootProjectDir(extensionContext),
-                    GradleVersionStore.gradleVersion(extensionContext)));
+                    GradleVersionStore.gradleVersion(extensionContext),
+                    ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)));
         }
 
         return Optional.empty();

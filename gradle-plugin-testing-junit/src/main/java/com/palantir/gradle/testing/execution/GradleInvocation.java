@@ -16,14 +16,21 @@
 
 package com.palantir.gradle.testing.execution;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
 import java.util.Map;
 import org.gradle.testkit.runner.GradleRunner;
 
 public final class GradleInvocation {
     private final GradleRunner gradleRunner;
+    private final GradleVersion gradleVersion;
+    private final boolean configurationCacheEnabled;
 
-    GradleInvocation(GradleRunner gradleRunner) {
+    GradleInvocation(GradleRunner gradleRunner, GradleVersion gradleVersion, boolean configurationCacheEnabled) {
         this.gradleRunner = gradleRunner;
+        this.gradleVersion = gradleVersion;
+        this.configurationCacheEnabled = configurationCacheEnabled;
     }
 
     public GradleInvocation withEnvironment(Map<String, String> environment) {
@@ -32,10 +39,46 @@ public final class GradleInvocation {
     }
 
     public InvocationResult buildsSuccessfully() {
-        return new InvocationResult(gradleRunner.build());
+        InvocationResult result = new InvocationResult(gradleRunner.build());
+
+        if (configurationCacheEnabled) {
+            assertThat(result.output().contains("Configuration cache entry stored."))
+                    .as("Running @WithConfigurationCache: Expected configuration cache entry to be stored, but it"
+                            + " wasn't. Output: "
+                            + result.output());
+            assertThat(new File(gradleRunner.getProjectDir(), ".gradle/configuration-cache").exists())
+                    .as("Running @WithConfigurationCache: Expected the configuration-cache directory to exits.");
+
+            // Run a second time to verify the cache is reused
+            GradleRunner secondRunner = GradleRunner.create()
+                    .withProjectDir(gradleRunner.getProjectDir())
+                    .withDebug(gradleRunner.isDebug())
+                    .forwardOutput()
+                    .withGradleVersion(gradleVersion.version())
+                    .withPluginClasspath(gradleRunner.getPluginClasspath())
+                    .withEnvironment(gradleRunner.getEnvironment())
+                    .withArguments(gradleRunner.getArguments());
+
+            InvocationResult secondResult = new InvocationResult(secondRunner.build());
+            assertThat(secondResult.output().contains("Configuration cache entry reused."))
+                    .as("Running @WithConfigurationCache: Expected configuration cache entry to be reused, but it"
+                            + " wasn't. Output: "
+                            + secondResult.output());
+
+            return secondResult;
+        }
+
+        return result;
     }
 
     public InvocationResult buildsWithFailure() {
-        return new InvocationResult(gradleRunner.buildAndFail());
+        InvocationResult result = new InvocationResult(gradleRunner.buildAndFail());
+
+        if (configurationCacheEnabled) {
+            assertThat(result.output().contains("Configuration cache entry stored."))
+                    .as("Expected configuration cache entry to be stored, but it wasn't. Output: " + result.output());
+        }
+
+        return result;
     }
 }
