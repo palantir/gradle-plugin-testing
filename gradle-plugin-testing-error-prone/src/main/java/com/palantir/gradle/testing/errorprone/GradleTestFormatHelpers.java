@@ -27,8 +27,8 @@ public final class GradleTestFormatHelpers {
             Matchers.isInstance(ClassTree.class),
             Matchers.hasAnnotation("com.palantir.gradle.testing.junit.GradlePluginTests")));
 
-    public static boolean isWithinGradlePluginTests(Tree tree, VisitorState state) {
-        return WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
+    public static boolean notWithinGradlePluginTests(Tree tree, VisitorState state) {
+        return !WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
     }
 
     private GradleTestFormatHelpers() {}

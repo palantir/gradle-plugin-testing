@@ -37,8 +37,8 @@ import java.util.Optional;
 @AutoService(BugChecker.class)
 @BugPattern(
         severity = SeverityLevel.ERROR,
-        summary = "Use the varargs overload of methods in ProjectFile and JavaSrcDir to get syntax "
-                + "highlighting, rather than manually formatting strings with .formatted() or String.format()")
+        summary = "Use the varargs overload of methods to get syntax highlighting, rather than manually formatting"
+                + " strings with .formatted() or String.format()")
 public final class GradleTestStringFormatting extends BugChecker implements BugChecker.MethodInvocationTreeMatcher {
 
     private static final Matcher<ExpressionTree> FORMATTED_STRING = Matchers.anyOf(
@@ -51,7 +51,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
-        if (!GradleTestFormatHelpers.isWithinGradlePluginTests(tree, state)) {
+        if (GradleTestFormatHelpers.notWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 
@@ -80,7 +80,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
     }
 
     /**
-     * Checks if an identifier references a variable that was initialised with the given matcher.
+     * Checks if an identifier references a variable that was initialised by a string formatter.
      */
     private static boolean isIdentifierInitialisedWith(IdentifierTree identifier, VisitorState state) {
         return Optional.ofNullable(ASTHelpers.getSymbol(identifier))
@@ -90,7 +90,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
                 .filter(VariableTree.class::isInstance)
                 .map(VariableTree.class::cast)
                 .map(VariableTree::getInitializer)
-                .map(initialiser -> GradleTestStringFormatting.FORMATTED_STRING.matches(initialiser, state))
+                .map(initializer -> GradleTestStringFormatting.FORMATTED_STRING.matches(initializer, state))
                 .orElse(false);
     }
 }
