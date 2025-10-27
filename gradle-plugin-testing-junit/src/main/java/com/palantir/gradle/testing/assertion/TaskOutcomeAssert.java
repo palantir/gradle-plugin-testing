@@ -26,7 +26,6 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     }
 
     public TaskOutcomeAssert wasSuccess() {
-        isNotNull();
         if (actual != TaskOutcome.SUCCESS) {
             failWithMessage("Expected task outcome to be SUCCESS but was %s", actual);
         }
@@ -34,7 +33,6 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     }
 
     public TaskOutcomeAssert wasFail() {
-        isNotNull();
         if (actual != TaskOutcome.FAILED) {
             failWithMessage("Expected task outcome to be FAILED but was %s", actual);
         }
@@ -42,7 +40,6 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     }
 
     public TaskOutcomeAssert wasUpToDate() {
-        isNotNull();
         if (actual != TaskOutcome.UP_TO_DATE) {
             failWithMessage("Expected task outcome to be UP_TO_DATE but was %s", actual);
         }
