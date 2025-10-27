@@ -51,7 +51,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
-        if (GradleTestFormatHelpers.notWithinGradlePluginTests(tree, state)) {
+        if (GradleTestHelpers.notWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 

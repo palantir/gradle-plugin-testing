@@ -22,7 +22,7 @@ import com.google.errorprone.matchers.Matchers;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.Tree;
 
-public final class GradleTestFormatHelpers {
+public final class GradleTestHelpers {
     private static final Matcher<Tree> WITHIN_GRADLE_PLUGIN_TESTS_CLASS = Matchers.enclosingNode(Matchers.allOf(
             Matchers.isInstance(ClassTree.class),
             Matchers.hasAnnotation("com.palantir.gradle.testing.junit.GradlePluginTests")));
@@ -31,5 +31,5 @@ public final class GradleTestFormatHelpers {
         return !WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
     }
 
-    private GradleTestFormatHelpers() {}
+    private GradleTestHelpers() {}
 }
