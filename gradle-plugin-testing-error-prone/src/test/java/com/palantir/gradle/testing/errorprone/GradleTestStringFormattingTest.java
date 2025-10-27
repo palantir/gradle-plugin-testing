@@ -218,6 +218,24 @@ class GradleTestStringFormattingTest {
             """);
     }
 
+    @Test
+    void allow_formatted_strings_when_no_format_method_overload_exists() {
+        test("""
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.files.java.JavaSrcDir;
+
+            @GradlePluginTests
+            class TestClass {
+                void test(JavaSrcDir javaDir) {
+                    javaDir.fileByClassName("com.example.%s".formatted("MyClass"));
+                    javaDir.fileByPath("com/example/%s.java".formatted("MyClass"));
+                    javaDir.fileByClassName(String.format("com.example.%s", "MyClass"));
+                    javaDir.fileByPath(String.format("com/example/%s.java", "MyClass"));
+                }
+            }
+            """);
+    }
+
     private void test(@Language("Java") String javaCode) {
         CompilationTestHelper compilationTestHelper =
                 CompilationTestHelper.newInstance(GradleTestStringFormatting.class, getClass());

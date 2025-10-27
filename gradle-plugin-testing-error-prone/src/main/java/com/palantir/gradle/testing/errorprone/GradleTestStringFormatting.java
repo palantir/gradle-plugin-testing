@@ -33,6 +33,7 @@ import com.sun.tools.javac.api.JavacTrees;
 import com.sun.tools.javac.code.Symbol;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @AutoService(BugChecker.class)
 @BugPattern(
@@ -59,6 +60,10 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
             return Description.NO_MATCH;
         }
 
+        if (!hasFormatMethodOverload(tree, state)) {
+            return Description.NO_MATCH;
+        }
+
         List<? extends ExpressionTree> arguments = tree.getArguments();
         if (arguments.isEmpty()) {
             return Description.NO_MATCH;
@@ -77,6 +82,31 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
         }
 
         return Description.NO_MATCH;
+    }
+
+    private static boolean hasFormatMethodOverload(MethodInvocationTree tree, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
+                .map(methodSymbol -> hasFormatOverloadInClass(methodSymbol, state))
+                .orElse(false);
+    }
+
+    private static boolean hasFormatOverloadInClass(Symbol.MethodSymbol methodSymbol, VisitorState state) {
+        String methodName = methodSymbol.getSimpleName().toString();
+        Symbol.ClassSymbol classSymbol = methodSymbol.enclClass();
+
+        return StreamSupport.stream(classSymbol.members().getSymbols().spliterator(), false)
+                .filter(Symbol.MethodSymbol.class::isInstance)
+                .map(Symbol.MethodSymbol.class::cast)
+                .filter(method -> method.getSimpleName().toString().equals(methodName))
+                .filter(method ->
+                        ASTHelpers.hasAnnotation(method, "com.google.errorprone.annotations.FormatMethod", state))
+                .anyMatch(method -> hasFormatStringParameter(method, state));
+    }
+
+    private static boolean hasFormatStringParameter(Symbol.MethodSymbol method, VisitorState state) {
+        return method.getParameters().stream()
+                .anyMatch(param ->
+                        ASTHelpers.hasAnnotation(param, "com.google.errorprone.annotations.FormatString", state));
     }
 
     private static boolean isIdentifierInitialisedWithFormattedString(IdentifierTree identifier, VisitorState state) {
