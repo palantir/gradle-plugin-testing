@@ -81,14 +81,20 @@ class SettingsGradleFileTest {
         @Test
         void deduplicate() {
             settingsGradleFile.overwrite("""
+                // before
                 rootProject.name = 'init'
+                // during
                 rootProject.name = 'second'
+                // after
                 """);
 
             settingsGradleFile.rootProjectName("name");
 
             settingsGradleFile.assertThat().hasContent("""
+                // before
                 rootProject.name = 'name'
+                // during
+                // after
                 """);
         }
     }
