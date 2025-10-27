@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 class GradleTestStringFormattingTest {
     @Test
-    void catch_formatted_string_in_project_file_append() {
+    void catch_formatting_in_project_file() {
         test("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.files.ProjectFile;
@@ -32,93 +32,31 @@ class GradleTestStringFormattingTest {
                 void test(ProjectFile file) {
                     // BUG: Diagnostic contains: GradleTestStringFormatting
                     file.append("foo %s".formatted(3));
-                }
-            }
-            """);
-    }
-
-    @Test
-    void catch_string_format_in_project_file_append() {
-        test("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    // BUG: Diagnostic contains: GradleTestStringFormatting
-                    file.append(String.format("foo %s", 3));
-                }
-            }
-            """);
-    }
-
-    @Test
-    void catch_formatted_string_in_project_file_overwrite() {
-        test("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    // BUG: Diagnostic contains: GradleTestStringFormatting
-                    file.overwrite("foo %s".formatted(3));
-                }
-            }
-            """);
-    }
-
-    @Test
-    void catch_formatted_string_in_project_file_append_line() {
-        test("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     // BUG: Diagnostic contains: GradleTestStringFormatting
                     file.appendLine("foo %s".formatted(3));
-                }
-            }
-            """);
-    }
-
-    @Test
-    void catch_formatted_string_in_project_file_prepend() {
-        test("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     // BUG: Diagnostic contains: GradleTestStringFormatting
                     file.prepend("foo %s".formatted(3));
-                }
-            }
-            """);
-    }
-
-    @Test
-    void catch_formatted_string_in_project_file_prepend_line() {
-        test("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     // BUG: Diagnostic contains: GradleTestStringFormatting
                     file.prependLine("foo %s".formatted(3));
+                    // BUG: Diagnostic contains: GradleTestStringFormatting
+                    file.overwrite("foo %s".formatted(3));
+                    // BUG: Diagnostic contains: GradleTestStringFormatting
+                    file.append(String.format("foo %s", 3));
+                    // BUG: Diagnostic contains: GradleTestStringFormatting
+                    file.appendLine(String.format("foo %s", 3));
+                    // BUG: Diagnostic contains: GradleTestStringFormatting
+                    file.prepend(String.format("foo %s", 3));
+                    // BUG: Diagnostic contains: GradleTestStringFormatting
+                    file.prependLine(String.format("foo %s", 3));
+                    // BUG: Diagnostic contains: GradleTestStringFormatting
+                    file.overwrite(String.format("foo %s", 3));
                 }
             }
             """);
     }
 
     @Test
-    void catch_formatted_string_in_java_src_dir_write_class() {
+    void catch_formatting_in_java_src_dir_write_class() {
         test("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.files.java.JavaSrcDir;
@@ -128,20 +66,6 @@ class GradleTestStringFormattingTest {
                 void test(JavaSrcDir javaDir) {
                     // BUG: Diagnostic contains: GradleTestStringFormatting
                     javaDir.writeClass("class Foo { int bar = %d; }".formatted(42));
-                }
-            }
-            """);
-    }
-
-    @Test
-    void catch_string_format_in_java_src_dir_write_class() {
-        test("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.java.JavaSrcDir;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(JavaSrcDir javaDir) {
                     // BUG: Diagnostic contains: GradleTestStringFormatting
                     javaDir.writeClass(String.format("class Foo { int bar = %d; }", 42));
                 }
