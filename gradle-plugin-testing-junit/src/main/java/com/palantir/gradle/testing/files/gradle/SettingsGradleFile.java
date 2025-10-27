@@ -27,13 +27,15 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile {}
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        edit(existingText -> {
-            String newLine = "rootProject.name = '%s'".formatted(rootProjectName);
-            if (existingText.matches("(?sm).*^rootProject\\.name\\s*=.*$.*")) {
-                return existingText.replaceAll("(?m)^rootProject\\.name\\s*=.*$", newLine);
-            }
-            return existingText + newLine + "\n";
-        });
+        String newLine = "rootProject.name = '%s'".formatted(rootProjectName);
+        String placeholder = "<<<ROOTPROJECT_PLACEHOLDER>>>";
+
+        edit(text -> text.contains("rootProject.name")
+                ? text.replaceFirst("rootProject\\.name[^\\n]*", placeholder)
+                        .replaceAll("\\nrootProject\\.name[^\\n]*", "")
+                        .replace(placeholder, newLine)
+                : text + newLine + "\n");
+
         return this;
     }
 
