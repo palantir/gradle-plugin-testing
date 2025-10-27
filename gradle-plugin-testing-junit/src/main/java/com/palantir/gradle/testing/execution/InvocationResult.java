@@ -41,8 +41,8 @@ public final class InvocationResult {
      * Usage:
      * <pre>
      * invocationResult.assertThat().task(":myTask")
-     *     .hasOutcome()
-     *     .isNotIn(TaskOutcome.UP_TO_DATE, TaskOutcome.FROM_CACHE);
+     *     .outcome()
+     *     .isEqualTo(TaskOutcome.UP_TO_DATE);
      *
      * invocationResult.assertThat().output().contains("BUILD SUCCESSFUL");
      * </pre>
