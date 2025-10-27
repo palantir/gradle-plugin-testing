@@ -16,11 +16,8 @@
 
 package com.palantir.gradle.testing.assertion;
 
-import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.execution.TaskResult;
 import java.util.Optional;
-import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.OptionalAssert;
 
 public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
@@ -37,10 +34,29 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
         return (TaskResultOptionalAssert) super.as(description, args);
     }
 
-    public AbstractObjectAssert<?, TaskOutcome> outcome() {
+    private TaskResult requireTaskResult() {
         if (actual.isEmpty()) {
             failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(taskPath));
         }
-        return Assertions.assertThat(actual.get().outcome());
+        return actual.get();
+    }
+
+    public TaskOutcomeAssert outcome() {
+        return new TaskOutcomeAssert(requireTaskResult().outcome());
+    }
+
+    public TaskResultOptionalAssert wasSuccess() {
+        outcome().wasSuccess();
+        return this;
+    }
+
+    public TaskResultOptionalAssert wasFail() {
+        outcome().wasFail();
+        return this;
+    }
+
+    public TaskResultOptionalAssert wasUpToDate() {
+        outcome().wasUpToDate();
+        return this;
     }
 }

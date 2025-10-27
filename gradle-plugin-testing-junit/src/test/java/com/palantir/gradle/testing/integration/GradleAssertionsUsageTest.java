@@ -122,4 +122,152 @@ class GradleAssertionsUsageTest {
                 .as("Non-existent task should be empty")
                 .isEmpty();
     }
+
+    @Test
+    void can_check_task_wasSuccess(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        result.assertThat().task(":foo").wasSuccess();
+    }
+
+    @Test
+    void can_check_task_wasSuccess_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        result.assertThat().task(":foo").outcome().wasSuccess();
+    }
+
+    @Test
+    void can_check_task_wasFail(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {
+                    throw new RuntimeException('intentional failure')
+                }
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
+
+        result.assertThat().task(":foo").wasFail();
+    }
+
+    @Test
+    void can_check_task_wasFail_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {
+                    throw new RuntimeException('intentional failure')
+                }
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
+
+        result.assertThat().task(":foo").outcome().wasFail();
+    }
+
+    @Test
+    void can_check_task_wasUpToDate(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                outputs.file('foo.txt')
+                doLast {
+                    file('foo.txt').text = 'hello'
+                }
+            }
+            """);
+
+        gradle.withArgs("foo").buildsSuccessfully();
+        InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
+
+        secondRun.assertThat().task(":foo").wasUpToDate();
+    }
+
+    @Test
+    void can_check_task_wasUpToDate_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                outputs.file('foo.txt')
+                doLast {
+                    file('foo.txt').text = 'hello'
+                }
+            }
+            """);
+
+        gradle.withArgs("foo").buildsSuccessfully();
+        InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
+
+        secondRun.assertThat().task(":foo").outcome().wasUpToDate();
+    }
+
+    @Test
+    void wasSuccess_fails_when_task_not_present(GradleInvoker gradle) {
+        InvocationResult result = gradle.withArgs().buildsSuccessfully();
+
+        assertThatThrownBy(() -> result.assertThat().task(":nonexistent").wasSuccess())
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+    }
+
+    @Test
+    void wasSuccess_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                outputs.file('foo.txt')
+                doLast {
+                    file('foo.txt').text = 'hello'
+                }
+            }
+            """);
+
+        gradle.withArgs("foo").buildsSuccessfully();
+        InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
+
+        assertThatThrownBy(() -> secondRun.assertThat().task(":foo").wasSuccess())
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Expected task outcome to be SUCCESS but was UP_TO_DATE");
+    }
+
+    @Test
+    void wasFail_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        assertThatThrownBy(() -> result.assertThat().task(":foo").wasFail())
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Expected task outcome to be FAILED but was SUCCESS");
+    }
+
+    @Test
+    void wasUpToDate_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        assertThatThrownBy(() -> result.assertThat().task(":foo").wasUpToDate())
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Expected task outcome to be UP_TO_DATE but was SUCCESS");
+    }
 }
