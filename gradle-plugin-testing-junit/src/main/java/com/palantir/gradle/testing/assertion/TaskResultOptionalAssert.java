@@ -26,8 +26,11 @@ import org.assertj.core.api.OptionalAssert;
 
 public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
 
-    TaskResultOptionalAssert(Optional<TaskResult> optional) {
+    private final String taskPath;
+
+    TaskResultOptionalAssert(Optional<TaskResult> optional, String taskPath) {
         super(optional);
+        this.taskPath = taskPath;
     }
 
     @Override
@@ -36,15 +39,15 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
     }
 
     public AbstractObjectAssert<?, TaskOutcome> outcome() {
-        if (!actual.isPresent()) {
-            failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(path()));
+        if (actual.isEmpty()) {
+            failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(taskPath));
         }
         return Assertions.assertThat(actual.get().outcome());
     }
 
     public AbstractStringAssert<?> path() {
-        if (!actual.isPresent()) {
-            failWithMessage("Expected to find a task path for task '%s' but there was none.".formatted(path()));
+        if (actual.isEmpty()) {
+            failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(taskPath));
         }
         return Assertions.assertThat(actual.get().path());
     }

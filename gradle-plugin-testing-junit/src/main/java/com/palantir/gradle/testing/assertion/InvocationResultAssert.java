@@ -39,7 +39,7 @@ public final class InvocationResultAssert {
      * </pre>
      */
     public TaskResultOptionalAssert task(String taskPath) {
-        return new TaskResultOptionalAssert(invocationResult.task(taskPath));
+        return new TaskResultOptionalAssert(invocationResult.task(taskPath), taskPath);
     }
 
     /**
