@@ -71,7 +71,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
         }
 
         if (firstArg instanceof IdentifierTree identifier) {
-            if (isIdentifierInitialisedWith(identifier, state)) {
+            if (isIdentifierInitialisedWithFormattedString(identifier, state)) {
                 return describeMatch(tree);
             }
         }
@@ -79,10 +79,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
         return Description.NO_MATCH;
     }
 
-    /**
-     * Checks if an identifier references a variable that was initialised by a string formatter.
-     */
-    private static boolean isIdentifierInitialisedWith(IdentifierTree identifier, VisitorState state) {
+    private static boolean isIdentifierInitialisedWithFormattedString(IdentifierTree identifier, VisitorState state) {
         return Optional.ofNullable(ASTHelpers.getSymbol(identifier))
                 .filter(Symbol.VarSymbol.class::isInstance)
                 .map(Symbol.VarSymbol.class::cast)
