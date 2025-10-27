@@ -30,7 +30,7 @@ public record GradleSourceSet(Path path) {
         return new JavaSrcDir(path.resolve("java"));
     }
 
-    public ArbitraryDirectory srcDir(String srcDirName) {
+    public Directory srcDir(String srcDirName) {
         return new ArbitraryDirectory(this.path.resolve(srcDirName));
     }
 }
