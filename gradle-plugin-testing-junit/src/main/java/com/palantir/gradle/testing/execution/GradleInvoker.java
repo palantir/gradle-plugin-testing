@@ -47,11 +47,9 @@ public final class GradleInvoker {
         //   -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=127.0.0.1:54342
         // We can use this to detect whether we should run with Gradle tooling `.withDebug` or not,
         // `withDebug(true)` will run the Gradle tooling inside the same JVM as the test, meaning
-        // debugging works, whereas `withDebug(false)` will run Gradle in a new daemon. There can
+        // debugging works, whereas `withDebug(false)` will run Gradle in a new daemon. There can be
         // differences between these two modes!
-        return ManagementFactory.getRuntimeMXBean()
-                .getInputArguments()
-                .toString()
-                .contains("-agentlib:jdwp");
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .anyMatch(s -> s.contains("-agentlib:jdwp"));
     }
 }
