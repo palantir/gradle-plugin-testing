@@ -48,12 +48,10 @@ public final class GradleInvoker {
                 .withPluginClasspath();
 
         if (configurationCacheEnabled) {
-            String[] argsWithConfigCache = ImmutableList.<String>builder()
+            runner = runner.withArguments(ImmutableList.<String>builder()
                     .add(args)
                     .add("--configuration-cache")
-                    .build()
-                    .toArray(new String[0]);
-            runner = runner.withArguments(argsWithConfigCache);
+                    .build());
         } else {
             runner = runner.withArguments(args);
         }

@@ -54,7 +54,7 @@ public final class GradleInvocation {
                     .withGradleVersion(gradleVersion.version())
                     .withPluginClasspath(gradleRunner.getPluginClasspath())
                     .withEnvironment(gradleRunner.getEnvironment())
-                    .withArguments(new ImmutableList.Builder<String>()
+                    .withArguments(ImmutableList.<String>builder()
                             .addAll(gradleRunner.getArguments())
                             .add("--dry-run")
                             .build());
