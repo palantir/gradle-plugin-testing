@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
@@ -47,18 +48,16 @@ public final class GradleInvoker {
                 .withPluginClasspath();
 
         if (configurationCacheEnabled) {
-            String[] argsWithConfigCache = new String[args.length + 1];
-            System.arraycopy(args, 0, argsWithConfigCache, 0, args.length);
-            argsWithConfigCache[args.length] = "--configuration-cache";
+            String[] argsWithConfigCache = ImmutableList.<String>builder()
+                    .add(args)
+                    .add("--configuration-cache")
+                    .build()
+                    .toArray(new String[0]);
             runner = runner.withArguments(argsWithConfigCache);
         } else {
             runner = runner.withArguments(args);
         }
 
         return new GradleInvocation(runner, gradleVersion, configurationCacheEnabled);
-    }
-
-    public boolean isConfigurationCacheEnabled() {
-        return configurationCacheEnabled;
     }
 }

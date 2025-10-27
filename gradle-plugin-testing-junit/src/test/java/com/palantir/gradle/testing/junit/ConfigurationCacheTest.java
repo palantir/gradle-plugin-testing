@@ -40,7 +40,7 @@ final class ConfigurationCacheTest {
 
         InvocationResult result = invoker.withArgs("compileJava", "help").buildsSuccessfully();
         assertThat(result.task(":compileJava")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
+            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
         });
 
         assertThat(result.task(":help")).hasValueSatisfying(taskResult -> {

@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.execution;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.Map;
 import org.gradle.testkit.runner.GradleRunner;
@@ -42,30 +43,23 @@ public final class GradleInvocation {
         InvocationResult result = new InvocationResult(gradleRunner.build());
 
         if (configurationCacheEnabled) {
-            assertThat(result.output().contains("Configuration cache entry stored."))
-                    .as("Running @WithConfigurationCache: Expected configuration cache entry to be stored, but it"
-                            + " wasn't. Output: "
-                            + result.output());
-            assertThat(new File(gradleRunner.getProjectDir(), ".gradle/configuration-cache").exists())
-                    .as("Running @WithConfigurationCache: Expected the configuration-cache directory to exits.");
+            assertConfigCacheStored(result.output());
 
-            // Run a second time to verify the cache is reused
-            GradleRunner secondRunner = GradleRunner.create()
+            // Run a second time to verify the cache is reused, we don't need to run the tasks --dry-run is enough to
+            // check if the configuration cache was used.
+            GradleRunner configurationCacheRunner = GradleRunner.create()
                     .withProjectDir(gradleRunner.getProjectDir())
                     .withDebug(gradleRunner.isDebug())
                     .forwardOutput()
                     .withGradleVersion(gradleVersion.version())
                     .withPluginClasspath(gradleRunner.getPluginClasspath())
                     .withEnvironment(gradleRunner.getEnvironment())
-                    .withArguments(gradleRunner.getArguments());
-
-            InvocationResult secondResult = new InvocationResult(secondRunner.build());
-            assertThat(secondResult.output().contains("Configuration cache entry reused."))
-                    .as("Running @WithConfigurationCache: Expected configuration cache entry to be reused, but it"
-                            + " wasn't. Output: "
-                            + secondResult.output());
-
-            return secondResult;
+                    .withArguments(new ImmutableList.Builder<String>()
+                            .addAll(gradleRunner.getArguments())
+                            .add("--dry-run")
+                            .build());
+            InvocationResult configurationCacheResult = new InvocationResult(configurationCacheRunner.build());
+            assertConfigCacheReused(configurationCacheResult.output());
         }
 
         return result;
@@ -75,10 +69,31 @@ public final class GradleInvocation {
         InvocationResult result = new InvocationResult(gradleRunner.buildAndFail());
 
         if (configurationCacheEnabled) {
-            assertThat(result.output().contains("Configuration cache entry stored."))
-                    .as("Expected configuration cache entry to be stored, but it wasn't. Output: " + result.output());
+            assertConfigCacheStored(result.output());
         }
 
         return result;
+    }
+
+    private void assertConfigCacheStored(String output) {
+        assertThat(output.contains("Configuration cache entry stored."))
+                .as(String.format(
+                        "Running @WithConfigurationCache: Expected configuration cache entry to be stored, but it"
+                                + " wasn't. Output: %s",
+                        output));
+
+        File configurationCacheDir = new File(gradleRunner.getProjectDir(), ".gradle/configuration-cache");
+        assertThat(configurationCacheDir.exists())
+                .as(String.format(
+                        "Running @WithConfigurationCache: Expected the configuration-cache %s directory to exits.",
+                        configurationCacheDir));
+    }
+
+    private void assertConfigCacheReused(String output) {
+        assertThat(output.contains("Configuration cache entry reused."))
+                .as(String.format(
+                        "Running @WithConfigurationCache: Expected configuration cache entry to be reused, but it"
+                                + " wasn't. Output: %s",
+                        output));
     }
 }

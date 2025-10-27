@@ -24,7 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Annotation that can be used alongside {@link GradlePluginTests} to enable configuration cache testing.
- * This will add configuration cache capabilities to the test class.
+ * When applied, all Gradle tasks executed via {@link com.palantir.gradle.testing.execution.GradleInvoker} will run with
+ * the "--configuration-cache" flag. For successful builds ({@link com.palantir.gradle.testing.execution.GradleInvocation#buildsSuccessfully}),
+ * a second dry-run is automatically performed to verify that the configuration cache is properly reused.
+ * The {@link com.palantir.gradle.testing.execution.InvocationResult} returned always represents the outcome of the first run.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
