@@ -19,6 +19,9 @@ package com.palantir.gradle.testing.assertion;
 import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.execution.TaskResult;
 import java.util.Optional;
+import org.assertj.core.api.AbstractObjectAssert;
+import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.OptionalAssert;
 
 public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
@@ -32,21 +35,17 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
         return (TaskResultOptionalAssert) super.as(description, args);
     }
 
-    public TaskResultOptionalAssert hasOutcome(TaskOutcome expected) {
-        isPresent();
-        TaskOutcome actualOutcome = actual.get().outcome();
-        if (actualOutcome != expected) {
-            failWithMessage("Expected task outcome to be <%s> but was <%s>", expected, actualOutcome);
+    public AbstractObjectAssert<?, TaskOutcome> outcome() {
+        if (!actual.isPresent()) {
+            failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(path()));
         }
-        return this;
+        return Assertions.assertThat(actual.get().outcome());
     }
 
-    public TaskResultOptionalAssert hasPath(String expectedPath) {
-        isPresent();
-        TaskResult taskResult = actual.get();
-        if (!taskResult.path().equals(expectedPath)) {
-            failWithMessage("Expected task path to be <%s> but was <%s>", expectedPath, taskResult.path());
+    public AbstractStringAssert<?> path() {
+        if (!actual.isPresent()) {
+            failWithMessage("Expected to find a task path for task '%s' but there was none.".formatted(path()));
         }
-        return this;
+        return Assertions.assertThat(actual.get().path());
     }
 }

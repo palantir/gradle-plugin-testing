@@ -38,7 +38,11 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":foo").as("Task should have SUCCESS outcome").hasOutcome(TaskOutcome.SUCCESS);
+        result.assertThat()
+                .task(":foo")
+                .as("Task should have SUCCESS outcome")
+                .outcome()
+                .isEqualTo(TaskOutcome.SUCCESS);
     }
 
     @Test
@@ -59,7 +63,8 @@ class GradleAssertionsUsageTest {
                 .assertThat()
                 .task(":foo")
                 .as("Second run should be up to date")
-                .hasOutcome(TaskOutcome.UP_TO_DATE);
+                .outcome()
+                .isEqualTo(TaskOutcome.UP_TO_DATE);
     }
 
     @Test
@@ -72,7 +77,11 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":foo").as("Task should have correct path").hasPath(":foo");
+        result.assertThat()
+                .task(":foo")
+                .as("Task should have correct path")
+                .path()
+                .isEqualTo(":foo");
     }
 
     @Test
@@ -102,9 +111,11 @@ class GradleAssertionsUsageTest {
         assertThatThrownBy(() -> result.assertThat()
                         .task(":foo")
                         .as("Task outcome should match")
-                        .hasOutcome(TaskOutcome.UP_TO_DATE))
+                        .outcome()
+                        .isEqualTo(TaskOutcome.UP_TO_DATE))
                 .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected task outcome to be <UP_TO_DATE> but was <SUCCESS>");
+                .hasMessageContaining("UP_TO_DATE")
+                .hasMessageContaining("SUCCESS");
     }
 
     @Test
@@ -114,9 +125,9 @@ class GradleAssertionsUsageTest {
         assertThatThrownBy(() -> result.assertThat()
                         .task(":nonexistent")
                         .as("Task should not be present")
-                        .hasOutcome(TaskOutcome.SUCCESS))
+                        .outcome())
                 .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expecting Optional to contain a value but it was empty");
+                .hasMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
     }
 
     @Test
