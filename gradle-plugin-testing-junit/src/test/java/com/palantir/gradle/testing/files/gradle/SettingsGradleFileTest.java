@@ -77,6 +77,20 @@ class SettingsGradleFileTest {
                 // after
                 """);
         }
+
+        @Test
+        void deduplicate() {
+            settingsGradleFile.overwrite("""
+                rootProject.name = 'init'
+                rootProject.name = 'second'
+                """);
+
+            settingsGradleFile.rootProjectName("name");
+
+            settingsGradleFile.assertThat().hasContent("""
+                rootProject.name = 'name'
+                """);
+        }
     }
 
     @Nested
