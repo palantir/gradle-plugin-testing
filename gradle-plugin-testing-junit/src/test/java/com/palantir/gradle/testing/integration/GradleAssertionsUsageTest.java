@@ -68,23 +68,6 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_path(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildGradle().append("""
-            tasks.register('foo') {
-                doLast {}
-            }
-            """);
-
-        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
-
-        result.assertThat()
-                .task(":foo")
-                .as("Task should have correct path")
-                .path()
-                .isEqualTo(":foo");
-    }
-
-    @Test
     void can_check_output(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             println 'hello from build'

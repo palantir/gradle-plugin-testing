@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.palantir.gradle.testing.execution.GradleInvocation;
@@ -84,7 +85,9 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":sub:foo").path().isEqualTo(":sub:foo");
+        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
+            assertThat(taskResult.path()).isEqualTo(":sub:foo");
+        });
     }
 
     @Test

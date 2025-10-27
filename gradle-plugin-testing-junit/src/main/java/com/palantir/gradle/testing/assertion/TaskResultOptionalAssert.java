@@ -20,7 +20,6 @@ import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.execution.TaskResult;
 import java.util.Optional;
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.AbstractStringAssert;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.OptionalAssert;
 
@@ -43,12 +42,5 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
             failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(taskPath));
         }
         return Assertions.assertThat(actual.get().outcome());
-    }
-
-    public AbstractStringAssert<?> path() {
-        if (actual.isEmpty()) {
-            failWithMessage("Expected to find a task path for task '%s' but there was none.".formatted(taskPath));
-        }
-        return Assertions.assertThat(actual.get().path());
     }
 }
