@@ -47,7 +47,7 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
 
     public AbstractStringAssert<?> path() {
         if (actual.isEmpty()) {
-            failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(taskPath));
+            failWithMessage("Expected to find a task path for task '%s' but there was none.".formatted(taskPath));
         }
         return Assertions.assertThat(actual.get().path());
     }
