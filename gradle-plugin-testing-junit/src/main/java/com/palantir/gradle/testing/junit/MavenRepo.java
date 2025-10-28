@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.execution.GradleVersion;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,8 +58,8 @@ public final class MavenRepo {
     public MavenRepo(Path repoPath, GradleVersion gradleVersion) {
         this.repoPath = Preconditions.checkNotNull(repoPath, "repoPath");
         this.gradleVersion = Preconditions.checkNotNull(gradleVersion, "gradleVersion");
-        this.publisherProject =
-                new PublisherProject(repoPath.getParent().resolve("maven-repo-publisher"), repoPath);
+        this.publisherProject = new PublisherProject(
+                repoPath.getParent().resolve(".maven-repo-publisher"), repoPath, gradleVersion);
     }
 
     /**
@@ -94,8 +93,8 @@ public final class MavenRepo {
         // Publish each module individually to ensure dependencies are available
         for (Module module : modules) {
             publishedModules.add(module);
-            publisherProject.generateGradleFiles(List.of(module), gradleVersion);
-            publisherProject.runPublish(gradleVersion, module);
+            publisherProject.generateGradleFiles(List.of(module));
+            publisherProject.runPublish(module);
         }
     }
 

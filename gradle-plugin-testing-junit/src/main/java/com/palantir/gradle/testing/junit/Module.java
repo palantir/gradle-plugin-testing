@@ -19,30 +19,15 @@ package com.palantir.gradle.testing.junit;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Represents a Maven module that can be published to a test repository.
  * Use the builder pattern via {@link #of(String)} to create modules with dependencies.
  */
-public final class Module {
+public record Module(
+        String group, String artifact, String version, ImmutableList<String> dependencies, String targetCompatibility) {
     private static final Splitter COORDINATE_SPLITTER = Splitter.on(':').trimResults();
-
-    private final String group;
-    private final String artifact;
-    private final String version;
-    private final ImmutableList<String> dependencies;
-    private final String targetCompatibility;
-
-    private Module(Builder builder) {
-        this.group = builder.group;
-        this.artifact = builder.artifact;
-        this.version = builder.version;
-        this.dependencies = ImmutableList.copyOf(builder.dependencies);
-        this.targetCompatibility = builder.targetCompatibility;
-    }
 
     /**
      * Creates a module builder from a coordinate string in the format "group:artifact:version".
@@ -50,9 +35,7 @@ public final class Module {
     public static Builder of(String coordinate) {
         List<String> parts = COORDINATE_SPLITTER.splitToList(coordinate);
         Preconditions.checkArgument(
-                parts.size() == 3,
-                "Coordinate must be in format 'group:artifact:version', got: %s",
-                coordinate);
+                parts.size() == 3, "Coordinate must be in format 'group:artifact:version', got: %s", coordinate);
         return new Builder(parts.get(0), parts.get(1), parts.get(2));
     }
 
@@ -76,57 +59,17 @@ public final class Module {
 
         Builder builder = of(coordinate);
 
-        for (String dependency : Splitter.on('|').trimResults().split(dependenciesString)) {
-            if (!dependency.isEmpty()) {
-                builder.dependsOn(dependency);
-            }
-        }
+        Splitter.on('|')
+                .trimResults()
+                .splitToStream(dependenciesString)
+                .filter(dep -> !dep.isEmpty())
+                .forEach(builder::dependsOn);
 
         return builder.build();
     }
 
-    public String group() {
-        return group;
-    }
-
-    public String artifact() {
-        return artifact;
-    }
-
-    public String version() {
-        return version;
-    }
-
     public String coordinate() {
         return group + ":" + artifact + ":" + version;
-    }
-
-    public ImmutableList<String> dependencies() {
-        return dependencies;
-    }
-
-    public String targetCompatibility() {
-        return targetCompatibility;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof Module other)) {
-            return false;
-        }
-        return Objects.equals(group, other.group)
-                && Objects.equals(artifact, other.artifact)
-                && Objects.equals(version, other.version)
-                && Objects.equals(dependencies, other.dependencies)
-                && Objects.equals(targetCompatibility, other.targetCompatibility);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(group, artifact, version, dependencies, targetCompatibility);
     }
 
     @Override
@@ -138,7 +81,7 @@ public final class Module {
         private final String group;
         private final String artifact;
         private final String version;
-        private final List<String> dependencies = new ArrayList<>();
+        private final ImmutableList.Builder<String> dependencies = ImmutableList.builder();
         private String targetCompatibility = "1.8";
 
         private Builder(String group, String artifact, String version) {
@@ -168,7 +111,7 @@ public final class Module {
         }
 
         public Module build() {
-            return new Module(this);
+            return new Module(group, artifact, version, dependencies.build(), targetCompatibility);
         }
     }
 }
