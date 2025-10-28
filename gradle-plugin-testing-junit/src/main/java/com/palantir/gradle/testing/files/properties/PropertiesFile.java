@@ -16,18 +16,27 @@
 
 package com.palantir.gradle.testing.files.properties;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public PropertiesFile {}
 
     public PropertiesFile appendProperty(String key, String value) {
-        return appendLine("%s=%s".formatted(key, value));
+        return appendLine("%s=%s", key, value);
+    }
+
+    @Override
+    @FormatMethod
+    public PropertiesFile overwrite(@Language("Properties") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
     }
 
     @Override
@@ -36,8 +45,20 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     }
 
     @Override
+    @FormatMethod
+    public PropertiesFile append(@Language("Properties") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
+    }
+
+    @Override
     public PropertiesFile append(@Language("Properties") String text) {
         return ProjectFile.super.append(text);
+    }
+
+    @Override
+    @FormatMethod
+    public PropertiesFile appendLine(@Language("Properties") @PrintFormat @FormatString String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
     }
 
     @Override
@@ -46,8 +67,20 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     }
 
     @Override
+    @FormatMethod
+    public PropertiesFile prepend(@Language("Properties") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
+    }
+
+    @Override
     public PropertiesFile prepend(@Language("Properties") String text) {
         return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    @FormatMethod
+    public PropertiesFile prependLine(@Language("Properties") @PrintFormat @FormatString String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 
     @Override
