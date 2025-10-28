@@ -79,7 +79,7 @@ class SettingsGradleFileTest {
         }
 
         @Test
-        void deduplicate() {
+        void replaces_all_instances() {
             settingsGradleFile.overwrite("""
                 // before
                 rootProject.name = 'init'
@@ -94,6 +94,7 @@ class SettingsGradleFileTest {
                 // before
                 rootProject.name = 'name'
                 // during
+                rootProject.name = 'name'
                 // after
                 """);
         }

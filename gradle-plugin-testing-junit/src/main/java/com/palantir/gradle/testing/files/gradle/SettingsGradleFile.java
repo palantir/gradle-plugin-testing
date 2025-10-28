@@ -28,12 +28,9 @@ public record SettingsGradleFile(Path path) implements GradleFile {
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
         String newLine = "rootProject.name = '%s'".formatted(rootProjectName);
-        String placeholder = "<<<ROOTPROJECT_PLACEHOLDER>>>";
 
         edit(text -> text.contains("rootProject.name")
-                ? text.replaceFirst("rootProject\\.name[^\\n]*", placeholder)
-                        .replaceAll("\\nrootProject\\.name[^\\n]*", "")
-                        .replace(placeholder, newLine)
+                ? text.replaceAll("rootProject\\.name[^\\n]*", newLine)
                 : text + newLine + "\n");
 
         return this;
