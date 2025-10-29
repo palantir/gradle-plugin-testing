@@ -30,7 +30,7 @@ public final class InvocationResultAssert extends AbstractObjectAssert<Invocatio
      * <p>
      * Usage:
      * <pre>
-     * invocationResult.assertThat().task(":myTask").outcome().succeeded()
+     * invocationResult.assertThat().task(":myTask").succeeded()
      * </pre>
      */
     public TaskResultAssert task(String taskPath) {
