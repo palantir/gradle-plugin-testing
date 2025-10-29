@@ -16,17 +16,18 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.nio.file.Path;
+import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 
-public interface GradleInvoker {
+public final class UnexpectedInvocationSuccess extends UnexpectedInvocationResult {
+    public UnexpectedInvocationSuccess(String message, UnexpectedBuildSuccess unexpectedBuildSuccess) {
+        super(message, new InvocationResult(unexpectedBuildSuccess.getBuildResult()));
+    }
 
-    GradleInvocation withArgs(String... args);
+    public UnexpectedInvocationSuccess(String message, InvocationResult invocationResult) {
+        super(message, invocationResult);
+    }
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
-        }
-        return gradleInvoker;
+    public UnexpectedInvocationSuccess(UnexpectedBuildSuccess unexpectedBuildSuccess) {
+        super(unexpectedBuildSuccess.getMessage(), new InvocationResult(unexpectedBuildSuccess.getBuildResult()));
     }
 }
