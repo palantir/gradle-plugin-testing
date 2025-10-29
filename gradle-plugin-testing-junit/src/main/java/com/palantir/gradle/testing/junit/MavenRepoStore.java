@@ -42,7 +42,7 @@ final class MavenRepoStore {
 
     private static MavenRepo initializeMavenRepo(ExtensionContext context) {
         GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
-        Path publisherDir = RootProjectStore.rootProject(context).path().resolve("build/testgenrepo");
+        Path publisherDir = RootProjectStore.rootProject(context).path().resolve("build/mavenrepo");
 
         clearDirectory(publisherDir);
 

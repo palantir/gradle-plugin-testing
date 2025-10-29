@@ -99,4 +99,56 @@ class MavenRepoUsageTest {
         assertThat(result.output()).contains("com.external:library:1.0.0");
         assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
     }
+
+    @Test
+    void publishing_same_coordinate_twice_succeeds(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+        repo.publish("com.external:library:1.0.0");
+        repo.publish("com.external:library:1.0.0");
+
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.external:library:1.0.0'
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
+
+        assertThat(result.output()).contains("com.external:library:1.0.0");
+    }
+
+    @Test
+    void same_dependency_declared_multiple_times(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+        repo.publish("com.external:library:1.0.0 -> com.palantir:service-a:1.0.0|com.palantir:service-a:1.0.0");
+
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.external:library:1.0.0'
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
+
+        assertThat(result.output()).contains("com.external:library:1.0.0");
+        assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
+    }
+
+    @Test
+    void transitive_dependency_chain(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+        repo.publish(
+                "com.external:leaf:1.0.0",
+                "com.external:middle:1.0.0 -> com.external:leaf:1.0.0",
+                "com.external:top:1.0.0 -> com.external:middle:1.0.0");
+
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.external:top:1.0.0'
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
+
+        assertThat(result.output()).contains("com.external:top:1.0.0");
+        assertThat(result.output()).contains("com.external:middle:1.0.0");
+        assertThat(result.output()).contains("com.external:leaf:1.0.0");
+    }
 }
