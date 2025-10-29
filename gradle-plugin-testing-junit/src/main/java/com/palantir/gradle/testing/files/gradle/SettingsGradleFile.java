@@ -29,9 +29,20 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile rootProjectName(String rootProjectName) {
         String rootProjectNameLine = "rootProject.name = '%s'".formatted(rootProjectName);
 
-        edit(text -> text.contains("rootProject.name")
-                ? text.replaceAll("rootProject\\.name[^\\n]*", rootProjectNameLine)
-                : text + rootProjectNameLine + "\n");
+        edit(text -> {
+            long count = text.lines()
+                    .filter(line -> line.matches("rootProject\\.name[^\\n]*"))
+                    .count();
+
+            if (count > 1) {
+                throw new IllegalStateException("Found multiple rootProject.name assignments in settings.gradle. "
+                        + "Please remove the duplicate assignments and use the rootProjectName() method instead.");
+            }
+
+            return text.contains("rootProject.name")
+                    ? text.replaceFirst("rootProject\\.name[^\\n]*", rootProjectNameLine)
+                    : text + rootProjectNameLine + "\n";
+        });
 
         return this;
     }

@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -79,7 +81,7 @@ class SettingsGradleFileTest {
         }
 
         @Test
-        void replaces_all_instances() {
+        void throws_when_multiple_rootProject_name_assignments_exist() {
             settingsGradleFile.overwrite("""
                 // before
                 rootProject.name = 'init'
@@ -88,15 +90,10 @@ class SettingsGradleFileTest {
                 // after
                 """);
 
-            settingsGradleFile.rootProjectName("name");
-
-            settingsGradleFile.assertThat().hasContent("""
-                // before
-                rootProject.name = 'name'
-                // during
-                rootProject.name = 'name'
-                // after
-                """);
+            assertThatThrownBy(() -> settingsGradleFile.rootProjectName("name"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Found multiple rootProject.name assignments")
+                    .hasMessageContaining("use the rootProjectName() method instead");
         }
     }
 
