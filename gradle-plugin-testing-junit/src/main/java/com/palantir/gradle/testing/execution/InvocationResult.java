@@ -40,9 +40,7 @@ public final class InvocationResult {
      * <p>
      * Usage:
      * <pre>
-     * invocationResult.assertThat().task(":myTask")
-     *     .outcome()
-     *     .isEqualTo(TaskOutcome.UP_TO_DATE);
+     * invocationResult.assertThat().task(":myTask").outcome().succeeded()
      *
      * invocationResult.assertThat().output().contains("BUILD SUCCESSFUL");
      * </pre>
