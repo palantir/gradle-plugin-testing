@@ -139,7 +139,7 @@ class GradleTestStringFormattingTest {
 
     @Test
     void catch_pre_formatted_variable_with_formatted() {
-        test("""
+        testUnchanged("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.files.ProjectFile;
 
@@ -156,7 +156,7 @@ class GradleTestStringFormattingTest {
 
     @Test
     void catch_pre_formatted_variable_with_string_format() {
-        test("""
+        testUnchanged("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.files.ProjectFile;
 
@@ -173,7 +173,7 @@ class GradleTestStringFormattingTest {
 
     @Test
     void catch_pre_formatted_variable_in_java_src_dir() {
-        test("""
+        testUnchanged("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.files.java.JavaSrcDir;
 
@@ -238,7 +238,7 @@ class GradleTestStringFormattingTest {
     }
 
     @Test
-    void autofix_formatted_method_in_project_file() {
+    void autofix_formatted_strings_in_project_file() {
         testFix("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.files.ProjectFile;
@@ -247,130 +247,9 @@ class GradleTestStringFormattingTest {
             class TestClass {
                 void test(ProjectFile file) {
                     file.append("foo %s".formatted(3));
-                }
-            }
-            """, """
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    file.append("foo %s", 3);
-                }
-            }
-            """);
-    }
-
-    @Test
-    void autofix_string_format_in_project_file() {
-        testFix("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    file.append(String.format("foo %s", 3));
-                }
-            }
-            """, """
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    file.append("foo %s", 3);
-                }
-            }
-            """);
-    }
-
-    @Test
-    void autofix_formatted_with_multiple_args() {
-        testFix("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     file.appendLine("foo %s bar %d".formatted("hello", 42));
-                }
-            }
-            """, """
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    file.appendLine("foo %s bar %d", "hello", 42);
-                }
-            }
-            """);
-    }
-
-    @Test
-    void autofix_string_format_with_multiple_args() {
-        testFix("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     file.prepend(String.format("foo %s bar %d", "hello", 42));
-                }
-            }
-            """, """
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    file.prepend("foo %s bar %d", "hello", 42);
-                }
-            }
-            """);
-    }
-
-    @Test
-    void autofix_prepend_line_with_formatted() {
-        testFix("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     file.prependLine("test %s".formatted("value"));
-                }
-            }
-            """, """
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
-                    file.prependLine("test %s", "value");
-                }
-            }
-            """);
-    }
-
-    @Test
-    void autofix_overwrite_with_formatted() {
-        testFix("""
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.files.ProjectFile;
-
-            @GradlePluginTests
-            class TestClass {
-                void test(ProjectFile file) {
                     file.overwrite("content %s".formatted("data"));
                 }
             }
@@ -381,6 +260,10 @@ class GradleTestStringFormattingTest {
             @GradlePluginTests
             class TestClass {
                 void test(ProjectFile file) {
+                    file.append("foo %s", 3);
+                    file.appendLine("foo %s bar %d", "hello", 42);
+                    file.prepend("foo %s bar %d", "hello", 42);
+                    file.prependLine("test %s", "value");
                     file.overwrite("content %s", "data");
                 }
             }
@@ -399,6 +282,15 @@ class GradleTestStringFormattingTest {
         refactoringTestHelper
                 .addInputLines("TestClass.java", input)
                 .addOutputLines("TestClass.java", expected)
+                .doTest();
+    }
+
+    private void testUnchanged(@Language("Java") String javaCode) {
+        BugCheckerRefactoringTestHelper refactoringTestHelper =
+                BugCheckerRefactoringTestHelper.newInstance(GradleTestStringFormatting.class, getClass());
+        refactoringTestHelper
+                .addInputLines("TestClass.java", javaCode)
+                .expectUnchanged()
                 .doTest();
     }
 }
