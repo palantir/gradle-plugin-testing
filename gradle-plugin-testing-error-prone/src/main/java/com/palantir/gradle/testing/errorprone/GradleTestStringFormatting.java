@@ -21,16 +21,19 @@ import com.google.errorprone.BugPattern;
 import com.google.errorprone.BugPattern.SeverityLevel;
 import com.google.errorprone.VisitorState;
 import com.google.errorprone.bugpatterns.BugChecker;
+import com.google.errorprone.fixes.SuggestedFix;
 import com.google.errorprone.matchers.Description;
 import com.google.errorprone.matchers.Matcher;
 import com.google.errorprone.matchers.Matchers;
 import com.google.errorprone.util.ASTHelpers;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.api.JavacTrees;
 import com.sun.tools.javac.code.Symbol;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -42,9 +45,13 @@ import java.util.stream.StreamSupport;
                 + " strings with .formatted() or String.format()")
 public final class GradleTestStringFormatting extends BugChecker implements BugChecker.MethodInvocationTreeMatcher {
 
-    private static final Matcher<ExpressionTree> FORMATTED_STRING = Matchers.anyOf(
-            Matchers.instanceMethod().onExactClass("java.lang.String").named("formatted"),
-            Matchers.staticMethod().onClass("java.lang.String").named("format"));
+    private static final Matcher<ExpressionTree> INSTANCE_FORMATTED =
+            Matchers.instanceMethod().onExactClass("java.lang.String").named("formatted");
+
+    private static final Matcher<ExpressionTree> STRING_FORMAT =
+            Matchers.staticMethod().onClass("java.lang.String").named("format");
+
+    private static final Matcher<ExpressionTree> FORMATTED_STRING = Matchers.anyOf(INSTANCE_FORMATTED, STRING_FORMAT);
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
@@ -67,12 +74,21 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
 
         ExpressionTree firstArg = arguments.get(0);
 
-        if (FORMATTED_STRING.matches(firstArg, state)) {
-            return describeMatch(tree);
+        if (INSTANCE_FORMATTED.matches(firstArg, state)) {
+            return buildDescription(tree)
+                    .addFix(createFixForInstanceFormatted(tree, (MethodInvocationTree) firstArg, state))
+                    .build();
+        }
+
+        if (STRING_FORMAT.matches(firstArg, state)) {
+            return buildDescription(tree)
+                    .addFix(createFixForStringFormat(tree, (MethodInvocationTree) firstArg, state))
+                    .build();
         }
 
         if (firstArg instanceof IdentifierTree identifier) {
             if (isIdentifierInitialisedWithFormattedString(identifier, state)) {
+                // Don't provide auto-fix for pre-formatted variables as it could leave around an unused varible
                 return describeMatch(tree);
             }
         }
@@ -113,7 +129,37 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
                 .filter(VariableTree.class::isInstance)
                 .map(VariableTree.class::cast)
                 .map(VariableTree::getInitializer)
-                .map(initializer -> GradleTestStringFormatting.FORMATTED_STRING.matches(initializer, state))
+                .map(initializer -> FORMATTED_STRING.matches(initializer, state))
                 .orElse(false);
+    }
+
+    private static SuggestedFix createFixForInstanceFormatted(
+            MethodInvocationTree outerCall, MethodInvocationTree formattedCall, VisitorState state) {
+        ExpressionTree formatString = ((MemberSelectTree) formattedCall.getMethodSelect()).getExpression();
+        return buildFix(outerCall, formatString, formattedCall.getArguments(), state);
+    }
+
+    private static SuggestedFix createFixForStringFormat(
+            MethodInvocationTree outerCall, MethodInvocationTree formatCall, VisitorState state) {
+        List<? extends ExpressionTree> formatCallArgs = formatCall.getArguments();
+        if (formatCallArgs.isEmpty()) {
+            return SuggestedFix.emptyFix();
+        }
+        return buildFix(outerCall, formatCallArgs.get(0), formatCallArgs.subList(1, formatCallArgs.size()), state);
+    }
+
+    private static SuggestedFix buildFix(
+            MethodInvocationTree outerCall,
+            ExpressionTree formatString,
+            List<? extends ExpressionTree> formatArgs,
+            VisitorState state) {
+        List<String> newArgs = new ArrayList<>();
+        newArgs.add(state.getSourceForNode(formatString));
+        formatArgs.stream().map(state::getSourceForNode).forEach(newArgs::add);
+        outerCall.getArguments().stream().skip(1).map(state::getSourceForNode).forEach(newArgs::add);
+
+        return SuggestedFix.replace(
+                outerCall,
+                state.getSourceForNode(outerCall.getMethodSelect()) + "(" + String.join(", ", newArgs) + ")");
     }
 }
