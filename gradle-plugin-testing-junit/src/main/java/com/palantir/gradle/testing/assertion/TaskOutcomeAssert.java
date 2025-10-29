@@ -25,16 +25,31 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
         super(taskOutcome, TaskOutcomeAssert.class);
     }
 
+    /**
+     * Asserts that the task outcome is {@link TaskOutcome#SUCCESS}.
+     *
+     * @return this assertion object for method chaining
+     */
     public TaskOutcomeAssert succeeded() {
         assertTaskOutcome(TaskOutcome.SUCCESS);
         return this;
     }
 
+    /**
+     * Asserts that the task outcome is {@link TaskOutcome#FAILED}.
+     *
+     * @return this assertion object for method chaining
+     */
     public TaskOutcomeAssert failed() {
         assertTaskOutcome(TaskOutcome.FAILED);
         return this;
     }
 
+    /**
+     * Asserts that the task outcome is {@link TaskOutcome#UP_TO_DATE}.
+     *
+     * @return this assertion object for method chaining
+     */
     public TaskOutcomeAssert upToDate() {
         assertTaskOutcome(TaskOutcome.UP_TO_DATE);
         return this;

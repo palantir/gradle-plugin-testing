@@ -36,22 +36,53 @@ public final class TaskResultAssert extends AbstractOptionalAssert<TaskResultAss
         return actual.get();
     }
 
+    /**
+     * Returns an assertion object for the task outcome.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
     public TaskOutcomeAssert outcome() {
         return new TaskOutcomeAssert(requireTaskResult().outcome());
     }
 
+    /**
+     * Asserts that the task succeeded.
+     * <p>
+     * This is equivalent to {@code outcome().succeeded()}.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
     public TaskOutcomeAssert succeeded() {
         return outcome().succeeded();
     }
 
+    /**
+     * Asserts that the task failed.
+     * <p>
+     * This is equivalent to {@code outcome().failed()}.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
     public TaskOutcomeAssert failed() {
         return outcome().failed();
     }
 
+    /**
+     * Asserts that the task was up-to-date.
+     * <p>
+     * This is equivalent to {@code outcome().upToDate()}.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
     public TaskOutcomeAssert upToDate() {
         return outcome().upToDate();
     }
 
+    /**
+     * Asserts that the task was not on the task graph.
+     *
+     * @return this assertion object for method chaining
+     */
     public TaskResultAssert notOnTaskGraph() {
         as("Task '%s' was found on task graph", taskPath).isEmpty();
         return this;
