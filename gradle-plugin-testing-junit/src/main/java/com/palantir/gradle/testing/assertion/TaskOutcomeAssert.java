@@ -28,21 +28,21 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     }
 
     public TaskOutcomeAssert succeeded() {
-        assertTaskOutcome(actual, TaskOutcome.SUCCESS);
+        assertTaskOutcome(TaskOutcome.SUCCESS);
         return this;
     }
 
     public TaskOutcomeAssert failed() {
-        assertTaskOutcome(actual, TaskOutcome.FAILED);
+        assertTaskOutcome(TaskOutcome.FAILED);
         return this;
     }
 
     public TaskOutcomeAssert upToDate() {
-        assertTaskOutcome(actual, TaskOutcome.UP_TO_DATE);
+        assertTaskOutcome(TaskOutcome.UP_TO_DATE);
         return this;
     }
 
-    private static void assertTaskOutcome(TaskOutcome actual, TaskOutcome expected) {
+    private void assertTaskOutcome(TaskOutcome expected) {
         assertThat(actual)
                 .as("Expected task outcome to be %s but was %s", expected, actual)
                 .isEqualTo(expected);
