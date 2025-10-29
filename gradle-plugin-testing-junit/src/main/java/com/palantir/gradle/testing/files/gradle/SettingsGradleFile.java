@@ -27,11 +27,11 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile {}
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        String newLine = "rootProject.name = '%s'".formatted(rootProjectName);
+        String rootProjectNameLine = "rootProject.name = '%s'".formatted(rootProjectName);
 
         edit(text -> text.contains("rootProject.name")
-                ? text.replaceAll("rootProject\\.name[^\\n]*", newLine)
-                : text + newLine + "\n");
+                ? text.replaceAll("rootProject\\.name[^\\n]*", rootProjectNameLine)
+                : text + rootProjectNameLine + "\n");
 
         return this;
     }
