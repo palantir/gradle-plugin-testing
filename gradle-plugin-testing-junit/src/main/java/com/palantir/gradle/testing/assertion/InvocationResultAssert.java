@@ -31,9 +31,7 @@ public final class InvocationResultAssert {
      * <p>
      * Usage:
      * <pre>
-     * invocationResult.assertThat().task(":myTask")
-     *     .outcome()
-     *     .isEqualTo(TaskOutcome.UP_TO_DATE);
+     * invocationResult.assertThat().task(":myTask").outcome().succeeded()
      * </pre>
      */
     public TaskResultAssert task(String taskPath) {
