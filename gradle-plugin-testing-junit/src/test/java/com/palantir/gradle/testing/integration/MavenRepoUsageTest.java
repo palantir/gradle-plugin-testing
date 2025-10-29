@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.maven.MavenCoordinate;
 import com.palantir.gradle.testing.maven.MavenRepo;
-import com.palantir.gradle.testing.maven.Module;
 import com.palantir.gradle.testing.project.RootProject;
 import org.gradle.api.JavaVersion;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,11 +75,11 @@ class MavenRepoUsageTest {
 
     @Test
     void builder_pattern_with_custom_properties(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        Module lib = Module.from("com.external:library:1.0.0")
+        MavenCoordinate lib = MavenCoordinate.from("com.external:library:1.0.0")
                 .targetCompatibility(JavaVersion.VERSION_1_8)
                 .build();
 
-        Module app = Module.from("com.external:app:2.0.0")
+        MavenCoordinate app = MavenCoordinate.from("com.external:app:2.0.0")
                 .addDependencies("com.external:library:1.0.0")
                 .addDependencies("com.palantir:service-a:1.0.0")
                 .targetCompatibility(JavaVersion.VERSION_1_8)

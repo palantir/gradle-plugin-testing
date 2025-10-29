@@ -23,11 +23,11 @@ import org.gradle.api.JavaVersion;
 import org.immutables.value.Value;
 
 /**
- * Represents a Maven module that can be published to a test repository.
- * Use the builder pattern via {@link #from(String)} to create modules with dependencies.
+ * Represents a Maven coordinate that can be published to a test repository.
+ * Use the builder pattern via {@link #from(String)} to create coordinates with dependencies.
  */
 @Value.Immutable
-public interface Module {
+public interface MavenCoordinate {
     Splitter COORDINATE_SPLITTER = Splitter.on(':').trimResults();
 
     String group();
@@ -44,27 +44,27 @@ public interface Module {
     }
 
     /**
-     * Creates a module builder from a coordinate string in the format "group:artifact:version".
+     * Creates a coordinate builder from a coordinate string in the format "group:artifact:version".
      */
     static Builder from(String coordinate) {
         List<String> parts = parseCoordinate(coordinate);
         return new Builder().group(parts.get(0)).artifact(parts.get(1)).version(parts.get(2));
     }
 
-    class Builder extends ImmutableModule.Builder {}
+    class Builder extends ImmutableMavenCoordinate.Builder {}
 
-    static Module parseModule(String moduleString) {
+    static MavenCoordinate parse(String moduleString) {
         return moduleString.contains("->") ? parseWithDependencies(moduleString) : parseSimple(moduleString);
     }
 
-    private static Module parseSimple(String coordinate) {
-        return Module.from(coordinate.trim()).build();
+    private static MavenCoordinate parseSimple(String coordinate) {
+        return MavenCoordinate.from(coordinate.trim()).build();
     }
 
-    private static Module parseWithDependencies(String graphString) {
+    private static MavenCoordinate parseWithDependencies(String graphString) {
         List<String> parts = Splitter.on("->").trimResults().omitEmptyStrings().splitToList(graphString);
 
-        ImmutableModule.Builder builder = Module.from(parts.get(0));
+        ImmutableMavenCoordinate.Builder builder = MavenCoordinate.from(parts.get(0));
 
         Splitter.on('|')
                 .trimResults()

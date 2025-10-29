@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
  * Internal class that manages the Gradle project structure for publishing modules.
  * This creates an independent Gradle project with subprojects for each module.
  */
-final class PublisherProject {
+final class MavenRepoPublisher {
     private final RootProject rootProject;
     private final GradleInvoker gradleInvoker;
 
-    PublisherProject(Path projectRoot, URI mavenRepoUrl, GradleVersion gradleVersion) {
+    MavenRepoPublisher(Path projectRoot, URI mavenRepoUrl, GradleVersion gradleVersion) {
         this.rootProject = new RootProject(projectRoot);
         this.gradleInvoker = new GradleInvoker(projectRoot, gradleVersion);
 
@@ -62,14 +62,14 @@ final class PublisherProject {
             """, mavenRepoUrl, mavenRepoUrl);
     }
 
-    void publish(List<Module> modules) {
+    void publish(List<MavenCoordinate> modules) {
         modules.forEach(module -> {
             createSubproject(module, subprojectName(module));
             runPublish(module);
         });
     }
 
-    private void createSubproject(Module module, String subprojectName) {
+    private void createSubproject(MavenCoordinate module, String subprojectName) {
         SubProject subproject = rootProject.subproject(subprojectName);
 
         String dependenciesBlock = module.dependencies().isEmpty()
@@ -112,12 +112,12 @@ final class PublisherProject {
                         module.artifact());
     }
 
-    private void runPublish(Module module) {
+    private void runPublish(MavenCoordinate module) {
         String taskPath = ":" + subprojectName(module) + ":publishMavenPublicationToMavenRepository";
         gradleInvoker.withArgs(taskPath, "--quiet").buildsSuccessfully();
     }
 
-    private static String subprojectName(Module module) {
+    private static String subprojectName(MavenCoordinate module) {
         return module.group() + "." + module.artifact() + "_" + module.version().replace('.', '_');
     }
 }

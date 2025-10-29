@@ -26,10 +26,6 @@ import java.util.List;
 
 /**
  * A test Maven repository that can publish modules for use in integration tests.
- * <p>
- * This class creates an independent Gradle project structure and publishes modules using Gradle's
- * {@code publishMavenPublicationToMavenRepository} task.
- * <p>
  * Usage:
  * <pre>
  * &#64;BeforeEach
@@ -49,12 +45,12 @@ import java.util.List;
  */
 public final class MavenRepo {
     private final URI repoUri;
-    private final PublisherProject publisherProject;
+    private final MavenRepoPublisher publisher;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public MavenRepo(Path publisherPath, GradleVersion gradleVersion) {
         this.repoUri = publisherPath.resolve("mavenrepo").toUri();
-        this.publisherProject = new PublisherProject(publisherPath, repoUri, gradleVersion);
+        this.publisher = new MavenRepoPublisher(publisherPath, repoUri, gradleVersion);
     }
 
     /**
@@ -63,25 +59,35 @@ public final class MavenRepo {
      * Modules can be specified in two formats:
      * <ul>
      *   <li>Simple: "group:artifact:version"</li>
-     *   <li>With dependencies: "group:artifact:version -> dep1:dep2:dep3|dep4:dep5:dep6"</li>
+     *   <li>With dependencies: "group:artifact:version -> group1:artifact1:version1|group2:artifact2:version2"</li>
      * </ul>
      *
      * @param modules one or more module specifications
      */
     public void publish(String... modules) {
-        List<Module> parsedModules =
-                Arrays.stream(modules).map(Module::parseModule).toList();
-        publish(parsedModules.toArray(new Module[0]));
+        List<MavenCoordinate> parsedModules =
+                Arrays.stream(modules).map(MavenCoordinate::parse).toList();
+        publish(parsedModules);
     }
 
     /**
      * Publishes one or more modules to the Maven repository using the builder pattern.
      * Modules are published in the order provided to ensure dependencies are available.
      *
-     * @param modules one or more Module instances
+     * @param modules one or more MavenCoordinate instances
      */
-    public void publish(Module... modules) {
-        publisherProject.publish(List.of(modules));
+    public void publish(MavenCoordinate... modules) {
+        publish(List.of(modules));
+    }
+
+    /**
+     * Publishes one or more modules to the Maven repository using the builder pattern.
+     * Modules are published in the order provided to ensure dependencies are available.
+     *
+     * @param modules a list of MavenCoordinate instances
+     */
+    public void publish(List<MavenCoordinate> modules) {
+        publisher.publish(modules);
     }
 
     /**
