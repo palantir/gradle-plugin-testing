@@ -41,7 +41,6 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     }
 
     private void assertTaskOutcome(TaskOutcome expected) {
-        as("Expected task outcome to be %s but was %s", expected, actual)
-                .isEqualTo(expected);
+        as("Expected task outcome to be %s but was %s", expected, actual).isEqualTo(expected);
     }
 }

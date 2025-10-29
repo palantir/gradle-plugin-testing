@@ -18,20 +18,20 @@ package com.palantir.gradle.testing.assertion;
 
 import com.palantir.gradle.testing.execution.TaskResult;
 import java.util.Optional;
-import org.assertj.core.api.OptionalAssert;
+import org.assertj.core.api.AbstractOptionalAssert;
 
-public final class TaskResultAssert extends OptionalAssert<TaskResult> {
+public final class TaskResultAssert extends AbstractOptionalAssert<TaskResultAssert, TaskResult> {
 
     private final String taskPath;
 
     TaskResultAssert(Optional<TaskResult> optional, String taskPath) {
-        super(optional);
+        super(optional, TaskResultAssert.class);
         this.taskPath = taskPath;
     }
 
     @Override
     public TaskResultAssert as(String description, Object... args) {
-        return (TaskResultAssert) super.as(description, args);
+        return super.as(description, args);
     }
 
     private TaskResult requireTaskResult() {
