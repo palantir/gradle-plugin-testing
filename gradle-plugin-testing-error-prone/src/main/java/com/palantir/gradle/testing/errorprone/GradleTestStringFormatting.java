@@ -88,7 +88,7 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
 
         if (firstArg instanceof IdentifierTree identifier) {
             if (isIdentifierInitialisedWithFormattedString(identifier, state)) {
-                // Don't provide auto-fix for pre-formatted variables as it could leave around an unused varible
+                // Don't provide auto-fix for pre-formatted variables as it could leave around an unused variables
                 return describeMatch(tree);
             }
         }
@@ -135,8 +135,11 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
 
     private static SuggestedFix createFixForInstanceFormatted(
             MethodInvocationTree outerCall, MethodInvocationTree formattedCall, VisitorState state) {
-        ExpressionTree formatString = ((MemberSelectTree) formattedCall.getMethodSelect()).getExpression();
-        return buildFix(outerCall, formatString, formattedCall.getArguments(), state);
+        MemberSelectTree memberSelect = (MemberSelectTree) formattedCall.getMethodSelect();
+        ExpressionTree formatString = memberSelect.getExpression();
+        List<? extends ExpressionTree> formatArgs = formattedCall.getArguments();
+
+        return buildFix(outerCall, formatString, formatArgs, state);
     }
 
     private static SuggestedFix createFixForStringFormat(
@@ -145,7 +148,11 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
         if (formatCallArgs.isEmpty()) {
             return SuggestedFix.emptyFix();
         }
-        return buildFix(outerCall, formatCallArgs.get(0), formatCallArgs.subList(1, formatCallArgs.size()), state);
+
+        ExpressionTree formatString = formatCallArgs.get(0);
+        List<? extends ExpressionTree> formatArgs = formatCallArgs.subList(1, formatCallArgs.size());
+
+        return buildFix(outerCall, formatString, formatArgs, state);
     }
 
     private static SuggestedFix buildFix(
@@ -153,13 +160,20 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
             ExpressionTree formatString,
             List<? extends ExpressionTree> formatArgs,
             VisitorState state) {
-        List<String> newArgs = new ArrayList<>();
-        newArgs.add(state.getSourceForNode(formatString));
-        formatArgs.stream().map(state::getSourceForNode).forEach(newArgs::add);
-        outerCall.getArguments().stream().skip(1).map(state::getSourceForNode).forEach(newArgs::add);
+        List<String> allArgs = new ArrayList<>();
 
-        return SuggestedFix.replace(
-                outerCall,
-                state.getSourceForNode(outerCall.getMethodSelect()) + "(" + String.join(", ", newArgs) + ")");
+        // Add format string
+        allArgs.add(state.getSourceForNode(formatString));
+
+        // Add format arguments
+        formatArgs.stream().map(state::getSourceForNode).forEach(allArgs::add);
+
+        // Add remaining outer call arguments (skip the first which was the formatted string)
+        outerCall.getArguments().stream().skip(1).map(state::getSourceForNode).forEach(allArgs::add);
+
+        String methodSelect = state.getSourceForNode(outerCall.getMethodSelect());
+        String arguments = String.join(", ", allArgs);
+
+        return SuggestedFix.replace(outerCall, methodSelect + "(" + arguments + ")");
     }
 }
