@@ -56,4 +56,9 @@ public final class TaskResultAssert extends OptionalAssert<TaskResult> {
     public TaskOutcomeAssert upToDate() {
         return outcome().upToDate();
     }
+
+    public TaskResultAssert notOnTaskGraph() {
+        as("Task '%s' was found on task graph", taskPath).isEmpty();
+        return this;
+    }
 }

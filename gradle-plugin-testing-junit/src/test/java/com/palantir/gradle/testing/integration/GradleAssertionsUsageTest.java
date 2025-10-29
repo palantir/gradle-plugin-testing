@@ -114,13 +114,13 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_is_empty(GradleInvoker gradle) {
+    void can_check_task_is_notOnTaskGraph(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
         result.assertThat()
                 .task(":nonexistent")
                 .as("Non-existent task should be empty")
-                .isEmpty();
+                .notOnTaskGraph();
     }
 
     @Test
@@ -269,5 +269,20 @@ class GradleAssertionsUsageTest {
         assertThatThrownBy(() -> result.assertThat().task(":foo").upToDate())
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Expected task outcome to be UP_TO_DATE but was SUCCESS");
+    }
+
+    @Test
+    void notOnTaskGraph_fails_when_task_exists(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        assertThatThrownBy(() -> result.assertThat().task(":foo").notOnTaskGraph())
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Task ':foo' was found on task graph");
     }
 }
