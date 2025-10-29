@@ -29,11 +29,6 @@ public final class TaskResultAssert extends AbstractOptionalAssert<TaskResultAss
         this.taskPath = taskPath;
     }
 
-    @Override
-    public TaskResultAssert as(String description, Object... args) {
-        return super.as(description, args);
-    }
-
     private TaskResult requireTaskResult() {
         if (actual.isEmpty()) {
             failWithMessage("Expected to find a task result for task '%s' but there was none.".formatted(taskPath));

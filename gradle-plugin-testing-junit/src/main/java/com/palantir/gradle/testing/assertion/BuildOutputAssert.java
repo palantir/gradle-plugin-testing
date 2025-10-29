@@ -23,9 +23,4 @@ public final class BuildOutputAssert extends AbstractStringAssert<BuildOutputAss
     BuildOutputAssert(String actual) {
         super(actual, BuildOutputAssert.class);
     }
-
-    @Override
-    public BuildOutputAssert as(String description, Object... args) {
-        return super.as(description, args);
-    }
 }
