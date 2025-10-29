@@ -38,8 +38,8 @@ public final class InvocationResultAssert {
      *     .isEqualTo(TaskOutcome.UP_TO_DATE);
      * </pre>
      */
-    public TaskResultOptionalAssert task(String taskPath) {
-        return new TaskResultOptionalAssert(invocationResult.task(taskPath), taskPath);
+    public TaskResultAssert task(String taskPath) {
+        return new TaskResultAssert(invocationResult.task(taskPath), taskPath);
     }
 
     /**
