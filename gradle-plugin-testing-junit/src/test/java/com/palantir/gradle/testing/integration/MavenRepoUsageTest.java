@@ -55,6 +55,25 @@ class MavenRepoUsageTest {
     }
 
     @Test
+    void simple_dependency_in_buildscript(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+        root.buildGradle().prepend("""
+            buildscript {
+                // .withMavenRepo(repo) only adds to the main repo block so need to manually add
+                repositories {
+                    %s
+                }
+                dependencies {
+                    classpath 'com.palantir:service-a:1.0.0'
+                }
+            }
+            """, repo.repositoryBlock());
+
+        InvocationResult result = gradle.withArgs("buildEnvironment").buildsSuccessfully();
+
+        assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
+    }
+
+    @Test
     void multiple_modules_with_dependencies(RootProject root, MavenRepo repo, GradleInvoker gradle) {
         repo.publish(
                 "com.external:library:1.0.0",

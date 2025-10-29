@@ -80,16 +80,10 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     }
 
     default GradleFile withMavenRepo(MavenRepo repo) {
-        return prepend("""
-            buildscript {
-                repositories {
-                    %s
-                }
+        return append("""
+            repositories {
+                %s
             }
-            """, repo.repositoryBlock()).append("""
-                repositories {
-                    %s
-                }
-                """, repo.repositoryBlock());
+            """, repo.repositoryBlock());
     }
 }

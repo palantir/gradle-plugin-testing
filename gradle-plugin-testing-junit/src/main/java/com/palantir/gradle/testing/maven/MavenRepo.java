@@ -91,7 +91,10 @@ public final class MavenRepo {
     }
 
     /**
-     * Returns a Gradle repository block configuration string that can be added to build.gradle.
+     * Returns a Gradle repository block configuration string that can be added to build.gradle in the form:
+     * <pre>{@code
+     * maven { url = uri('repoUri') }
+     * }</pre>
      */
     public String repositoryBlock() {
         return "maven { url = uri('%s') }".formatted(repoUri);
