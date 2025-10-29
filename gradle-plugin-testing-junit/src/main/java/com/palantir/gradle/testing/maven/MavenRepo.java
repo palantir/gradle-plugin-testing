@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.junit;
+package com.palantir.gradle.testing.maven;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.execution.GradleVersion;
+import java.net.URI;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,17 +49,16 @@ import java.util.List;
  * </pre>
  */
 public final class MavenRepo {
-    private final Path repoPath;
-    private final GradleVersion gradleVersion;
+    private final URI repoUri;
     private final PublisherProject publisherProject;
-    private final List<Module> publishedModules = new ArrayList<>();
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public MavenRepo(Path repoPath, GradleVersion gradleVersion) {
-        this.repoPath = Preconditions.checkNotNull(repoPath, "repoPath");
-        this.gradleVersion = Preconditions.checkNotNull(gradleVersion, "gradleVersion");
-        this.publisherProject = new PublisherProject(
-                repoPath.getParent().resolve(".maven-repo-publisher"), repoPath, gradleVersion);
+        Preconditions.checkNotNull(repoPath, "repoPath");
+        Preconditions.checkNotNull(gradleVersion, "gradleVersion");
+        this.repoUri = repoPath.toUri();
+        this.publisherProject =
+                new PublisherProject(repoPath.getParent().resolve(".maven-repo-publisher"), repoPath, gradleVersion);
     }
 
     /**
@@ -75,9 +74,8 @@ public final class MavenRepo {
      */
     public void publish(String... modules) {
         Preconditions.checkArgument(modules.length > 0, "At least one module must be provided");
-        List<Module> parsedModules = Arrays.stream(modules)
-                .map(this::parseModule)
-                .toList();
+        List<Module> parsedModules =
+                Arrays.stream(modules).map(Module::parseModule).toList();
         publish(parsedModules.toArray(new Module[0]));
     }
 
@@ -89,46 +87,13 @@ public final class MavenRepo {
      */
     public void publish(Module... modules) {
         Preconditions.checkArgument(modules.length > 0, "At least one module must be provided");
-
-        // Publish each module individually to ensure dependencies are available
-        for (Module module : modules) {
-            publishedModules.add(module);
-            publisherProject.generateGradleFiles(List.of(module));
-            publisherProject.runPublish(module);
-        }
-    }
-
-    /**
-     * Returns the path to the Maven repository directory.
-     */
-    public Path path() {
-        return repoPath;
-    }
-
-    /**
-     * Returns the Maven repository URL for use in repository blocks.
-     */
-    public String url() {
-        return repoPath.toUri().toString();
+        publisherProject.publish(List.of(modules));
     }
 
     /**
      * Returns a Gradle repository block configuration string that can be added to build.gradle.
      */
     public String repositoryBlock() {
-        return "maven { url = uri('%s') }".formatted(url());
-    }
-
-    private Module parseModule(String moduleString) {
-        if (moduleString.contains("->")) {
-            return Module.parseWithDependencies(moduleString);
-        } else {
-            return Module.parseSimple(moduleString);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "MavenRepo[path=%s, modules=%d]".formatted(repoPath, publishedModules.size());
+        return "maven { url = uri('%s') }".formatted(repoUri);
     }
 }

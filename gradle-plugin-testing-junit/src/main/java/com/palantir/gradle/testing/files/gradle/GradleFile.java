@@ -19,7 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
 import com.palantir.gradle.testing.files.ProjectFile;
-import com.palantir.gradle.testing.junit.MavenRepo;
+import com.palantir.gradle.testing.maven.MavenRepo;
 import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.PrintFormat;
 
@@ -79,18 +79,17 @@ public interface GradleFile extends ProjectFile<GradleFile> {
         return ProjectFile.super.prependLine(line);
     }
 
-    /**
-     * Adds a Maven repository block configured to use the provided MavenRepo.
-     * This appends a repositories block with the test Maven repository.
-     */
     default GradleFile withMavenRepo(MavenRepo repo) {
-        return append(
-                """
-
+        return prepend("""
+            buildscript {
                 repositories {
                     %s
                 }
-                """
-                        .formatted(repo.repositoryBlock()));
+            }
+            """, repo.repositoryBlock()).append("""
+                repositories {
+                    %s
+                }
+                """, repo.repositoryBlock());
     }
 }

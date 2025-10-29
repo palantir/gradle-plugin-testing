@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleVersion;
+import com.palantir.gradle.testing.maven.MavenRepo;
 import java.nio.file.Path;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
@@ -36,10 +37,10 @@ final class MavenRepoStore {
                 .getOrComputeIfAbsent(
                         MAVEN_REPO_KEY,
                         _key -> {
-                            // Get the root project path to determine where to create the maven repo
-                            Path rootProjectPath = RootProjectStore.rootProject(extensionContext)
-                                    .path();
-                            Path mavenRepoPath = rootProjectPath.getParent().resolve("mavenrepo");
+                            Path mavenRepoPath = RootProjectStore.rootProject(extensionContext)
+                                    .path()
+                                    .getParent()
+                                    .resolve("mavenrepo");
 
                             GradleVersion gradleVersion = GradleVersionStore.gradleVersion(extensionContext);
 

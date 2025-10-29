@@ -14,43 +14,41 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.junit;
+package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.maven.MavenRepo;
+import com.palantir.gradle.testing.maven.Module;
 import com.palantir.gradle.testing.project.RootProject;
+import org.gradle.api.JavaVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-class MavenRepoTest {
+class MavenRepoUsageTest {
 
     @BeforeEach
-    void setupCommonDependencies(MavenRepo repo, RootProject root) {
+    void beforeEach(MavenRepo repo, RootProject root) {
         // Shared dependencies available to all tests
         repo.publish("com.palantir:service-a:1.0.0");
-        root.buildGradle()
-                .append(
-                        """
-                plugins {
-                    id 'java-library'
-                }
-                """)
-                .withMavenRepo(repo);
+        root.buildGradle().append("""
+            plugins {
+                id 'java-library'
+            }
+            """).withMavenRepo(repo);
     }
 
     @Test
-    void simple_dependency(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        root.buildGradle()
-                .append(
-                        """
-                dependencies {
-                    implementation 'com.palantir:service-a:1.0.0'
-                }
-                """);
+    void simple_dependency(RootProject root, GradleInvoker gradle) {
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.palantir:service-a:1.0.0'
+            }
+            """);
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
@@ -63,13 +61,11 @@ class MavenRepoTest {
                 "com.external:library:1.0.0",
                 "com.external:other:2.0.0 -> com.external:library:1.0.0|com.palantir:service-a:1.0.0");
 
-        root.buildGradle()
-                .append(
-                        """
-                dependencies {
-                    implementation 'com.external:other:2.0.0'
-                }
-                """);
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.external:other:2.0.0'
+            }
+            """);
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
@@ -81,24 +77,22 @@ class MavenRepoTest {
     @Test
     void builder_pattern_with_custom_properties(RootProject root, MavenRepo repo, GradleInvoker gradle) {
         Module lib = Module.of("com.external:library:1.0.0")
-                .targetCompatibility("1.8")
+                .targetCompatibility(JavaVersion.VERSION_1_8)
                 .build();
 
         Module app = Module.of("com.external:app:2.0.0")
-                .dependsOn("com.external:library:1.0.0")
-                .dependsOn("com.palantir:service-a:1.0.0")
-                .targetCompatibility("1.8")
+                .addDependencies("com.external:library:1.0.0")
+                .addDependencies("com.palantir:service-a:1.0.0")
+                .targetCompatibility(JavaVersion.VERSION_1_8)
                 .build();
 
         repo.publish(lib, app);
 
-        root.buildGradle()
-                .append(
-                        """
-                dependencies {
-                    implementation 'com.external:app:2.0.0'
-                }
-                """);
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.external:app:2.0.0'
+            }
+            """);
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
@@ -111,26 +105,21 @@ class MavenRepoTest {
     void can_compile_against_published_dependencies(RootProject root, MavenRepo repo, GradleInvoker gradle) {
         repo.publish("com.test:api:1.0.0");
 
-        root.buildGradle()
-                .append(
-                        """
-                dependencies {
-                    implementation 'com.test:api:1.0.0'
-                }
-                """);
+        root.buildGradle().append("""
+            dependencies {
+                implementation 'com.test:api:1.0.0'
+            }
+            """);
 
-        root.mainSourceSet()
-                .java()
-                .writeClass(
-                        """
-                package example;
+        root.mainSourceSet().java().writeClass("""
+            package example;
 
-                public class Main {
-                    public static void main(String[] args) {
-                        System.out.println("Hello, World!");
-                    }
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
                 }
-                """);
+            }
+            """);
 
         InvocationResult result = gradle.withArgs("compileJava").buildsSuccessfully();
 

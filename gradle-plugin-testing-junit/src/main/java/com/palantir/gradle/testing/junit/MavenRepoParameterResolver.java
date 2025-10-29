@@ -16,13 +16,11 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.maven.MavenRepo;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
-/**
- * Parameter resolver that injects MavenRepo instances into test methods and lifecycle callbacks.
- */
 final class MavenRepoParameterResolver implements TerseParameterResolver {
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
