@@ -133,7 +133,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":foo").wasSuccess();
+        result.assertThat().task(":foo").succeeded();
     }
 
     @Test
@@ -146,7 +146,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":foo").outcome().wasSuccess();
+        result.assertThat().task(":foo").outcome().succeeded();
     }
 
     @Test
@@ -161,7 +161,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
-        result.assertThat().task(":foo").wasFail();
+        result.assertThat().task(":foo").failed();
     }
 
     @Test
@@ -176,7 +176,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
-        result.assertThat().task(":foo").outcome().wasFail();
+        result.assertThat().task(":foo").outcome().failed();
     }
 
     @Test
@@ -193,7 +193,7 @@ class GradleAssertionsUsageTest {
         gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
 
-        secondRun.assertThat().task(":foo").wasUpToDate();
+        secondRun.assertThat().task(":foo").upToDate();
     }
 
     @Test
@@ -210,14 +210,14 @@ class GradleAssertionsUsageTest {
         gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
 
-        secondRun.assertThat().task(":foo").outcome().wasUpToDate();
+        secondRun.assertThat().task(":foo").outcome().upToDate();
     }
 
     @Test
     void wasSuccess_fails_when_task_not_present(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":nonexistent").wasSuccess())
+        assertThatThrownBy(() -> result.assertThat().task(":nonexistent").succeeded())
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
     }
@@ -236,7 +236,7 @@ class GradleAssertionsUsageTest {
         gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> secondRun.assertThat().task(":foo").wasSuccess())
+        assertThatThrownBy(() -> secondRun.assertThat().task(":foo").succeeded())
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Expected task outcome to be SUCCESS but was UP_TO_DATE");
     }
@@ -251,7 +251,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":foo").wasFail())
+        assertThatThrownBy(() -> result.assertThat().task(":foo").failed())
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Expected task outcome to be FAILED but was SUCCESS");
     }
@@ -266,7 +266,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":foo").wasUpToDate())
+        assertThatThrownBy(() -> result.assertThat().task(":foo").upToDate())
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Expected task outcome to be UP_TO_DATE but was SUCCESS");
     }

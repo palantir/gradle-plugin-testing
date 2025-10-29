@@ -45,15 +45,15 @@ public final class TaskResultOptionalAssert extends OptionalAssert<TaskResult> {
         return new TaskOutcomeAssert(requireTaskResult().outcome());
     }
 
-    public TaskOutcomeAssert wasSuccess() {
-        return outcome().wasSuccess();
+    public TaskOutcomeAssert succeeded() {
+        return outcome().succeeded();
     }
 
-    public TaskOutcomeAssert wasFail() {
-        return outcome().wasFail();
+    public TaskOutcomeAssert failed() {
+        return outcome().failed();
     }
 
-    public TaskOutcomeAssert wasUpToDate() {
-        return outcome().wasUpToDate();
+    public TaskOutcomeAssert upToDate() {
+        return outcome().upToDate();
     }
 }

@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.assertion;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.palantir.gradle.testing.execution.TaskOutcome;
 import org.assertj.core.api.AbstractObjectAssert;
 
@@ -25,24 +27,24 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
         super(taskOutcome, TaskOutcomeAssert.class);
     }
 
-    public TaskOutcomeAssert wasSuccess() {
-        if (!actual.equals(TaskOutcome.SUCCESS)) {
-            failWithMessage("Expected task outcome to be SUCCESS but was %s", actual);
-        }
+    public TaskOutcomeAssert succeeded() {
+        assertTaskOutcome(actual, TaskOutcome.SUCCESS);
         return this;
     }
 
-    public TaskOutcomeAssert wasFail() {
-        if (!actual.equals(TaskOutcome.FAILED)) {
-            failWithMessage("Expected task outcome to be FAILED but was %s", actual);
-        }
+    public TaskOutcomeAssert failed() {
+        assertTaskOutcome(actual, TaskOutcome.FAILED);
         return this;
     }
 
-    public TaskOutcomeAssert wasUpToDate() {
-        if (!actual.equals(TaskOutcome.UP_TO_DATE)) {
-            failWithMessage("Expected task outcome to be UP_TO_DATE but was %s", actual);
-        }
+    public TaskOutcomeAssert upToDate() {
+        assertTaskOutcome(actual, TaskOutcome.UP_TO_DATE);
         return this;
+    }
+
+    private static void assertTaskOutcome(TaskOutcome actual, TaskOutcome expected) {
+        assertThat(actual)
+                .as("Expected task outcome to be %s but was %s", expected, actual)
+                .isEqualTo(expected);
     }
 }
