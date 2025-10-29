@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.maven;
 
-import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.execution.GradleVersion;
@@ -53,12 +52,9 @@ public final class MavenRepo {
     private final PublisherProject publisherProject;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public MavenRepo(Path repoPath, GradleVersion gradleVersion) {
-        Preconditions.checkNotNull(repoPath, "repoPath");
-        Preconditions.checkNotNull(gradleVersion, "gradleVersion");
-        this.repoUri = repoPath.toUri();
-        this.publisherProject =
-                new PublisherProject(repoPath.getParent().resolve(".maven-repo-publisher"), repoPath, gradleVersion);
+    public MavenRepo(Path publisherPath, GradleVersion gradleVersion) {
+        this.repoUri = publisherPath.resolve("mavenrepo").toUri();
+        this.publisherProject = new PublisherProject(publisherPath, repoUri, gradleVersion);
     }
 
     /**
@@ -73,7 +69,6 @@ public final class MavenRepo {
      * @param modules one or more module specifications
      */
     public void publish(String... modules) {
-        Preconditions.checkArgument(modules.length > 0, "At least one module must be provided");
         List<Module> parsedModules =
                 Arrays.stream(modules).map(Module::parseModule).toList();
         publish(parsedModules.toArray(new Module[0]));
@@ -86,7 +81,6 @@ public final class MavenRepo {
      * @param modules one or more Module instances
      */
     public void publish(Module... modules) {
-        Preconditions.checkArgument(modules.length > 0, "At least one module must be provided");
         publisherProject.publish(List.of(modules));
     }
 

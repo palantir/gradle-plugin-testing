@@ -18,7 +18,11 @@ package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.maven.MavenRepo;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
@@ -31,21 +35,26 @@ final class MavenRepoStore {
 
     private MavenRepoStore() {}
 
-    static MavenRepo mavenRepo(ExtensionContext extensionContext) {
-        return extensionContext
-                .getStore(NAMESPACE)
-                .getOrComputeIfAbsent(
-                        MAVEN_REPO_KEY,
-                        _key -> {
-                            Path mavenRepoPath = RootProjectStore.rootProject(extensionContext)
-                                    .path()
-                                    .getParent()
-                                    .resolve("mavenrepo");
+    static MavenRepo mavenRepo(ExtensionContext context) {
+        return context.getStore(NAMESPACE)
+                .getOrComputeIfAbsent(MAVEN_REPO_KEY, _ignored -> initializeMavenRepo(context), MavenRepo.class);
+    }
 
-                            GradleVersion gradleVersion = GradleVersionStore.gradleVersion(extensionContext);
+    private static MavenRepo initializeMavenRepo(ExtensionContext context) {
+        GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
+        Path publisherDir = RootProjectStore.rootProject(context).path().resolve("build/testgenrepo");
 
-                            return new MavenRepo(mavenRepoPath, gradleVersion);
-                        },
-                        MavenRepo.class);
+        clearDirectory(publisherDir);
+
+        return new MavenRepo(publisherDir, gradleVersion);
+    }
+
+    private static void clearDirectory(Path projectDir) {
+        try {
+            FileUtils.deleteDirectory(projectDir.toFile());
+            Files.createDirectories(projectDir);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to recreate the test directory", e);
+        }
     }
 }

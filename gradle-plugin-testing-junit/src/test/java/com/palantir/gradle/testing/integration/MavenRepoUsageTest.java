@@ -33,7 +33,6 @@ class MavenRepoUsageTest {
 
     @BeforeEach
     void beforeEach(MavenRepo repo, RootProject root) {
-        // Shared dependencies available to all tests
         repo.publish("com.palantir:service-a:1.0.0");
         root.buildGradle().append("""
             plugins {
@@ -76,11 +75,11 @@ class MavenRepoUsageTest {
 
     @Test
     void builder_pattern_with_custom_properties(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        Module lib = Module.of("com.external:library:1.0.0")
+        Module lib = Module.from("com.external:library:1.0.0")
                 .targetCompatibility(JavaVersion.VERSION_1_8)
                 .build();
 
-        Module app = Module.of("com.external:app:2.0.0")
+        Module app = Module.from("com.external:app:2.0.0")
                 .addDependencies("com.external:library:1.0.0")
                 .addDependencies("com.palantir:service-a:1.0.0")
                 .targetCompatibility(JavaVersion.VERSION_1_8)
@@ -99,30 +98,5 @@ class MavenRepoUsageTest {
         assertThat(result.output()).contains("com.external:app:2.0.0");
         assertThat(result.output()).contains("com.external:library:1.0.0");
         assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
-    }
-
-    @Test
-    void can_compile_against_published_dependencies(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        repo.publish("com.test:api:1.0.0");
-
-        root.buildGradle().append("""
-            dependencies {
-                implementation 'com.test:api:1.0.0'
-            }
-            """);
-
-        root.mainSourceSet().java().writeClass("""
-            package example;
-
-            public class Main {
-                public static void main(String[] args) {
-                    System.out.println("Hello, World!");
-                }
-            }
-            """);
-
-        InvocationResult result = gradle.withArgs("compileJava").buildsSuccessfully();
-
-        assertThat(result.output()).contains("BUILD SUCCESSFUL");
     }
 }

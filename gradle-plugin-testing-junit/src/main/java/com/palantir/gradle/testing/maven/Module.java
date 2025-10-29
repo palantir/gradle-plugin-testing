@@ -24,7 +24,7 @@ import org.immutables.value.Value;
 
 /**
  * Represents a Maven module that can be published to a test repository.
- * Use the builder pattern via {@link #of(String)} to create modules with dependencies.
+ * Use the builder pattern via {@link #from(String)} to create modules with dependencies.
  */
 @Value.Immutable
 public interface Module {
@@ -46,28 +46,25 @@ public interface Module {
     /**
      * Creates a module builder from a coordinate string in the format "group:artifact:version".
      */
-    static ImmutableModule.Builder of(String coordinate) {
+    static Builder from(String coordinate) {
         List<String> parts = parseCoordinate(coordinate);
-        return ImmutableModule.builder()
-                .group(parts.get(0))
-                .artifact(parts.get(1))
-                .version(parts.get(2));
+        return new Builder().group(parts.get(0)).artifact(parts.get(1)).version(parts.get(2));
     }
+
+    class Builder extends ImmutableModule.Builder {}
 
     static Module parseModule(String moduleString) {
         return moduleString.contains("->") ? parseWithDependencies(moduleString) : parseSimple(moduleString);
     }
 
-    static Module parseSimple(String coordinate) {
-        return of(coordinate).build();
+    private static Module parseSimple(String coordinate) {
+        return Module.from(coordinate.trim()).build();
     }
 
-    static Module parseWithDependencies(String graphString) {
-        List<String> parts = Splitter.on("->").splitToList(graphString);
-        Preconditions.checkArgument(
-                parts.size() == 2, "Graph string must contain '->' separator, got: %s", graphString);
+    private static Module parseWithDependencies(String graphString) {
+        List<String> parts = Splitter.on("->").trimResults().omitEmptyStrings().splitToList(graphString);
 
-        ImmutableModule.Builder builder = of(parts.get(0).trim());
+        ImmutableModule.Builder builder = Module.from(parts.get(0));
 
         Splitter.on('|')
                 .trimResults()

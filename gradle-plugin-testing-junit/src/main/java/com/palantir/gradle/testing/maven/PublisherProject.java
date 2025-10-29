@@ -16,11 +16,11 @@
 
 package com.palantir.gradle.testing.maven;
 
-import com.google.common.base.Preconditions;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,16 +33,12 @@ final class PublisherProject {
     private final RootProject rootProject;
     private final GradleInvoker gradleInvoker;
 
-    PublisherProject(Path projectRoot, Path mavenRepoPath, GradleVersion gradleVersion) {
-        Preconditions.checkNotNull(projectRoot, "projectRoot");
-        Preconditions.checkNotNull(mavenRepoPath, "mavenRepoPath");
-
+    PublisherProject(Path projectRoot, URI mavenRepoUrl, GradleVersion gradleVersion) {
         this.rootProject = new RootProject(projectRoot);
         this.gradleInvoker = new GradleInvoker(projectRoot, gradleVersion);
 
         rootProject.settingsGradle().rootProjectName("maven-repo-publisher");
 
-        String mavenRepoUrl = mavenRepoPath.toUri().toString();
         rootProject.buildGradle().overwrite("""
             subprojects {
                 apply plugin: 'java-library'
