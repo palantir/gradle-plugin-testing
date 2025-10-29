@@ -285,4 +285,24 @@ class GradleAssertionsUsageTest {
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("Task ':foo' was found on task graph");
     }
+
+    @Test
+    void can_use_satisfies_and_extracting_on_invocation_result(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            tasks.register('foo') {
+                doLast {}
+            }
+            """);
+
+        InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+        result.assertThat()
+                .satisfies(invocationAssert -> {
+                    invocationAssert.assertThat().task(":foo").succeeded();
+                    invocationAssert.assertThat().output().contains("BUILD SUCCESSFUL");
+                })
+                .extracting(InvocationResult::output)
+                .asString()
+                .contains("foo");
+    }
 }

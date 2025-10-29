@@ -17,13 +17,12 @@
 package com.palantir.gradle.testing.assertion;
 
 import com.palantir.gradle.testing.execution.InvocationResult;
+import org.assertj.core.api.AbstractObjectAssert;
 
-public final class InvocationResultAssert {
-
-    private final InvocationResult invocationResult;
+public final class InvocationResultAssert extends AbstractObjectAssert<InvocationResultAssert, InvocationResult> {
 
     public InvocationResultAssert(InvocationResult invocationResult) {
-        this.invocationResult = invocationResult;
+        super(invocationResult, InvocationResultAssert.class);
     }
 
     /**
@@ -35,7 +34,7 @@ public final class InvocationResultAssert {
      * </pre>
      */
     public TaskResultAssert task(String taskPath) {
-        return new TaskResultAssert(invocationResult.task(taskPath), taskPath);
+        return new TaskResultAssert(actual.task(taskPath), taskPath);
     }
 
     /**
@@ -47,6 +46,6 @@ public final class InvocationResultAssert {
      * </pre>
      */
     public BuildOutputAssert output() {
-        return new BuildOutputAssert(invocationResult.output());
+        return new BuildOutputAssert(actual.output());
     }
 }
