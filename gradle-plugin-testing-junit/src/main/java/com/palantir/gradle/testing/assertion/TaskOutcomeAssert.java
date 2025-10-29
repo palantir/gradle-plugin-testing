@@ -16,8 +16,6 @@
 
 package com.palantir.gradle.testing.assertion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.palantir.gradle.testing.execution.TaskOutcome;
 import org.assertj.core.api.AbstractObjectAssert;
 
@@ -43,8 +41,7 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
     }
 
     private void assertTaskOutcome(TaskOutcome expected) {
-        assertThat(actual)
-                .as("Expected task outcome to be %s but was %s", expected, actual)
+        as("Expected task outcome to be %s but was %s", expected, actual)
                 .isEqualTo(expected);
     }
 }
