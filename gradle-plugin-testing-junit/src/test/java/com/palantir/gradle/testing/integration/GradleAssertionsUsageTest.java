@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.integration;
 
+import static com.palantir.gradle.testing.assertion.GradlePluginTestAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
@@ -38,7 +39,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat()
+        assertThat(result)
                 .task(":foo")
                 .as("Task should have SUCCESS outcome")
                 .outcome()
@@ -75,7 +76,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        result.assertThat()
+        assertThat(result)
                 .output()
                 .as("Build output should contain expected message")
                 .contains("hello from build");
@@ -133,7 +134,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":foo").succeeded();
+        assertThat(result).task(":foo").succeeded();
     }
 
     @Test
@@ -146,7 +147,7 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":foo").outcome().succeeded();
+        assertThat(result).task(":foo").outcome().succeeded();
     }
 
     @Test
