@@ -17,8 +17,6 @@
 package com.palantir.gradle.testing.assertion;
 
 import com.palantir.gradle.testing.execution.InvocationResult;
-import org.assertj.core.api.AbstractStringAssert;
-import org.assertj.core.api.Assertions;
 
 public final class InvocationResultAssert {
 
@@ -50,7 +48,7 @@ public final class InvocationResultAssert {
      * invocationResult.assertThat().output().contains("BUILD SUCCESSFUL");
      * </pre>
      */
-    public AbstractStringAssert<?> output() {
-        return Assertions.assertThat(invocationResult.output());
+    public BuildOutputAssert output() {
+        return new BuildOutputAssert(invocationResult.output());
     }
 }
