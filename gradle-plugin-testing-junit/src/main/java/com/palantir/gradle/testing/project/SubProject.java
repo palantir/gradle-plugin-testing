@@ -27,7 +27,7 @@ import java.nio.file.Path;
  * SubProject parameters can only be injected in {@code @Test} methods, not in lifecycle methods like {@code @BeforeEach} or {@code @AfterEach}.
  * In lifecycle methods, create subprojects explicitly using {@code rootProject.subproject("name")}.
  * <br>
- * When injected as a parameter, the subproject will be a direct subproject of the root project.
+ * When injected as a parameter by JUnit, the subproject will be a direct subproject of the root project.
  */
 public record SubProject(Path path, RootProject rootProject) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
