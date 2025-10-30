@@ -55,7 +55,7 @@ public final class MavenRepo {
      * Publishes one or more modules to the Maven repository using the builder pattern.
      * Modules are published in the order provided to ensure dependencies are available.
      *
-     * @param modules one or more MavenCoordinate instances
+     * @param modules one or more {@link MavenCoordinate} instances
      */
     public void publish(MavenCoordinate... modules) {
         publish(List.of(modules));
