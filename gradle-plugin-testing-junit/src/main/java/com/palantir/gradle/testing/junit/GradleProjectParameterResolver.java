@@ -18,12 +18,9 @@ package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
-import java.util.Arrays;
 import java.util.Optional;
-import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.platform.commons.annotation.Testable;
 
 final class GradleProjectParameterResolver implements TerseParameterResolver {
     @Override
@@ -33,17 +30,6 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
         }
 
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
-            if (!isTestMethod(parameterContext)) {
-                throw new IllegalStateException("""
-                    SubProject parameters can only be injected in test methods \
-                    (@Test, @ParameterizedTest, @RepeatedTest, @TestFactory, etc.), \
-                    not in lifecycle methods like @BeforeEach or @AfterEach. \
-                    Use RootProject.subproject("name") explicitly in lifecycle methods instead. \
-                    Found SubProject parameter '%s' in method '%s'\
-                    """.formatted(
-                                parameterContext.getParameter().getName(),
-                                parameterContext.getDeclaringExecutable().getName()));
-            }
             return Optional.of(rootProjectFor(extensionContext)
                     .subproject(parameterContext.getParameter().getName()));
         }
@@ -53,11 +39,5 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
 
     private RootProject rootProjectFor(ExtensionContext extensionContext) {
         return RootProjectStore.rootProject(extensionContext);
-    }
-
-    private boolean isTestMethod(ParameterContext parameterContext) {
-        return Arrays.stream(parameterContext.getDeclaringExecutable().getAnnotations())
-                .anyMatch(annotation -> annotation.annotationType().isAnnotationPresent(Testable.class)
-                        || annotation.annotationType().isAnnotationPresent(TestTemplate.class));
     }
 }
