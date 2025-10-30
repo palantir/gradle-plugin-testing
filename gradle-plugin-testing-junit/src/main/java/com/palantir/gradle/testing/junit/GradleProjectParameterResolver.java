@@ -48,8 +48,9 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
             ParameterContext parameterContext, ExtensionContext extensionContext) {
         if (!extensionContext.getTestMethod().isPresent()) {
             throw new IllegalStateException(
-                    "SubProject parameters can only be injected in @Test methods, not in lifecycle methods like @BeforeEach or @AfterEach. "
-                            + "Use RootProject.subproject(\"name\") explicitly in lifecycle methods instead. "
+                    "SubProject parameters can only be injected in @Test methods, not in lifecycle methods like"
+                            + " @BeforeEach or @AfterEach. Use RootProject.subproject(\"name\") explicitly in lifecycle"
+                            + " methods instead. "
                             + "Found SubProject parameter '%s' in %s"
                                     .formatted(
                                             parameterContext.getParameter().getName(),
