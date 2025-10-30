@@ -17,7 +17,7 @@
 package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
@@ -91,9 +91,10 @@ class MavenRepoUsageTest {
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
-        assertThat(result.output()).contains("com.external:other:2.0.0");
-        assertThat(result.output()).contains("com.external:library:1.0.0");
-        assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
+        assertThat(result.output())
+                .contains("com.external:other:2.0.0")
+                .contains("com.external:library:1.0.0")
+                .contains("com.palantir:service-a:1.0.0");
     }
 
     @Test
@@ -129,8 +130,9 @@ class MavenRepoUsageTest {
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
-        assertThat(result.output()).contains("com.external:library:1.0.0");
-        assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
+        assertThat(result.output())
+                .contains("com.external:library:1.0.0")
+                .contains("com.palantir:service-a:1.0.0");
     }
 
     @Test
@@ -154,19 +156,20 @@ class MavenRepoUsageTest {
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
-        assertThat(result.output()).contains("com.external:top:1.0.0");
-        assertThat(result.output()).contains("com.external:middle:1.0.0");
-        assertThat(result.output()).contains("com.external:leaf:1.0.0");
+        assertThat(result.output())
+                .contains("com.external:top:1.0.0")
+                .contains("com.external:middle:1.0.0")
+                .contains("com.external:leaf:1.0.0");
     }
 
     @Test
     void dependency_validation_rejects_invalid_format() {
-        assertThatThrownBy(() -> MavenArtifact.builder()
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> MavenArtifact.builder()
                         .coordinate("com.external:library:1.0.0")
                         .addDependency("com.external:lib")
                         .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Coordinate must be in format 'group:artifact:version'")
-                .hasMessageContaining("com.external:lib");
+                .withMessageContaining("Coordinate must be in format 'group:artifact:version'")
+                .withMessageContaining("com.external:lib");
     }
 }
