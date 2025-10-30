@@ -26,8 +26,6 @@ import org.immutables.value.Value;
  */
 @Value.Immutable
 public interface MavenCoordinate {
-    Splitter COORDINATE_SPLITTER = Splitter.on(':').trimResults();
-
     String group();
 
     String artifact();
@@ -47,7 +45,7 @@ public interface MavenCoordinate {
     }
 
     private static List<String> parseCoordinate(String coordinate) {
-        List<String> parts = COORDINATE_SPLITTER.splitToList(coordinate);
+        List<String> parts = Splitter.on(':').trimResults().splitToList(coordinate);
         Preconditions.checkArgument(
                 parts.size() == 3, "Coordinate must be in format 'group:artifact:version', got: %s", coordinate);
         return parts;
