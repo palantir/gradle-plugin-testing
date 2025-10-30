@@ -30,7 +30,7 @@ public interface MavenArtifact {
     List<MavenCoordinate> dependencies();
 
     /**
-     * Creates a builder for constructing a Maven artifact with dependencies.
+     * Creates a builder for constructing a Maven artifact.
      */
     static Builder builder() {
         return new Builder();
