@@ -42,19 +42,19 @@ final class MavenRepoStore {
 
     private static MavenRepo initializeMavenRepo(ExtensionContext context) {
         GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
-        Path publisherDir = RootProjectStore.rootProject(context).path().resolve("build/mavenrepo");
+        Path repositoryDirectory = RootProjectStore.rootProject(context).path().resolve("build/mavenrepo");
 
-        clearDirectory(publisherDir);
+        clearDirectory(repositoryDirectory);
 
-        return new MavenRepo(publisherDir, gradleVersion);
+        return new MavenRepo(repositoryDirectory, gradleVersion);
     }
 
-    private static void clearDirectory(Path projectDir) {
+    private static void clearDirectory(Path mavenRepoDirectory) {
         try {
-            FileUtils.deleteDirectory(projectDir.toFile());
-            Files.createDirectories(projectDir);
+            FileUtils.deleteDirectory(mavenRepoDirectory.toFile());
+            Files.createDirectories(mavenRepoDirectory);
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to recreate the test directory", e);
+            throw new UncheckedIOException("Failed to recreate the maven repository directory", e);
         }
     }
 }
