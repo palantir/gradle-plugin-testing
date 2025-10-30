@@ -23,8 +23,8 @@ import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
 /**
- * When injected as a parameter in JUnit, the root project will always be named "root" by default.
- * To use a different project name, call {@code rootProject.settingsGradle().rootProjectName("custom-name")}.
+ * The root project will always be named "root" by default. To use a different project name, call
+ * {@code rootProject.settingsGradle().rootProjectName("custom-name")}.
  */
 public record RootProject(Path path) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
