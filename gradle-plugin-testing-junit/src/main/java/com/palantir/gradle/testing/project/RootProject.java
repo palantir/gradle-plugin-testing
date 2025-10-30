@@ -23,9 +23,8 @@ import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
 /**
- * When injected as a parameter JUnit, the parameter name will determine the project name. If the parameter name ends
- * in "Project", the project name will be the name of the parameter with the "Project" removed. Otherwise the project
- * name will just be the parameter name.
+ * When injected as a parameter in JUnit, the root project will always be named "root" by default.
+ * To use a different project name, call {@code rootProject.settingsGradle().rootProjectName("custom-name")}.
  */
 public record RootProject(Path path) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)

@@ -26,30 +26,34 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         if (parameterContext.getParameter().getType().equals(RootProject.class)) {
-            return Optional.of(rootProjectFor(parameterContext, extensionContext));
+            return Optional.of(rootProjectFor(extensionContext));
         }
 
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
-            return Optional.of(rootProjectFor(parameterContext, extensionContext)
-                    .subproject(projectNameFromParameter(parameterContext)));
+            validateSubProjectInjectedInTestMethod(parameterContext, extensionContext);
+            return Optional.of(rootProjectFor(extensionContext)
+                    .subproject(parameterContext.getParameter().getName()));
         }
 
         return Optional.empty();
     }
 
-    private RootProject rootProjectFor(ParameterContext parameterContext, ExtensionContext extensionContext) {
+    private RootProject rootProjectFor(ExtensionContext extensionContext) {
         RootProject rootProject = RootProjectStore.rootProject(extensionContext);
-        rootProject.settingsGradle().rootProjectName(projectNameFromParameter(parameterContext));
+        rootProject.settingsGradle().rootProjectName("root");
         return rootProject;
     }
 
-    private String projectNameFromParameter(ParameterContext parameterContext) {
-        String paramName = parameterContext.getParameter().getName();
-
-        if (paramName.endsWith("Project")) {
-            return paramName.substring(0, paramName.lastIndexOf("Project"));
+    private void validateSubProjectInjectedInTestMethod(
+            ParameterContext parameterContext, ExtensionContext extensionContext) {
+        if (!extensionContext.getTestMethod().isPresent()) {
+            throw new IllegalStateException(
+                    "SubProject parameters can only be injected in @Test methods, not in lifecycle methods like @BeforeEach or @AfterEach. "
+                            + "Use RootProject.subproject(\"name\") explicitly in lifecycle methods instead. "
+                            + "Found SubProject parameter '%s' in %s"
+                                    .formatted(
+                                            parameterContext.getParameter().getName(),
+                                            extensionContext.getDisplayName()));
         }
-
-        return paramName;
     }
 }

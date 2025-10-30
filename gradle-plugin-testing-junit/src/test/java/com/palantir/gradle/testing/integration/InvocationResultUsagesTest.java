@@ -85,8 +85,8 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.path()).isEqualTo(":sub:foo");
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
+            assertThat(taskResult.path()).isEqualTo(":subProject:foo");
         });
     }
 
@@ -101,7 +101,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
             assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
         });
     }
@@ -118,7 +118,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
             assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.FAILED);
         });
     }
@@ -133,7 +133,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
             assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
         });
     }
@@ -148,7 +148,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
             assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SKIPPED);
         });
     }
@@ -161,7 +161,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
             assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.NO_SOURCE);
         });
     }
