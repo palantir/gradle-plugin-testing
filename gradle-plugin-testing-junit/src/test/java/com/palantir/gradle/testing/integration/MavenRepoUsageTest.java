@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
@@ -24,7 +25,6 @@ import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.maven.MavenCoordinate;
 import com.palantir.gradle.testing.maven.MavenRepo;
 import com.palantir.gradle.testing.project.RootProject;
-import org.gradle.api.JavaVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +33,7 @@ class MavenRepoUsageTest {
 
     @BeforeEach
     void beforeEach(MavenRepo repo, RootProject root) {
-        repo.publish("com.palantir:service-a:1.0.0");
+        repo.publish(MavenCoordinate.from("com.palantir:service-a:1.0.0").build());
         root.buildGradle().append("""
             plugins {
                 id 'java-library'
@@ -76,8 +76,11 @@ class MavenRepoUsageTest {
     @Test
     void multiple_modules_with_dependencies(RootProject root, MavenRepo repo, GradleInvoker gradle) {
         repo.publish(
-                "com.external:library:1.0.0",
-                "com.external:other:2.0.0 -> com.external:library:1.0.0|com.palantir:service-a:1.0.0");
+                MavenCoordinate.from("com.external:library:1.0.0").build(),
+                MavenCoordinate.from("com.external:other:2.0.0")
+                        .addDependencies("com.external:library:1.0.0")
+                        .addDependencies("com.palantir:service-a:1.0.0")
+                        .build());
 
         root.buildGradle().append("""
             dependencies {
@@ -93,36 +96,10 @@ class MavenRepoUsageTest {
     }
 
     @Test
-    void builder_pattern_with_custom_properties(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        MavenCoordinate lib = MavenCoordinate.from("com.external:library:1.0.0")
-                .targetCompatibility(JavaVersion.VERSION_1_8)
-                .build();
-
-        MavenCoordinate app = MavenCoordinate.from("com.external:app:2.0.0")
-                .addDependencies("com.external:library:1.0.0")
-                .addDependencies("com.palantir:service-a:1.0.0")
-                .targetCompatibility(JavaVersion.VERSION_1_8)
-                .build();
-
-        repo.publish(lib, app);
-
-        root.buildGradle().append("""
-            dependencies {
-                implementation 'com.external:app:2.0.0'
-            }
-            """);
-
-        InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
-
-        assertThat(result.output()).contains("com.external:app:2.0.0");
-        assertThat(result.output()).contains("com.external:library:1.0.0");
-        assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
-    }
-
-    @Test
     void publishing_same_coordinate_twice_succeeds(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        repo.publish("com.external:library:1.0.0");
-        repo.publish("com.external:library:1.0.0");
+        MavenCoordinate lib = MavenCoordinate.from("com.external:library:1.0.0").build();
+        repo.publish(lib);
+        repo.publish(lib);
 
         root.buildGradle().append("""
             dependencies {
@@ -137,7 +114,10 @@ class MavenRepoUsageTest {
 
     @Test
     void same_dependency_declared_multiple_times(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        repo.publish("com.external:library:1.0.0 -> com.palantir:service-a:1.0.0|com.palantir:service-a:1.0.0");
+        repo.publish(MavenCoordinate.from("com.external:library:1.0.0")
+                .addDependencies("com.palantir:service-a:1.0.0")
+                .addDependencies("com.palantir:service-a:1.0.0")
+                .build());
 
         root.buildGradle().append("""
             dependencies {
@@ -154,9 +134,13 @@ class MavenRepoUsageTest {
     @Test
     void transitive_dependency_chain(RootProject root, MavenRepo repo, GradleInvoker gradle) {
         repo.publish(
-                "com.external:leaf:1.0.0",
-                "com.external:middle:1.0.0 -> com.external:leaf:1.0.0",
-                "com.external:top:1.0.0 -> com.external:middle:1.0.0");
+                MavenCoordinate.from("com.external:leaf:1.0.0").build(),
+                MavenCoordinate.from("com.external:middle:1.0.0")
+                        .addDependencies("com.external:leaf:1.0.0")
+                        .build(),
+                MavenCoordinate.from("com.external:top:1.0.0")
+                        .addDependencies("com.external:middle:1.0.0")
+                        .build());
 
         root.buildGradle().append("""
             dependencies {
@@ -169,5 +153,15 @@ class MavenRepoUsageTest {
         assertThat(result.output()).contains("com.external:top:1.0.0");
         assertThat(result.output()).contains("com.external:middle:1.0.0");
         assertThat(result.output()).contains("com.external:leaf:1.0.0");
+    }
+
+    @Test
+    void dependency_validation_rejects_invalid_format() {
+        assertThatThrownBy(() -> MavenCoordinate.from("com.external:library:1.0.0")
+                        .addDependencies("com.external:lib")
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Coordinate must be in format 'group:artifact:version'")
+                .hasMessageContaining("com.external:lib");
     }
 }

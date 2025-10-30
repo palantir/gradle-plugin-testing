@@ -54,23 +54,6 @@ public final class MavenRepo {
     }
 
     /**
-     * Publishes one or more modules to the Maven repository.
-     * <p>
-     * Modules can be specified in two formats:
-     * <ul>
-     *   <li>Simple: "group:artifact:version"</li>
-     *   <li>With dependencies: "group:artifact:version -> group1:artifact1:version1|group2:artifact2:version2"</li>
-     * </ul>
-     *
-     * @param modules one or more module specifications
-     */
-    public void publish(String... modules) {
-        List<MavenCoordinate> parsedModules =
-                Arrays.stream(modules).map(MavenCoordinate::parse).toList();
-        publish(parsedModules);
-    }
-
-    /**
      * Publishes one or more modules to the Maven repository using the builder pattern.
      * Modules are published in the order provided to ensure dependencies are available.
      *

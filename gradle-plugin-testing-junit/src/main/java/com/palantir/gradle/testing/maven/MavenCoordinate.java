@@ -43,6 +43,11 @@ public interface MavenCoordinate {
         return JavaVersion.VERSION_1_8;
     }
 
+    @Value.Check
+    default void validate() {
+        dependencies().forEach(MavenCoordinate::validateCoordinate);
+    }
+
     /**
      * Creates a coordinate builder from a coordinate string in the format "group:artifact:version".
      */
@@ -53,28 +58,6 @@ public interface MavenCoordinate {
 
     class Builder extends ImmutableMavenCoordinate.Builder {}
 
-    static MavenCoordinate parse(String moduleString) {
-        return moduleString.contains("->") ? parseWithDependencies(moduleString) : parseSimple(moduleString);
-    }
-
-    private static MavenCoordinate parseSimple(String coordinate) {
-        return MavenCoordinate.from(coordinate.trim()).build();
-    }
-
-    private static MavenCoordinate parseWithDependencies(String graphString) {
-        List<String> parts = Splitter.on("->").trimResults().omitEmptyStrings().splitToList(graphString);
-
-        ImmutableMavenCoordinate.Builder builder = MavenCoordinate.from(parts.get(0));
-
-        Splitter.on('|')
-                .trimResults()
-                .omitEmptyStrings()
-                .splitToStream(parts.get(1))
-                .forEach(dep -> builder.addDependencies(validateCoordinate(dep)));
-
-        return builder.build();
-    }
-
     private static List<String> parseCoordinate(String coordinate) {
         List<String> parts = COORDINATE_SPLITTER.splitToList(coordinate);
         Preconditions.checkArgument(
@@ -82,8 +65,7 @@ public interface MavenCoordinate {
         return parts;
     }
 
-    private static String validateCoordinate(String coordinate) {
+    private static void validateCoordinate(String coordinate) {
         parseCoordinate(coordinate);
-        return coordinate;
     }
 }
