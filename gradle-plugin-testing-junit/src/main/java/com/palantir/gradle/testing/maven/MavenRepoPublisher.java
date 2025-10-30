@@ -81,34 +81,20 @@ final class MavenRepoPublisher {
                         .map("    api '%s'"::formatted)
                         .collect(Collectors.joining("\n")));
 
-        subproject
-                .buildGradle()
-                .overwrite(
-                        """
-                        group = '%s'
-                        version = '%s'
+        subproject.buildGradle().overwrite("""
+            group = '%s'
+            version = '%s'
 
-                        java {
-                            sourceCompatibility = JavaVersion.%s
-                            targetCompatibility = JavaVersion.%s
-                        }
-
-                        %s
-                        publishing {
-                            publications {
-                                maven(MavenPublication) {
-                                    artifactId = '%s'
-                                    from components.java
-                                }
-                            }
-                        }
-                        """,
-                        module.group(),
-                        module.version(),
-                        module.targetCompatibility().name(),
-                        module.targetCompatibility().name(),
-                        dependenciesBlock,
-                        module.artifact());
+            %s
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        artifactId = '%s'
+                        from components.java
+                    }
+                }
+            }
+            """, module.group(), module.version(), dependenciesBlock, module.artifact());
     }
 
     private void runPublish(MavenCoordinate module) {

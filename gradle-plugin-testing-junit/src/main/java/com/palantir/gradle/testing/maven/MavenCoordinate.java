@@ -19,7 +19,6 @@ package com.palantir.gradle.testing.maven;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import java.util.List;
-import org.gradle.api.JavaVersion;
 import org.immutables.value.Value;
 
 /**
@@ -37,11 +36,6 @@ public interface MavenCoordinate {
     String version();
 
     List<String> dependencies();
-
-    @Value.Default
-    default JavaVersion targetCompatibility() {
-        return JavaVersion.VERSION_1_8;
-    }
 
     @Value.Check
     default void validate() {
