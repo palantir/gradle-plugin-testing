@@ -22,6 +22,8 @@ import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
@@ -115,5 +117,23 @@ class ProjectUsagesTest {
             """);
 
         assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :subproject");
+    }
+
+    @Nested
+    class RootProjectNamePersistence {
+        @BeforeEach
+        void beforeEach(RootProject rootProject) {
+            rootProject.settingsGradle().rootProjectName("something-else");
+        }
+
+        @Test
+        void root_project_name_should_not_be_reset_to_root_in_test_method(
+                GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                println "project name: ${name}"
+                """);
+
+            assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: something-else");
+        }
     }
 }

@@ -52,9 +52,7 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
     }
 
     private RootProject rootProjectFor(ExtensionContext extensionContext) {
-        RootProject rootProject = RootProjectStore.rootProject(extensionContext);
-        rootProject.settingsGradle().rootProjectName("root");
-        return rootProject;
+        return RootProjectStore.rootProject(extensionContext);
     }
 
     private boolean isTestMethod(ParameterContext parameterContext) {
