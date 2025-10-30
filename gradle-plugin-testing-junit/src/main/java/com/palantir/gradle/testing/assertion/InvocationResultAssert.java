@@ -26,7 +26,7 @@ public final class InvocationResultAssert extends AbstractObjectAssert<Invocatio
     }
 
     /**
-     * Returns an assertion object for fluent task assertion chaining.
+     * Returns a {@link TaskResultAssert} assertion object for fluent task assertion chaining.
      * <p>
      * Usage:
      * <pre>
@@ -38,7 +38,7 @@ public final class InvocationResultAssert extends AbstractObjectAssert<Invocatio
     }
 
     /**
-     * Returns an assertion object for fluent output assertion chaining.
+     * Returns a {@link BuildOutputAssert} assertion object for fluent output assertion chaining.
      * <p>
      * Usage:
      * <pre>
