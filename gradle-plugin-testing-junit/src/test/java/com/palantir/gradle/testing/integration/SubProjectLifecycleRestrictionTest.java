@@ -20,22 +20,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.SubProject;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * This test class validates that SubProject injection is restricted to @Test methods.
- * The test will fail at class initialization if a SubProject parameter is used in @BeforeEach.
+ * This test class validates that SubProject injection is restricted to test methods.
+ * SubProject works in @Test, @ParameterizedTest, @RepeatedTest, etc.
+ * Attempting to inject SubProject in @BeforeEach will fail with IllegalStateException.
  */
 @GradlePluginTests
 class SubProjectLifecycleRestrictionTest {
-    // Uncomment the following to verify the restriction works:
-    // @BeforeEach
-    // void beforeEach(SubProject subProject) {
-    //     // This should fail with IllegalStateException
-    // }
+    // Uncommenting the following will cause the test to fail with IllegalStateException:
+    //    @BeforeEach
+    //    void beforeEach(SubProject subProject) {
+    //        // This will fail: SubProject can only be injected in test methods
+    //    }
 
     @Test
     void subproject_works_in_test_method(SubProject api) {
         assertThat(api.path()).isNotNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"value1", "value2"})
+    void subproject_works_in_parameterized_test(String param, SubProject service) {
+        assertThat(service.path()).isNotNull();
+        assertThat(param).isIn("value1", "value2");
+    }
+
+    @RepeatedTest(2)
+    void subproject_works_in_repeated_test(SubProject worker) {
+        assertThat(worker.path()).isNotNull();
     }
 }

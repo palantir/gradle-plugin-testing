@@ -21,10 +21,11 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 
 /**
- * When injected as a parameter in JUnit {@code @Test} methods, the parameter name will be used as the project name exactly.
+ * When injected as a parameter in JUnit test methods, the parameter name will be used as the project name exactly.
  * For example, {@code SubProject apiService} creates a subproject named "apiService".
  * <br>
- * SubProject parameters can only be injected in {@code @Test} methods, not in lifecycle methods like {@code @BeforeEach} or {@code @AfterEach}.
+ * SubProject parameters can only be injected in test methods ({@code @Test}, {@code @ParameterizedTest}, etc.),
+ * not in lifecycle methods like {@code @BeforeEach} or {@code @AfterEach}.
  * In lifecycle methods, create subprojects explicitly using {@code rootProject.subproject("name")}.
  * <br>
  * When injected as a parameter by JUnit, the subproject will be a direct subproject of the root project.

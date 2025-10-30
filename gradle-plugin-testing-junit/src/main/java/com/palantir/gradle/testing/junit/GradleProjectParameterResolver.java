@@ -18,7 +18,10 @@ package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
+import java.util.Arrays;
 import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
@@ -30,7 +33,7 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
         }
 
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
-            validateSubProjectInjectedInTestMethod(parameterContext, extensionContext);
+            validateSubProjectInjectedInTestMethod(parameterContext);
             return Optional.of(rootProjectFor(extensionContext)
                     .subproject(parameterContext.getParameter().getName()));
         }
@@ -44,17 +47,26 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
         return rootProject;
     }
 
-    private void validateSubProjectInjectedInTestMethod(
-            ParameterContext parameterContext, ExtensionContext extensionContext) {
-        if (!extensionContext.getTestMethod().isPresent()) {
+    private void validateSubProjectInjectedInTestMethod(ParameterContext parameterContext) {
+        if (!isTestMethod(parameterContext)) {
             throw new IllegalStateException(
-                    "SubProject parameters can only be injected in @Test methods, not in lifecycle methods like"
-                            + " @BeforeEach or @AfterEach. Use RootProject.subproject(\"name\") explicitly in lifecycle"
-                            + " methods instead. "
-                            + "Found SubProject parameter '%s' in %s"
+                    "SubProject parameters can only be injected in test methods (@Test, @ParameterizedTest, etc.), "
+                            + "not in lifecycle methods like @BeforeEach or @AfterEach. "
+                            + "Use RootProject.subproject(\"name\") explicitly in lifecycle methods instead. "
+                            + "Found SubProject parameter '%s' in method '%s'"
                                     .formatted(
                                             parameterContext.getParameter().getName(),
-                                            extensionContext.getDisplayName()));
+                                            parameterContext
+                                                    .getDeclaringExecutable()
+                                                    .getName()));
         }
+    }
+
+    private boolean isTestMethod(ParameterContext parameterContext) {
+        if (parameterContext.getDeclaringExecutable().isAnnotationPresent(Test.class)) {
+            return true;
+        }
+        return Arrays.stream(parameterContext.getDeclaringExecutable().getAnnotations())
+                .anyMatch(annotation -> annotation.annotationType().isAnnotationPresent(TestTemplate.class));
     }
 }
