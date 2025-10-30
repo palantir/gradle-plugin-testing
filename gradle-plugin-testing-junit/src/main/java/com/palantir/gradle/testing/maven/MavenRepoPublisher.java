@@ -105,6 +105,6 @@ final class MavenRepoPublisher {
     }
 
     private static String subprojectName(MavenCoordinate coordinate) {
-        return coordinate.group() + "." + coordinate.artifact() + "_" + coordinate.version().replace('.', '_');
+        return coordinate.group() + "_" + coordinate.artifact() + "_" + coordinate.version().replace('.', '_');
     }
 }
