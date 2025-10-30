@@ -60,13 +60,13 @@ class MavenRepoUsageTest {
             buildscript {
                 // .withMavenRepo(repo) only adds to the main repo block so need to manually add
                 repositories {
-                    %s
+                    maven { url = uri('%s') }
                 }
                 dependencies {
                     classpath 'com.palantir:service-a:1.0.0'
                 }
             }
-            """, repo.repositoryBlock());
+            """, repo.path());
 
         InvocationResult result = gradle.withArgs("buildEnvironment").buildsSuccessfully();
 

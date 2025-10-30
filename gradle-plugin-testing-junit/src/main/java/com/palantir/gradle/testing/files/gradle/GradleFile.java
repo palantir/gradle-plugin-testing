@@ -82,8 +82,8 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     default GradleFile withMavenRepo(MavenRepo repo) {
         return append("""
             repositories {
-                %s
+                maven { url = uri('%s') }
             }
-            """, repo.repositoryBlock());
+            """, repo.path());
     }
 }

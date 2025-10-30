@@ -19,7 +19,6 @@ package com.palantir.gradle.testing.maven;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.execution.GradleVersion;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -43,13 +42,13 @@ import java.util.List;
  * </pre>
  */
 public final class MavenRepo {
-    private final URI repoUri;
+    private final Path path;
     private final MavenRepoPublisher publisher;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public MavenRepo(Path repoDir, GradleVersion gradleVersion) {
-        this.repoUri = repoDir.toUri();
-        this.publisher = new MavenRepoPublisher(repoDir.resolve("testgenrepo"), repoUri, gradleVersion);
+        this.path = repoDir.resolve("repositoryRoot").toAbsolutePath();
+        this.publisher = new MavenRepoPublisher(repoDir.resolve("repositoryPublisherProject"), path, gradleVersion);
     }
 
     /**
@@ -72,13 +71,7 @@ public final class MavenRepo {
         publisher.publish(modules);
     }
 
-    /**
-     * Returns a Gradle repository block configuration string that can be added to build.gradle in the form:
-     * <pre>{@code
-     * maven { url = uri('repoUri') }
-     * }</pre>
-     */
-    public String repositoryBlock() {
-        return "maven { url = uri('%s') }".formatted(repoUri);
+    public Path path() {
+        return path;
     }
 }

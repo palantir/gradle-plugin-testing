@@ -20,7 +20,6 @@ import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ final class MavenRepoPublisher {
     private final RootProject rootProject;
     private final GradleInvoker gradleInvoker;
 
-    MavenRepoPublisher(Path projectRoot, URI mavenRepoUrl, GradleVersion gradleVersion) {
+    MavenRepoPublisher(Path projectRoot, Path mavenRepoUrl, GradleVersion gradleVersion) {
         this.rootProject = new RootProject(projectRoot);
         this.gradleInvoker = new GradleInvoker(projectRoot, gradleVersion);
 
