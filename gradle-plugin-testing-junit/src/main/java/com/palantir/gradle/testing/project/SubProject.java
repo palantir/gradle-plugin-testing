@@ -24,7 +24,8 @@ import java.nio.file.Path;
  * When injected as a parameter in JUnit test methods, the parameter name will be used as the project name exactly.
  * For example, {@code SubProject apiService} creates a subproject named "apiService".
  * <br>
- * SubProject parameters can only be injected in test methods ({@code @Test}, {@code @ParameterizedTest}, etc.),
+ * SubProject parameters can only be injected in test methods
+ * ({@code @Test}, {@code @ParameterizedTest}, {@code @RepeatedTest}, {@code @TestFactory}, etc.),
  * not in lifecycle methods like {@code @BeforeEach} or {@code @AfterEach}.
  * In lifecycle methods, create subprojects explicitly using {@code rootProject.subproject("name")}.
  * <br>

@@ -20,10 +20,10 @@ import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import java.util.Arrays;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.platform.commons.annotation.Testable;
 
 final class GradleProjectParameterResolver implements TerseParameterResolver {
     @Override
@@ -50,7 +50,8 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
     private void validateSubProjectInjectedInTestMethod(ParameterContext parameterContext) {
         if (!isTestMethod(parameterContext)) {
             throw new IllegalStateException(
-                    "SubProject parameters can only be injected in test methods (@Test, @ParameterizedTest, etc.), "
+                    "SubProject parameters can only be injected in test methods "
+                            + "(@Test, @ParameterizedTest, @RepeatedTest, @TestFactory, etc.), "
                             + "not in lifecycle methods like @BeforeEach or @AfterEach. "
                             + "Use RootProject.subproject(\"name\") explicitly in lifecycle methods instead. "
                             + "Found SubProject parameter '%s' in method '%s'"
@@ -63,10 +64,7 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
     }
 
     private boolean isTestMethod(ParameterContext parameterContext) {
-        if (parameterContext.getDeclaringExecutable().isAnnotationPresent(Test.class)) {
-            return true;
-        }
         return Arrays.stream(parameterContext.getDeclaringExecutable().getAnnotations())
-                .anyMatch(annotation -> annotation.annotationType().isAnnotationPresent(TestTemplate.class));
+                .anyMatch(annotation -> annotation.annotationType().isAnnotationPresent(Testable.class) || annotation.annotationType().isAnnotationPresent(TestTemplate.class));
     }
 }
