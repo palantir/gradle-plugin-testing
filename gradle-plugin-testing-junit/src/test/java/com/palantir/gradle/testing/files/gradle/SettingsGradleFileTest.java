@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,10 +90,10 @@ class SettingsGradleFileTest {
                 // after
                 """);
 
-            assertThatThrownBy(() -> settingsGradleFile.rootProjectName("name"))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Found multiple rootProject.name assignments")
-                    .hasMessageContaining("use the rootProjectName() method instead");
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> settingsGradleFile.rootProjectName("name"))
+                    .withMessageContaining("Found multiple rootProject.name assignments")
+                    .withMessageContaining("use the rootProjectName() method instead");
         }
     }
 
