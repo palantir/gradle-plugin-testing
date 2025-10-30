@@ -22,8 +22,7 @@ import java.util.List;
 import org.immutables.value.Value;
 
 /**
- * Represents a Maven coordinate that can be published to a test repository.
- * Use the builder pattern via {@link #from(String)} to create coordinates with dependencies.
+ * Represents a Maven coordinate ({@code group:artifact:version}).
  */
 @Value.Immutable
 public interface MavenCoordinate {
@@ -35,31 +34,22 @@ public interface MavenCoordinate {
 
     String version();
 
-    List<String> dependencies();
-
-    @Value.Check
-    default void validate() {
-        dependencies().forEach(MavenCoordinate::validateCoordinate);
-    }
-
     /**
-     * Creates a coordinate builder from a coordinate string in the format "group:artifact:version".
+     * Parses a coordinate string in the format {@code group:artifact:version}.
      */
-    static Builder from(String coordinate) {
+    static MavenCoordinate of(String coordinate) {
         List<String> parts = parseCoordinate(coordinate);
-        return new Builder().group(parts.get(0)).artifact(parts.get(1)).version(parts.get(2));
+        return ImmutableMavenCoordinate.builder()
+                .group(parts.get(0))
+                .artifact(parts.get(1))
+                .version(parts.get(2))
+                .build();
     }
-
-    class Builder extends ImmutableMavenCoordinate.Builder {}
 
     private static List<String> parseCoordinate(String coordinate) {
         List<String> parts = COORDINATE_SPLITTER.splitToList(coordinate);
         Preconditions.checkArgument(
                 parts.size() == 3, "Coordinate must be in format 'group:artifact:version', got: %s", coordinate);
         return parts;
-    }
-
-    private static void validateCoordinate(String coordinate) {
-        parseCoordinate(coordinate);
     }
 }

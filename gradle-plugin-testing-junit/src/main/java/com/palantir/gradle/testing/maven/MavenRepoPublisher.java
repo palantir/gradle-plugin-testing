@@ -61,24 +61,26 @@ final class MavenRepoPublisher {
             """, mavenRepoUrl, mavenRepoUrl);
     }
 
-    void publish(List<MavenCoordinate> modules) {
-        modules.forEach(module -> {
-            createSubproject(module, subprojectName(module));
-            runPublish(module);
+    void publish(List<MavenArtifact> artifacts) {
+        artifacts.forEach(artifact -> {
+            createSubproject(artifact, subprojectName(artifact.coordinate()));
+            runPublish(artifact.coordinate());
         });
     }
 
-    private void createSubproject(MavenCoordinate module, String subprojectName) {
+    private void createSubproject(MavenArtifact artifact, String subprojectName) {
         SubProject subproject = rootProject.subproject(subprojectName);
+        MavenCoordinate coordinate = artifact.coordinate();
 
-        String dependenciesBlock = module.dependencies().isEmpty()
+        String dependenciesBlock = artifact.dependencies().isEmpty()
                 ? ""
                 : """
                 dependencies {
                     %s
                 }
-                """.formatted(module.dependencies().stream()
-                        .map("    api '%s'"::formatted)
+                """.formatted(artifact.dependencies().stream()
+                        .map(dep -> "    api '%s:%s:%s'"
+                                .formatted(dep.group(), dep.artifact(), dep.version()))
                         .collect(Collectors.joining("\n")));
 
         subproject.buildGradle().overwrite("""
@@ -94,15 +96,15 @@ final class MavenRepoPublisher {
                     }
                 }
             }
-            """, module.group(), module.version(), dependenciesBlock, module.artifact());
+            """, coordinate.group(), coordinate.version(), dependenciesBlock, coordinate.artifact());
     }
 
-    private void runPublish(MavenCoordinate module) {
-        String taskPath = ":" + subprojectName(module) + ":publishMavenPublicationToMavenRepository";
+    private void runPublish(MavenCoordinate coordinate) {
+        String taskPath = ":" + subprojectName(coordinate) + ":publishMavenPublicationToMavenRepository";
         gradleInvoker.withArgs(taskPath, "--quiet").buildsSuccessfully();
     }
 
-    private static String subprojectName(MavenCoordinate module) {
-        return module.group() + "." + module.artifact() + "_" + module.version().replace('.', '_');
+    private static String subprojectName(MavenCoordinate coordinate) {
+        return coordinate.group() + "." + coordinate.artifact() + "_" + coordinate.version().replace('.', '_');
     }
 }

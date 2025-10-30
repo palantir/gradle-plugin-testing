@@ -23,20 +23,28 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * A test Maven repository that can publish modules for use in integration tests.
- * Usage:
+ * A Maven repository that tests can resolve artifacts against. This allows you to publish fake modules with
+ * correct Maven metadata (POM files with dependencies) for use in integration tests.
+ *
+ * <p>To have your build under test use this repository, call {@code root.buildGradle().withMavenRepo(repo)}.
+ *
+ * <p>Usage:
  * <pre>
  * &#64;BeforeEach
  * void setupCommonDependencies(MavenRepo repo, RootProject root) {
- *     repo.publish("com.palantir:service-a:1.0.0");
+ *     repo.publish(MavenArtifact.of("com.palantir:service-a:1.0.0"));
  *     root.buildGradle().withMavenRepo(repo);
  * }
  *
  * &#64;Test
  * void test(MavenRepo repo) {
  *     repo.publish(
- *         "com.external:library:1.0.0",
- *         "com.external:other:2.0.0 -> com.external:library:1.0.0|com.palantir:service-a:1.0.0"
+ *         MavenArtifact.of("com.external:library:1.0.0"),
+ *         MavenArtifact.builder()
+ *             .coordinate("com.external:other:2.0.0")
+ *             .addDependency("com.external:library:1.0.0")
+ *             .addDependency("com.palantir:service-a:1.0.0")
+ *             .build()
  *     );
  * }
  * </pre>
@@ -52,23 +60,21 @@ public final class MavenRepo {
     }
 
     /**
-     * Publishes one or more modules to the Maven repository using the builder pattern.
-     * Modules are published in the order provided to ensure dependencies are available.
+     * Publishes one or more artifacts to the Maven repository.
      *
-     * @param modules one or more {@link MavenCoordinate} instances
+     * @param artifacts one or more {@link MavenArtifact} instances
      */
-    public void publish(MavenCoordinate... modules) {
-        publish(List.of(modules));
+    public void publish(MavenArtifact... artifacts) {
+        publish(List.of(artifacts));
     }
 
     /**
-     * Publishes one or more modules to the Maven repository using the builder pattern.
-     * Modules are published in the order provided to ensure dependencies are available.
+     * Publishes a list of artifacts to the Maven repository.
      *
-     * @param modules a list of MavenCoordinate instances
+     * @param artifacts a list of MavenArtifact instances
      */
-    public void publish(List<MavenCoordinate> modules) {
-        publisher.publish(modules);
+    public void publish(List<MavenArtifact> artifacts) {
+        publisher.publish(artifacts);
     }
 
     public Path path() {
