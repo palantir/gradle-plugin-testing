@@ -17,7 +17,7 @@
 package com.palantir.gradle.testing.integration;
 
 import static com.palantir.gradle.testing.assertion.GradlePluginTestAssertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
@@ -92,26 +92,26 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat()
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> result.assertThat()
                         .task(":foo")
                         .as("Task outcome should match")
                         .outcome()
                         .isEqualTo(TaskOutcome.UP_TO_DATE))
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("UP_TO_DATE")
-                .hasMessageContaining("SUCCESS");
+                .withMessageContaining("UP_TO_DATE")
+                .withMessageContaining("SUCCESS");
     }
 
     @Test
     void assertion_fails_when_task_is_not_present(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat()
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> result.assertThat()
                         .task(":nonexistent")
                         .as("Task should not be present")
                         .outcome())
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+                .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
     }
 
     @Test
@@ -125,7 +125,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_wasSuccess(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_succeeded(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
@@ -138,7 +138,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_wasSuccess_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_succeeded_via_outcome(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
@@ -151,7 +151,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_wasFail(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_failed(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {
@@ -166,7 +166,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_wasFail_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_failed_via_outcome(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {
@@ -181,7 +181,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_wasUpToDate(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_upToDate(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 outputs.file('foo.txt')
@@ -198,7 +198,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void can_check_task_wasUpToDate_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+    void can_check_task_upToDate_via_outcome(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 outputs.file('foo.txt')
@@ -215,16 +215,16 @@ class GradleAssertionsUsageTest {
     }
 
     @Test
-    void wasSuccess_fails_when_task_not_present(GradleInvoker gradle) {
+    void succeeded_fails_when_task_not_present(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":nonexistent").succeeded())
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> result.assertThat().task(":nonexistent").succeeded())
+                .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
     }
 
     @Test
-    void wasSuccess_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+    void succeeded_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 outputs.file('foo.txt')
@@ -237,13 +237,13 @@ class GradleAssertionsUsageTest {
         gradle.withArgs("foo").buildsSuccessfully();
         InvocationResult secondRun = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> secondRun.assertThat().task(":foo").succeeded())
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected task outcome to be SUCCESS but was UP_TO_DATE");
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> secondRun.assertThat().task(":foo").succeeded())
+                .withMessageContaining("Expected task outcome to be SUCCESS but was UP_TO_DATE");
     }
 
     @Test
-    void wasFail_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+    void failed_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
@@ -252,13 +252,13 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":foo").failed())
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected task outcome to be FAILED but was SUCCESS");
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> result.assertThat().task(":foo").failed())
+                .withMessageContaining("Expected task outcome to be FAILED but was SUCCESS");
     }
 
     @Test
-    void wasUpToDate_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+    void upToDate_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {}
@@ -267,9 +267,9 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":foo").upToDate())
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Expected task outcome to be UP_TO_DATE but was SUCCESS");
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> result.assertThat().task(":foo").upToDate())
+                .withMessageContaining("Expected task outcome to be UP_TO_DATE but was SUCCESS");
     }
 
     @Test
@@ -282,9 +282,9 @@ class GradleAssertionsUsageTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThatThrownBy(() -> result.assertThat().task(":foo").notOnTaskGraph())
-                .isInstanceOf(AssertionError.class)
-                .hasMessageContaining("Task ':foo' was found on task graph");
+        assertThatExceptionOfType(AssertionError.class)
+                .isThrownBy(() -> result.assertThat().task(":foo").notOnTaskGraph())
+                .withMessageContaining("Task ':foo' was found on task graph");
     }
 
     @Test
