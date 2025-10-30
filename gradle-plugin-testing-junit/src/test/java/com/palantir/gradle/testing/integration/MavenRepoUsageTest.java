@@ -130,9 +130,7 @@ class MavenRepoUsageTest {
 
         InvocationResult result = gradle.withArgs("dependencies").buildsSuccessfully();
 
-        assertThat(result.output())
-                .contains("com.external:library:1.0.0")
-                .contains("com.palantir:service-a:1.0.0");
+        assertThat(result.output()).contains("com.external:library:1.0.0").contains("com.palantir:service-a:1.0.0");
     }
 
     @Test
