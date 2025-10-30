@@ -31,5 +31,5 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(ConfigurationCacheExtension.class)
+@ExtendWith(WithConfigurationCacheExtension.class)
 public @interface WithConfigurationCache {}

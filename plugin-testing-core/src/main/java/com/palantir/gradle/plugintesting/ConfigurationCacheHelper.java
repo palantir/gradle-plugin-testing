@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.junit;
+package com.palantir.gradle.plugintesting;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.junit.jupiter.api.ClassTemplate;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(GradleVersioningClassTemplate.class)
-@ExtendWith(ConfigurationCacheExtension.class)
-@ClassTemplate
-@DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
-public @interface GradlePluginTests {}
+public record ConfigurationCacheHelper(boolean isEnabled) {
+    static final String CONFIG_CACHE_SYSTEM_PROPERTY = "com.palantir.gradle.testing.configuration_cache_enabled";
+}

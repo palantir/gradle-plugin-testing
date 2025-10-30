@@ -36,8 +36,8 @@ final class ConfigurationCacheStore {
     /**
      * Enables configuration cache for the given extension context.
      */
-    public static void setConfigurationCacheEnabled(ExtensionContext context) {
-        context.getStore(NAMESPACE).put(CONFIG_CACHE_ENABLED, true);
+    public static void setConfigurationCacheEnabled(ExtensionContext context, boolean isEnabled) {
+        context.getStore(NAMESPACE).put(CONFIG_CACHE_ENABLED, isEnabled);
     }
 
     private ConfigurationCacheStore() {}

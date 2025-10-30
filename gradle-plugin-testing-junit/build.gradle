@@ -34,6 +34,8 @@ tasks.named('test', Test) {
     // We need to set the versions of gradle to test against as we don't have the gradle plugin installed
     // TODO: Ideally we update this with the gradle plugin somehow - perhaps using the previous published version?
     systemProperty 'com.palantir.gradle.testing.gradle_versions_to_test', '7.6.5,8.14.3,9.1.0'
+    // by default is disabled, however for testing configuration cache we can simply add the @WithConfigurationCache junit extension
+    systemProperty 'com.palantir.gradle.testing.configuration_cache_enabled', 'false'
 }
 
 gradleTestUtils {
