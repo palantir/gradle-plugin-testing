@@ -21,7 +21,6 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 
 /**
