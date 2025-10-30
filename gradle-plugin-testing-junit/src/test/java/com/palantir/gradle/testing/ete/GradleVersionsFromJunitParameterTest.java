@@ -35,6 +35,7 @@ final class GradleVersionsFromJunitParameterTest {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(GradleVersionsFromJunitParameterFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
