@@ -33,7 +33,17 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
         }
 
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
-            validateSubProjectInjectedInTestMethod(parameterContext);
+            if (!isTestMethod(parameterContext)) {
+                throw new IllegalStateException("""
+                    SubProject parameters can only be injected in test methods \
+                    (@Test, @ParameterizedTest, @RepeatedTest, @TestFactory, etc.), \
+                    not in lifecycle methods like @BeforeEach or @AfterEach. \
+                    Use RootProject.subproject("name") explicitly in lifecycle methods instead. \
+                    Found SubProject parameter '%s' in method '%s'\
+                    """.formatted(
+                                parameterContext.getParameter().getName(),
+                                parameterContext.getDeclaringExecutable().getName()));
+            }
             return Optional.of(rootProjectFor(extensionContext)
                     .subproject(parameterContext.getParameter().getName()));
         }
@@ -45,20 +55,6 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
         RootProject rootProject = RootProjectStore.rootProject(extensionContext);
         rootProject.settingsGradle().rootProjectName("root");
         return rootProject;
-    }
-
-    private void validateSubProjectInjectedInTestMethod(ParameterContext parameterContext) {
-        if (!isTestMethod(parameterContext)) {
-            throw new IllegalStateException("""
-                SubProject parameters can only be injected in test methods \
-                (@Test, @ParameterizedTest, @RepeatedTest, @TestFactory, etc.), \
-                not in lifecycle methods like @BeforeEach or @AfterEach. \
-                Use RootProject.subproject("name") explicitly in lifecycle methods instead. \
-                Found SubProject parameter '%s' in method '%s'\
-                """.formatted(
-                            parameterContext.getParameter().getName(),
-                            parameterContext.getDeclaringExecutable().getName()));
-        }
     }
 
     private boolean isTestMethod(ParameterContext parameterContext) {
