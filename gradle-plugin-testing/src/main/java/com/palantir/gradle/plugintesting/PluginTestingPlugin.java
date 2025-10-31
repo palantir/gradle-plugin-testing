@@ -110,7 +110,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
                     // add system property for whether to use configuration-cache by default in tests
                     test.systemProperty(
                             ConfigurationCacheHelper.CONFIG_CACHE_SYSTEM_PROPERTY,
-                            testUtilsExt.getIsConfigurationCacheEnabled().get());
+                            testUtilsExt.getConfigurationCacheEnabled().get());
 
                     // add system property to ignore gradle deprecations so that nebula tests don't fail
                     if (testUtilsExt.getIgnoreGradleDeprecations().get()) {

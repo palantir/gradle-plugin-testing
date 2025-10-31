@@ -36,11 +36,11 @@ public abstract class PluginTestingExtension {
     /**
      * Whether the configuration cache is enabled for tests.
      */
-    public abstract Property<Boolean> getIsConfigurationCacheEnabled();
+    public abstract Property<Boolean> getConfigurationCacheEnabled();
 
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
-        getIsConfigurationCacheEnabled().convention(false);
+        getConfigurationCacheEnabled().convention(false);
         // TODO(#XXX): Should this be the latest gradle 8, or maybe whatever this plugin is compiled against?
         // or is this the set of "milestone" versions and we dynamically add the version of the consuming project?
         getGradleVersions().convention(GradleTestVersions.DEFAULT_TEST_GRADLE_VERSIONS);

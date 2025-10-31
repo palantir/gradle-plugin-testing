@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class PluginTestingJunitPluginTest {
-
     @BeforeEach
     void beforeEach(RootProject rootProject) {
         rootProject
