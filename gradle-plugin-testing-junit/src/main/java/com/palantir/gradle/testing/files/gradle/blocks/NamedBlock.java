@@ -61,7 +61,7 @@ public class NamedBlock implements GradleFile {
 
         // Nested block - parse parent's content to extract this block
         String parentContent = parent.text();
-        GradleFileTemplate nestedTemplate = new NestedGradleTemplate(parent.childBlockNames());
+        GradleFileTemplate nestedTemplate = new NestedGradleTemplate(parent.childBlockOrder());
         GradleFileState state = nestedTemplate.parse(parentContent);
         return state.getBlock(blockName);
     }
@@ -81,7 +81,7 @@ public class NamedBlock implements GradleFile {
         // Nested block - update through parent recursively
         parent.edit(parentContent -> {
             // Parse parent's content using its child block names
-            GradleFileTemplate nestedTemplate = new NestedGradleTemplate(parent.childBlockNames());
+            GradleFileTemplate nestedTemplate = new NestedGradleTemplate(parent.childBlockOrder());
             GradleFileState state = nestedTemplate.parse(parentContent);
 
             // Edit this block's content
@@ -129,10 +129,13 @@ public class NamedBlock implements GradleFile {
     }
 
     /**
-     * Override this to define the canonical ordering of child blocks for this block.
-     * By default, returns an empty list (no children).
+     * Define the canonical ordering of child blocks for this block.
+     * Must be overridden by subclasses that have nested children.
+     * Blocks without children should not be subclassed.
      */
-    protected List<String> childBlockNames() {
-        return List.of();
+    protected List<String> childBlockOrder() {
+        throw new UnsupportedOperationException(
+                "Block '%s' does not support nested blocks. Override childBlockOrder() if this block should have children."
+                        .formatted(blockName));
     }
 }

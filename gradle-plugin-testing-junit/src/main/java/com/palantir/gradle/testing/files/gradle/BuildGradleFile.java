@@ -22,6 +22,7 @@ import com.palantir.gradle.testing.files.gradle.blocks.BuildGradleTemplate;
 import com.palantir.gradle.testing.files.gradle.blocks.GradleFileTemplate;
 import com.palantir.gradle.testing.files.gradle.blocks.NamedBlock;
 import java.nio.file.Path;
+import java.util.List;
 
 public final class BuildGradleFile extends OrderedGradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
@@ -71,8 +72,8 @@ public final class BuildGradleFile extends OrderedGradleFile {
         }
 
         @Override
-        protected java.util.List<String> childBlockNames() {
-            return java.util.List.of("repositories", "dependencies", "plugins");
+        protected List<String> childBlockOrder() {
+            return List.of("repositories", "dependencies", "plugins");
         }
 
         public NamedBlock repositories() {
@@ -97,8 +98,8 @@ public final class BuildGradleFile extends OrderedGradleFile {
         }
 
         @Override
-        protected java.util.List<String> childBlockNames() {
-            return java.util.List.of("all");
+        protected List<String> childBlockOrder() {
+            return List.of("all");
         }
 
         public AllConfigurationBlock all() {
@@ -115,8 +116,8 @@ public final class BuildGradleFile extends OrderedGradleFile {
         }
 
         @Override
-        protected java.util.List<String> childBlockNames() {
-            return java.util.List.of("resolutionStrategy");
+        protected List<String> childBlockOrder() {
+            return List.of("resolutionStrategy");
         }
 
         public NamedBlock resolutionStrategy() {

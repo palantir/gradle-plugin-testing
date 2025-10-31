@@ -39,8 +39,7 @@ public final class SettingsGradleFile extends OrderedGradleFile {
     public SettingsGradleFile rootProjectName(String rootProjectName) {
         String rootProjectNameLine = "rootProject.name = '%s'".formatted(rootProjectName);
 
-        // Bypass template system to preserve exact formatting
-        editWithoutTemplate(text -> {
+        edit(text -> {
             long count = text.lines()
                     .filter(line -> line.matches("rootProject\\.name[^\\n]*"))
                     .count();
@@ -56,19 +55,6 @@ public final class SettingsGradleFile extends OrderedGradleFile {
         });
 
         return this;
-    }
-
-    private void editWithoutTemplate(com.palantir.gradle.testing.files.ProjectFile.FileEditor editor) {
-        String text = Files.exists(path()) ? text() : "";
-        String newContent = editor.edit(text);
-        try {
-            Files.createDirectories(path().getParent());
-            Files.writeString(
-                    path(), newContent, java.nio.charset.StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE,
-                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (java.io.IOException e) {
-            throw new java.io.UncheckedIOException(e);
-        }
     }
 
     public SettingsGradleFile include(String projectPath) {
@@ -104,7 +90,7 @@ public final class SettingsGradleFile extends OrderedGradleFile {
         }
 
         @Override
-        protected java.util.List<String> childBlockNames() {
+        protected java.util.List<String> childBlockOrder() {
             return java.util.List.of("repositories", "plugins", "resolutionStrategy");
         }
 
@@ -130,7 +116,7 @@ public final class SettingsGradleFile extends OrderedGradleFile {
         }
 
         @Override
-        protected java.util.List<String> childBlockNames() {
+        protected java.util.List<String> childBlockOrder() {
             return java.util.List.of("repositories", "dependencies", "plugins");
         }
 
