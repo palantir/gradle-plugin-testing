@@ -20,7 +20,7 @@ import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.sections.BuildScriptSection;
-import com.palantir.gradle.testing.files.gradle.sections.GenericSection;
+import com.palantir.gradle.testing.files.gradle.sections.GradleSection;
 import com.palantir.gradle.testing.files.gradle.sections.PluginManagementSection;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,7 +64,7 @@ public record SettingsGradleFile(Path path) implements GradleFile {
         return new BuildScriptSection<>(this);
     }
 
-    public GenericSection<SettingsGradleFile> plugins() {
-        return new GenericSection<>(this, "plugins");
+    public GradleSection<SettingsGradleFile> plugins() {
+        return new GradleSection<>(this, "plugins");
     }
 }

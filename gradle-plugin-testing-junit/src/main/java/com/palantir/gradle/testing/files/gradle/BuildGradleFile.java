@@ -19,7 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.sections.BuildScriptSection;
-import com.palantir.gradle.testing.files.gradle.sections.GenericSection;
+import com.palantir.gradle.testing.files.gradle.sections.GradleSection;
 import java.nio.file.Path;
 
 public record BuildGradleFile(Path path) implements GradleFile {
@@ -30,23 +30,23 @@ public record BuildGradleFile(Path path) implements GradleFile {
         return new BuildScriptSection<>(this);
     }
 
-    public GenericSection<BuildGradleFile> plugins() {
-        return new GenericSection<>(this, "plugins");
+    public GradleSection<BuildGradleFile> plugins() {
+        return new GradleSection<>(this, "plugins");
     }
 
-    public GenericSection<BuildGradleFile> repositories() {
-        return new GenericSection<>(this, "repositories");
+    public GradleSection<BuildGradleFile> repositories() {
+        return new GradleSection<>(this, "repositories");
     }
 
-    public GenericSection<BuildGradleFile> dependencies() {
-        return new GenericSection<>(this, "dependencies");
+    public GradleSection<BuildGradleFile> dependencies() {
+        return new GradleSection<>(this, "dependencies");
     }
 
-    public GenericSection<BuildGradleFile> allprojects() {
-        return new GenericSection<>(this, "allprojects");
+    public GradleSection<BuildGradleFile> allprojects() {
+        return new GradleSection<>(this, "allprojects");
     }
 
-    public GenericSection<BuildGradleFile> subprojects() {
-        return new GenericSection<>(this, "subprojects");
+    public GradleSection<BuildGradleFile> subprojects() {
+        return new GradleSection<>(this, "subprojects");
     }
 }

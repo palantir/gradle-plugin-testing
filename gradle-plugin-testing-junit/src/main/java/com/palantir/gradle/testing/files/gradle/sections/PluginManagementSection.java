@@ -21,16 +21,16 @@ import com.palantir.gradle.testing.files.gradle.SettingsGradleFile;
 /**
  * Represents the pluginManagement block in settings.gradle with subsections for repositories and plugins.
  */
-public final class PluginManagementSection extends GenericSection<SettingsGradleFile> {
+public final class PluginManagementSection extends GradleSection<SettingsGradleFile> {
     public PluginManagementSection(SettingsGradleFile gradleFile) {
         super(gradleFile, "pluginManagement");
     }
 
-    public GenericSection<SettingsGradleFile> repositories() {
-        return new GenericSection<>(getGradleFile(), this, "repositories");
+    public GradleSection<SettingsGradleFile> repositories() {
+        return new GradleSection<>(getGradleFile(), this, "repositories");
     }
 
-    public GenericSection<SettingsGradleFile> plugins() {
-        return new GenericSection<>(getGradleFile(), this, "plugins");
+    public GradleSection<SettingsGradleFile> plugins() {
+        return new GradleSection<>(getGradleFile(), this, "plugins");
     }
 }

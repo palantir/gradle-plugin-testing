@@ -22,16 +22,16 @@ import com.palantir.gradle.testing.files.gradle.GradleFile;
  * Represents the buildscript block in Gradle files with subsections for repositories and dependencies.
  * Can be used in both build.gradle and settings.gradle files.
  */
-public final class BuildScriptSection<T extends GradleFile> extends GenericSection<T> {
+public final class BuildScriptSection<T extends GradleFile> extends GradleSection<T> {
     public BuildScriptSection(T gradleFile) {
         super(gradleFile, "buildscript");
     }
 
-    public GenericSection<T> repositories() {
-        return new GenericSection<>(getGradleFile(), this, "repositories");
+    public GradleSection<T> repositories() {
+        return new GradleSection<>(getGradleFile(), this, "repositories");
     }
 
-    public GenericSection<T> dependencies() {
-        return new GenericSection<>(getGradleFile(), this, "dependencies");
+    public GradleSection<T> dependencies() {
+        return new GradleSection<>(getGradleFile(), this, "dependencies");
     }
 }

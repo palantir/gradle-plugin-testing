@@ -32,19 +32,22 @@ import java.util.stream.IntStream;
  * Uses ALL_SECTIONS for canonical ordering across all Gradle file types.
  */
 public class GradleSection<T extends GradleFile> implements GradleFile {
-    // Master list of all sections in canonical order - used for relative ordering
+    // Master list of all sections in canonical order - used for top-level relative ordering
     protected static final List<String> ALL_SECTIONS = List.of(
             "pluginManagement", "buildscript", "plugins", "allprojects", "subprojects", "repositories", "dependencies");
+
+    // Nested sections have their own ordering (repositories always comes first in nested contexts)
+    private static final List<String> NESTED_SECTIONS = List.of("repositories", "dependencies", "plugins");
 
     private final T gradleFile;
     private final String blockName;
     private final Optional<GradleSection<T>> parentSection;
 
-    protected GradleSection(T gradleFile, String blockName) {
+    public GradleSection(T gradleFile, String blockName) {
         this(gradleFile, Optional.empty(), blockName);
     }
 
-    protected GradleSection(T gradleFile, GradleSection<T> parentSection, String blockName) {
+    public GradleSection(T gradleFile, GradleSection<T> parentSection, String blockName) {
         this(gradleFile, Optional.of(parentSection), blockName);
     }
 
@@ -164,18 +167,25 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
     }
 
     private int findInsertionPoint(String containerContent) {
-        int priority = ALL_SECTIONS.indexOf(blockName);
+        // Use nested ordering when we have a parent section, otherwise use top-level ordering
+        List<String> sections = parentSection.isPresent() ? NESTED_SECTIONS : ALL_SECTIONS;
+        int priority = sections.indexOf(blockName);
+
+        // If section not found in the list, append at end
+        if (priority == -1) {
+            return containerContent.length();
+        }
 
         // Find last section that should come before this one
         return IntStream.range(0, priority)
-                .mapToObj(i -> ALL_SECTIONS.get(priority - 1 - i))
+                .mapToObj(i -> sections.get(priority - 1 - i))
                 .map(section -> blockPattern(section).matcher(containerContent))
                 .filter(Matcher::find)
                 .findFirst()
                 .map(Matcher::end)
                 // Find first section that should come after this one
-                .orElseGet(() -> IntStream.range(priority + 1, ALL_SECTIONS.size())
-                        .mapToObj(ALL_SECTIONS::get)
+                .orElseGet(() -> IntStream.range(priority + 1, sections.size())
+                        .mapToObj(sections::get)
                         .map(section -> blockPattern(section).matcher(containerContent))
                         .filter(Matcher::find)
                         .findFirst()
@@ -185,9 +195,5 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
 
     protected final T getGradleFile() {
         return gradleFile;
-    }
-
-    protected final String getBlockName() {
-        return blockName;
     }
 }

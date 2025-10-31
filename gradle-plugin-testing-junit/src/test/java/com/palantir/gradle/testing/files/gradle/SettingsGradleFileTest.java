@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -76,83 +78,167 @@ class SettingsGradleFileTest {
         }
     }
 
-    @Nested
-    class PluginManagement {
-        @Test
-        void can_add_repository_to_plugin_management() {
-            settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
+    @Test
+    void all_sections_with_nested_pluginManagement_and_buildscript() {
+        // Test all sections in reverse order to verify intelligent ordering
+        settingsGradleFile.include("module1");
+        settingsGradleFile.include("module2");
+        settingsGradleFile.rootProjectName("my-app");
+        settingsGradleFile.plugins().append("id 'settings-plugin'");
+        settingsGradleFile.buildscript().dependencies().append("classpath 'com.example:plugin:1.0'");
+        settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+        settingsGradleFile.pluginManagement().plugins().append("id 'plugin1' version '1.0'");
+        settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
 
-            settingsGradleFile.assertThat().content().contains("pluginManagement {");
-            settingsGradleFile.assertThat().content().contains("repositories {");
-            settingsGradleFile.assertThat().content().contains("gradlePluginPortal()");
-        }
-
-        @Test
-        void can_add_plugins_to_plugin_management() {
-            settingsGradleFile.pluginManagement().plugins().append("id 'com.example.plugin' version '1.0.0'");
-
-            settingsGradleFile.assertThat().content().contains("pluginManagement {");
-            settingsGradleFile.assertThat().content().contains("plugins {");
-            settingsGradleFile.assertThat().content().contains("id 'com.example.plugin' version '1.0.0'");
-        }
-
-        @Test
-        void plugin_management_appears_before_plugins_block() {
-            settingsGradleFile.plugins().append("id 'com.example.base'");
-            settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
-
-            String content = settingsGradleFile.text();
-            int pluginManagementPos = content.indexOf("pluginManagement");
-            int pluginsPos = content.indexOf("plugins {");
-
-            org.assertj.core.api.Assertions.assertThat(pluginManagementPos).isLessThan(pluginsPos);
-        }
+        // Verify full structure is correct
+        settingsGradleFile.assertThat().hasContent("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                }
+                plugins {
+                    id 'plugin1' version '1.0'
+                }
+            }
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    classpath 'com.example:plugin:1.0'
+                }
+            }
+            plugins {
+                id 'settings-plugin'
+            }
+            rootProject.name = 'my-app'
+            include 'module1'
+            include 'module2'
+            """);
     }
 
-    @Nested
-    class Plugins {
-        @Test
-        void can_add_plugins() {
-            settingsGradleFile.plugins().append("id 'com.example.plugin' version '1.0.0'");
+    @Test
+    void multiple_edits_to_same_section() {
+        settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
+        settingsGradleFile.plugins().append("id 'first'");
+        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
+        settingsGradleFile.plugins().append("id 'second'");
+        settingsGradleFile.buildscript().repositories().append("google()");
 
-            settingsGradleFile.assertThat().content().contains("plugins {");
-            settingsGradleFile.assertThat().content().contains("id 'com.example.plugin' version '1.0.0'");
-        }
+        settingsGradleFile.assertThat().hasContent("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    mavenCentral()
+                }
+            }
+            buildscript {
+                repositories {
+                    google()
+                }
+            }
+            plugins {
+                id 'first'
+                id 'second'
+            }
+            """);
     }
 
-    @Nested
-    class BuildScript {
-        @Test
-        void can_add_repository_to_buildscript() {
-            settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+    @Test
+    void section_operations_prepend_overwrite_edit() {
+        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
+        settingsGradleFile.pluginManagement().repositories().append("google()");
+        settingsGradleFile.pluginManagement().repositories().prepend("gradlePluginPortal()");
 
-            settingsGradleFile.assertThat().content().contains("buildscript {");
-            settingsGradleFile.assertThat().content().contains("repositories {");
-            settingsGradleFile.assertThat().content().contains("mavenCentral()");
-        }
+        settingsGradleFile.plugins().append("id 'original'");
+        settingsGradleFile.plugins().overwrite("id 'replaced'");
 
-        @Test
-        void can_add_dependencies_to_buildscript() {
-            settingsGradleFile.buildscript().dependencies().append("classpath 'com.example:plugin:1.0.0'");
+        settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+        settingsGradleFile.buildscript().repositories().edit(content -> content.replace("mavenCentral()", "google()"));
 
-            settingsGradleFile.assertThat().content().contains("buildscript {");
-            settingsGradleFile.assertThat().content().contains("dependencies {");
-            settingsGradleFile.assertThat().content().contains("classpath 'com.example:plugin:1.0.0'");
-        }
+        settingsGradleFile.assertThat().hasContent("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    mavenCentral()
+                    google()
+                }
+            }
+            buildscript {
+                repositories {
+                    google()
+                }
+            }
+            plugins {
+                id 'replaced'
+            }
+            """);
+    }
 
-        @Test
-        void buildscript_appears_between_pluginManagement_and_plugins() {
-            settingsGradleFile.plugins().append("id 'com.example.base'");
-            settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
-            settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+    @Test
+    void include_deduplication() {
+        settingsGradleFile.include("module-a");
+        settingsGradleFile.include("module-b");
+        settingsGradleFile.include("module-a");
 
-            String content = settingsGradleFile.text();
-            int pluginManagementPos = content.indexOf("pluginManagement");
-            int buildscriptPos = content.indexOf("buildscript");
-            int pluginsPos = content.indexOf("plugins {");
+        settingsGradleFile.assertThat().hasContent("""
+            include 'module-a'
+            include 'module-b'
+            """);
+    }
 
-            org.assertj.core.api.Assertions.assertThat(pluginManagementPos).isLessThan(buildscriptPos);
-            org.assertj.core.api.Assertions.assertThat(buildscriptPos).isLessThan(pluginsPos);
-        }
+    @Test
+    void rootProjectName_replacement() {
+        settingsGradleFile.rootProjectName("first-name");
+        settingsGradleFile.plugins().append("id 'base'");
+        settingsGradleFile.rootProjectName("second-name");
+
+        settingsGradleFile.assertThat().hasContent("""
+            plugins {
+                id 'base'
+            }
+            rootProject.name = 'second-name'
+            """);
+        settingsGradleFile.assertThat().content().doesNotContain("first-name");
+    }
+
+    @Test
+    void editing_existing_file_with_structured_sections() {
+        settingsGradleFile.append("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                }
+            }
+
+            plugins {
+                id 'base'
+            }
+
+            rootProject.name = 'existing'
+            """);
+
+        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
+        settingsGradleFile.buildscript().repositories().append("google()");
+        settingsGradleFile.include("new-module");
+
+        settingsGradleFile.assertThat().hasContent("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    mavenCentral()
+                }
+            }
+            buildscript {
+                repositories {
+                    google()
+                }
+            }
+            plugins {
+                id 'base'
+            }
+            rootProject.name = 'existing'
+            include 'new-module'
+            """);
     }
 }
