@@ -16,20 +16,32 @@
 
 package com.palantir.gradle.testing.junit;
 
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class WithConfigurationCacheExtension implements BeforeEachCallback {
+/**
+ * Extension that disables the configuration cache for tests.
+ * This extension is applied via the {@link DisabledConfigurationCache} annotation.
+ */
+public final class DisabledConfigurationCacheExtension implements BeforeAllCallback, BeforeEachCallback {
 
-    private static final Logger log = LoggerFactory.getLogger(WithConfigurationCacheExtension.class);
+    private static final Logger log = LoggerFactory.getLogger(DisabledConfigurationCacheExtension.class);
+
+    @Override
+    public void beforeAll(ExtensionContext context) {
+        disableConfigurationCache(context);
+    }
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        log.error("Forcing configuration cache when running GradlePluginTests.");
-        ConfigurationCacheStore.setConfigurationCache(context, true);
+        disableConfigurationCache(context);
+    }
 
-        System.setProperty("com.palantir.gradle.testing.configuration_cache_enabled", "true");
+    private void disableConfigurationCache(ExtensionContext context) {
+        log.info("Disabling configuration cache when running GradlePluginTests.");
+        ConfigurationCacheStore.setConfigurationCache(context, false);
     }
 }

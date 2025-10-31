@@ -17,16 +17,31 @@
 package com.palantir.gradle.testing.junit;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-final class ConfigurationCacheExtension implements BeforeAllCallback {
+/**
+ * Extension that handles the configuration cache setting.
+ * This is used by the {@link GradlePluginTests} annotation to set up the default configuration cache behavior.
+ */
+public final class ConfigurationCacheParameterExtension implements BeforeAllCallback, BeforeEachCallback {
+
     @Override
     public void beforeAll(ExtensionContext context) {
+        setConfigurationCache(context);
+    }
+
+    @Override
+    public void beforeEach(ExtensionContext context) {
+        setConfigurationCache(context);
+    }
+
+    private void setConfigurationCache(ExtensionContext context) {
         Boolean configurationCacheEnabled = context.getConfigurationParameter(
                         "com.palantir.gradle.testing.configuration_cache_enabled")
                 .map(Boolean::parseBoolean)
-                .orElseThrow(
-                        () -> new RuntimeException("Not configured whether to run with configuration cache or not. "
+                .orElseThrow(() -> new RuntimeException(
+                        "Not configured to run with configuration cache in the gradle plugin test. "
                                 + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
         ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
     }

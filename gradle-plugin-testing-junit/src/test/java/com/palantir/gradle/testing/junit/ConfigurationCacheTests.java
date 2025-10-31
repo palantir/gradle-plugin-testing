@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 class ConfigurationCacheTests {
 
     @Test
-    void configuration_cache_is_enabled(GradleInvoker invoker, RootProject rootProject) {
+    void configuration_cache_is_enabled_by_default(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             plugins { id 'java' }
             def isConfigurationCacheRequested = services.get(BuildFeatures).configurationCache.requested.orElse(false).get()
@@ -58,6 +58,27 @@ class ConfigurationCacheTests {
         assertThat(secondResult.output())
                 .contains("isConfigurationCacheRequested=true")
                 .contains("Configuration cache entry reused.");
+    }
+
+    @Test
+    @DisabledConfigurationCache(reason = "testing method level annotation")
+    void configuration_cache_is_disabled(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            plugins { id 'java' }
+            def isConfigurationCacheRequested = services.get(BuildFeatures).configurationCache.requested.orElse(false).get()
+
+            tasks.register("checkConfigurationCache") {
+                doLast {
+                    println "isConfigurationCacheRequested=" + isConfigurationCacheRequested
+                }
+            }
+            """);
+
+        InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
+        assertThat(result.output()).contains("isConfigurationCacheRequested=false");
+        assertThat(result.task(":checkConfigurationCache")).hasValueSatisfying(taskResult -> {
+            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
+        });
     }
 
     @Test
