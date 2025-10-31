@@ -68,7 +68,7 @@ public final class ConfigurationCacheInvoker implements GradleInvoker {
             throw new UncheckedIOException(
                     String.format(
                             "Failed to delete the configuration cache directory `%s`. This is the first step when"
-                                    + " running GradlePlguinTests with configuration cache enabled.",
+                                    + " running GradlePluginTests with configuration cache enabled.",
                             configurationCacheDirectory),
                     e);
         }
