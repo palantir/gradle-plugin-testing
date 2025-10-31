@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import com.palantir.gradle.testing.files.BuildDir;
 import com.palantir.gradle.testing.files.FileFactory;
 import com.palantir.gradle.testing.files.GradleSourceSet;
-import com.palantir.gradle.testing.files.gradle.GradleFile;
+import com.palantir.gradle.testing.files.gradle.BuildGradleFile;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -52,8 +52,8 @@ public interface GradleProject extends FileFactory {
         return new SubProject(subprojectDir, rootProject());
     }
 
-    default GradleFile buildGradle() {
-        return gradleFile("build.gradle");
+    default BuildGradleFile buildGradle() {
+        return new BuildGradleFile(path().resolve("build.gradle"));
     }
 
     default GradleSourceSet mainSourceSet() {

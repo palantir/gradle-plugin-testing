@@ -75,4 +75,84 @@ class SettingsGradleFileTest {
             settingsGradleFile.assertThat().content().containsOnlyOnce("foo");
         }
     }
+
+    @Nested
+    class PluginManagement {
+        @Test
+        void can_add_repository_to_plugin_management() {
+            settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
+
+            settingsGradleFile.assertThat().content().contains("pluginManagement {");
+            settingsGradleFile.assertThat().content().contains("repositories {");
+            settingsGradleFile.assertThat().content().contains("gradlePluginPortal()");
+        }
+
+        @Test
+        void can_add_plugins_to_plugin_management() {
+            settingsGradleFile.pluginManagement().plugins().append("id 'com.example.plugin' version '1.0.0'");
+
+            settingsGradleFile.assertThat().content().contains("pluginManagement {");
+            settingsGradleFile.assertThat().content().contains("plugins {");
+            settingsGradleFile.assertThat().content().contains("id 'com.example.plugin' version '1.0.0'");
+        }
+
+        @Test
+        void plugin_management_appears_before_plugins_block() {
+            settingsGradleFile.plugins().append("id 'com.example.base'");
+            settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
+
+            String content = settingsGradleFile.text();
+            int pluginManagementPos = content.indexOf("pluginManagement");
+            int pluginsPos = content.indexOf("plugins {");
+
+            org.assertj.core.api.Assertions.assertThat(pluginManagementPos).isLessThan(pluginsPos);
+        }
+    }
+
+    @Nested
+    class Plugins {
+        @Test
+        void can_add_plugins() {
+            settingsGradleFile.plugins().append("id 'com.example.plugin' version '1.0.0'");
+
+            settingsGradleFile.assertThat().content().contains("plugins {");
+            settingsGradleFile.assertThat().content().contains("id 'com.example.plugin' version '1.0.0'");
+        }
+    }
+
+    @Nested
+    class BuildScript {
+        @Test
+        void can_add_repository_to_buildscript() {
+            settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+
+            settingsGradleFile.assertThat().content().contains("buildscript {");
+            settingsGradleFile.assertThat().content().contains("repositories {");
+            settingsGradleFile.assertThat().content().contains("mavenCentral()");
+        }
+
+        @Test
+        void can_add_dependencies_to_buildscript() {
+            settingsGradleFile.buildscript().dependencies().append("classpath 'com.example:plugin:1.0.0'");
+
+            settingsGradleFile.assertThat().content().contains("buildscript {");
+            settingsGradleFile.assertThat().content().contains("dependencies {");
+            settingsGradleFile.assertThat().content().contains("classpath 'com.example:plugin:1.0.0'");
+        }
+
+        @Test
+        void buildscript_appears_between_pluginManagement_and_plugins() {
+            settingsGradleFile.plugins().append("id 'com.example.base'");
+            settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
+            settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+
+            String content = settingsGradleFile.text();
+            int pluginManagementPos = content.indexOf("pluginManagement");
+            int buildscriptPos = content.indexOf("buildscript");
+            int pluginsPos = content.indexOf("plugins {");
+
+            org.assertj.core.api.Assertions.assertThat(pluginManagementPos).isLessThan(buildscriptPos);
+            org.assertj.core.api.Assertions.assertThat(buildscriptPos).isLessThan(pluginsPos);
+        }
+    }
 }

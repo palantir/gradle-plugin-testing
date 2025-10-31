@@ -19,6 +19,9 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import com.palantir.gradle.testing.files.gradle.sections.BuildScriptSection;
+import com.palantir.gradle.testing.files.gradle.sections.GenericSection;
+import com.palantir.gradle.testing.files.gradle.sections.PluginManagementSection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
@@ -51,5 +54,17 @@ public record SettingsGradleFile(Path path) implements GradleFile {
 
         appendLine(includeLine);
         return this;
+    }
+
+    public PluginManagementSection pluginManagement() {
+        return new PluginManagementSection(this);
+    }
+
+    public BuildScriptSection<SettingsGradleFile> buildscript() {
+        return new BuildScriptSection<>(this);
+    }
+
+    public GenericSection<SettingsGradleFile> plugins() {
+        return new GenericSection<>(this, "plugins");
     }
 }
