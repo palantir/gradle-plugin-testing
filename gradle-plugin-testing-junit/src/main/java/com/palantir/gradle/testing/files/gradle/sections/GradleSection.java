@@ -30,6 +30,9 @@ import java.util.stream.IntStream;
  * Base class for structured sections within Gradle files.
  * Implements GradleFile so all file operations work within the section's block context.
  * Uses ALL_SECTIONS for canonical ordering across all Gradle file types.
+ *
+ * Content is stored WITHOUT indentation during manipulation, and formatted only when
+ * writing to the file system.
  */
 public class GradleSection<T extends GradleFile> implements GradleFile {
     // Master list of all sections in canonical order - used for top-level relative ordering
@@ -78,7 +81,8 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
                         parentContent -> updateBlock(parentContent, editor.edit(extractBlockContent(parentContent)))),
                 () -> {
                     String fileContent = Files.exists(path()) ? gradleFile.text() : "";
-                    gradleFile.overwrite(updateBlock(fileContent, editor.edit(extractBlockContent(fileContent))));
+                    String unformatted = updateBlock(fileContent, editor.edit(extractBlockContent(fileContent)));
+                    gradleFile.overwrite(formatGradleContent(unformatted));
                 });
         return this;
     }
@@ -89,7 +93,7 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
             if (existing.isEmpty()) {
                 return content;
             }
-            return existing + "\n" + getIndent() + content;
+            return existing + "\n" + content;
         });
     }
 
@@ -99,7 +103,7 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
             if (existing.isEmpty()) {
                 return content;
             }
-            return content + "\n" + getIndent() + existing;
+            return content + "\n" + existing;
         });
     }
 
@@ -108,62 +112,69 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
         return edit(_existing -> content);
     }
 
-    private int getNestingDepth() {
-        return parentSection.map(parent -> 1 + parent.getNestingDepth()).orElse(0);
-    }
-
-    private String getIndent() {
-        // 4 spaces per nesting level, starting at depth 1 (inside any block)
-        return "    ".repeat(getNestingDepth() + 1);
-    }
-
-    private String getBlockIndent() {
-        // Indent for the block itself (not its contents)
-        return "    ".repeat(getNestingDepth());
-    }
-
     private Pattern blockPattern(String block) {
-        return Pattern.compile(block + "\\s*\\{([^}]*(?:\\{[^}]*\\}[^}]*)*)\\}", Pattern.DOTALL);
+        // Pattern that matches blocks regardless of indentation
+        return Pattern.compile(
+                "^\\s*" + Pattern.quote(block) + "\\s*\\{((?:[^{}]|\\{[^}]*\\})*)\\}",
+                Pattern.MULTILINE | Pattern.DOTALL);
     }
 
     private String extractBlockContent(String searchContent) {
-        Matcher matcher = blockPattern(blockName).matcher(searchContent);
-        return matcher.find() ? matcher.group(1).trim() : "";
+        // Strip all leading whitespace from the search content first
+        String normalized = normalizeIndentation(searchContent);
+        Matcher matcher = blockPattern(blockName).matcher(normalized);
+        if (!matcher.find()) {
+            return "";
+        }
+        // Extract and normalize the block content
+        String blockContent = matcher.group(1);
+        return normalizeIndentation(blockContent).trim();
     }
 
     private String updateBlock(String containerContent, String newBlockContent) {
-        Matcher matcher = blockPattern(blockName).matcher(containerContent);
+        String normalized = normalizeIndentation(containerContent);
+        Matcher matcher = blockPattern(blockName).matcher(normalized);
 
         if (matcher.find()) {
             // Block exists - replace it
-            String formattedContent = formatBlockContent(newBlockContent);
-            String newBlock = blockName + " {" + formattedContent + "}";
-            return containerContent.substring(0, matcher.start())
-                    + newBlock
-                    + containerContent.substring(matcher.end());
+            String newBlock = createBlock(newBlockContent);
+            return normalized.substring(0, matcher.start()) + newBlock + normalized.substring(matcher.end());
         } else {
             // Block doesn't exist - insert at correct position
             String newBlock = createBlock(newBlockContent);
-            int insertionPoint = findInsertionPoint(containerContent);
+            int insertionPoint = findInsertionPoint(normalized);
 
-            if (containerContent.isEmpty() || insertionPoint == 0) {
-                return newBlock + (containerContent.isEmpty() ? "" : "\n" + containerContent);
+            // Only add blank lines between top-level blocks (not nested blocks)
+            boolean isTopLevel = parentSection.isEmpty();
+
+            if (normalized.isEmpty()) {
+                return newBlock;
+            } else if (insertionPoint == 0) {
+                // Insert at beginning
+                String separator = isTopLevel ? "\n\n" : "\n";
+                return newBlock + separator + normalized;
+            } else if (insertionPoint >= normalized.length()) {
+                // Insert at end
+                String separator = isTopLevel ? "\n\n" : "\n";
+                return normalized + separator + newBlock;
             } else {
-                return containerContent.substring(0, insertionPoint) + "\n" + newBlock
-                        + containerContent.substring(insertionPoint);
+                // Insert in middle - need blank lines on both sides for top-level
+                if (isTopLevel) {
+                    return normalized.substring(0, insertionPoint) + "\n\n" + newBlock + "\n\n"
+                            + normalized.substring(insertionPoint);
+                } else {
+                    return normalized.substring(0, insertionPoint) + "\n" + newBlock + "\n"
+                            + normalized.substring(insertionPoint);
+                }
             }
         }
     }
 
-    private String formatBlockContent(String content) {
-        if (content.trim().isEmpty()) {
-            return getNestingDepth() > 0 ? "\n" + getBlockIndent() : "\n";
-        }
-        return "\n" + getIndent() + content + "\n" + getBlockIndent();
-    }
-
     private String createBlock(String content) {
-        return blockName + " {\n" + getIndent() + content + "\n" + getBlockIndent() + "}";
+        if (content.trim().isEmpty()) {
+            return blockName + " {\n}";
+        }
+        return blockName + " {\n" + content + "\n}";
     }
 
     private int findInsertionPoint(String containerContent) {
@@ -191,6 +202,96 @@ public class GradleSection<T extends GradleFile> implements GradleFile {
                         .findFirst()
                         .map(Matcher::start)
                         .orElseGet(containerContent::length));
+    }
+
+    /**
+     * Removes all leading whitespace from each line while preserving blank lines.
+     */
+    private String normalizeIndentation(String content) {
+        if (content == null || content.isEmpty()) {
+            return "";
+        }
+
+        String[] lines = content.split("\n", -1);
+        StringBuilder normalized = new StringBuilder();
+        boolean lastWasEmpty = false;
+
+        for (int i = 0; i < lines.length; i++) {
+            String trimmed = lines[i].trim();
+
+            if (trimmed.isEmpty()) {
+                // Preserve single blank lines, collapse multiple
+                if (!lastWasEmpty && i > 0 && i < lines.length - 1) {
+                    normalized.append("\n");
+                }
+                lastWasEmpty = true;
+            } else {
+                normalized.append(trimmed).append("\n");
+                lastWasEmpty = false;
+            }
+        }
+
+        // Remove trailing newline
+        String result = normalized.toString();
+        if (result.endsWith("\n")) {
+            result = result.substring(0, result.length() - 1);
+        }
+
+        return result;
+    }
+
+    /**
+     * Formats Gradle content by applying proper indentation based on brace nesting.
+     * This is called only when writing to the file system (at the root level).
+     */
+    private String formatGradleContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "";
+        }
+
+        StringBuilder formatted = new StringBuilder();
+        String[] lines = content.split("\n");
+        int depth = 0;
+        boolean lastLineWasEmpty = false;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+
+            // Handle empty lines - preserve single empty lines, collapse multiple
+            if (trimmed.isEmpty()) {
+                if (!lastLineWasEmpty && formatted.length() > 0) {
+                    formatted.append("\n");
+                    lastLineWasEmpty = true;
+                }
+                continue;
+            }
+            lastLineWasEmpty = false;
+
+            // Decrease depth before line if it starts with }
+            if (trimmed.startsWith("}")) {
+                depth = Math.max(0, depth - 1);
+            }
+
+            // Add indentation (4 spaces per level)
+            if (depth > 0) {
+                formatted.append("    ".repeat(depth));
+            }
+            formatted.append(trimmed);
+            formatted.append("\n");
+
+            // Increase depth after line if it ends with {
+            if (trimmed.endsWith("{") && !trimmed.startsWith("}")) {
+                depth++;
+            }
+        }
+
+        // Remove trailing newline if present
+        String result = formatted.toString();
+        if (result.endsWith("\n")) {
+            result = result.substring(0, result.length() - 1);
+        }
+
+        return result;
     }
 
     protected final T getGradleFile() {

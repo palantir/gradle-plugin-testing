@@ -44,18 +44,23 @@ class BuildGradleFileTest {
                     classpath 'plugin:1.0'
                 }
             }
+
             plugins {
                 id 'java'
             }
+
             allprojects {
                 group = 'com.example'
             }
+
             subprojects {
                 apply plugin: 'java'
             }
+
             repositories {
                 mavenCentral()
             }
+
             dependencies {
                 implementation 'com.google.guava:guava:32.0.0-jre'
             }
@@ -79,6 +84,7 @@ class BuildGradleFileTest {
                 mavenCentral()
                 google()
             }
+
             dependencies {
                 implementation 'junit:junit:4.13.2'
             }
@@ -101,6 +107,7 @@ class BuildGradleFileTest {
             plugins {
                 id 'modified'
             }
+
             repositories {
                 gradlePluginPortal()
                 mavenCentral()
@@ -131,6 +138,7 @@ class BuildGradleFileTest {
                     classpath 'second:2.0'
                 }
             }
+
             plugins {
                 id 'java'
             }
@@ -147,9 +155,11 @@ class BuildGradleFileTest {
             plugins {
                 id 'java'
             }
+
             repositories {
                 mavenCentral()
             }
+
             version = '1.0.0'
             """);
     }
@@ -160,11 +170,9 @@ class BuildGradleFileTest {
             plugins {
                 id 'base'
             }
-
             repositories {
                 google()
             }
-
             version = '1.0.0'
             """);
 
@@ -178,14 +186,15 @@ class BuildGradleFileTest {
                     gradlePluginPortal()
                 }
             }
+
             plugins {
                 id 'base'
             }
-
             repositories {
                 google()
                 mavenCentral()
             }
+
             dependencies {
                 implementation 'junit:junit:4.13.2'
             }
