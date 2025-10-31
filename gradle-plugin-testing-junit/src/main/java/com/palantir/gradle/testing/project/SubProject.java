@@ -21,11 +21,10 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 
 /**
- * When injected as a parameter by JUnit, the parameter name will determine the project name. If the parameter name ends
- * in "Project", the project name will be the name of the parameter with the "Project" removed. Otherwise the project
- * name will just be the parameter name.
+ * When injected as a parameter in JUnit test methods, the parameter name will be used as the project name exactly.
+ * For example, {@code SubProject apiService} creates a subproject named "apiService".
  * <br>
- * When injected as a parameter by JUnit, the subproject will be a direct suproject of the root project.
+ * When injected as a parameter by JUnit, the subproject will be a direct subproject of the root project.
  */
 public record SubProject(Path path, RootProject rootProject) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
