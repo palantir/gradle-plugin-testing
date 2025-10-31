@@ -19,7 +19,6 @@ package com.palantir.gradle.testing.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
@@ -36,9 +35,8 @@ class ProjectUsagesTest {
             println "project name: ${name}"
             """);
 
-        InvocationResult invocation = gradle.withArgs().buildsSuccessfully();
-        assertThat(invocation.output()).contains("hello from :");
-        assertThat(invocation.output()).contains("project name: root");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: root");
     }
 
     @Test
@@ -49,9 +47,8 @@ class ProjectUsagesTest {
             println "project name: ${name}"
             """);
 
-        InvocationResult invocation = gradle.withArgs().buildsSuccessfully();
-        assertThat(invocation.output()).contains("hello from :");
-        assertThat(invocation.output()).contains("project name: root");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: root");
     }
 
     @Test
@@ -62,9 +59,8 @@ class ProjectUsagesTest {
             println "project name: ${name}"
             """);
 
-        InvocationResult invocation = gradle.withArgs().buildsSuccessfully();
-        assertThat(invocation.output()).contains("hello from :");
-        assertThat(invocation.output()).contains("project name: custom-service");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello from :");
+        assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("project name: custom-service");
     }
 
     @Test

@@ -16,12 +16,14 @@
 
 package com.palantir.gradle.testing.junit;
 
+import org.assertj.core.util.VisibleForTesting;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 /**
  * Store for configuration cache state in JUnit extension context.
  */
+@VisibleForTesting
 final class ConfigurationCacheStore {
     private static final Namespace NAMESPACE = Namespace.create(ConfigurationCacheStore.class);
     private static final String CONFIG_CACHE_ENABLED = "configCacheEnabled";

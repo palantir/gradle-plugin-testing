@@ -36,11 +36,15 @@ class ConfigurationCacheTests {
     void configuration_cache_is_enabled_by_default(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             plugins { id 'java' }
-            def isConfigurationCacheRequested = services.get(BuildFeatures).configurationCache.requested.orElse(false).get()
 
             tasks.register("checkConfigurationCache") {
+                def buildFeatures = services.get(BuildFeatures)
+                def isRequested = buildFeatures.configurationCache.requested.orElse(false)
+                inputs.property('configCacheStatus', isRequested)
+
                 doLast {
-                    println "isConfigurationCacheRequested=" + isConfigurationCacheRequested
+                    def status = inputs.properties.get('configCacheStatus')
+                    println "isConfigurationCacheRequested=" + status
                 }
             }
             """);
@@ -52,12 +56,6 @@ class ConfigurationCacheTests {
         assertThat(result.task(":checkConfigurationCache")).hasValueSatisfying(taskResult -> {
             assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
         });
-
-        InvocationResult secondResult =
-                invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        assertThat(secondResult.output())
-                .contains("isConfigurationCacheRequested=true")
-                .contains("Configuration cache entry reused.");
     }
 
     @Test
@@ -65,11 +63,15 @@ class ConfigurationCacheTests {
     void configuration_cache_is_disabled(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             plugins { id 'java' }
-            def isConfigurationCacheRequested = services.get(BuildFeatures).configurationCache.requested.orElse(false).get()
 
             tasks.register("checkConfigurationCache") {
+                def buildFeatures = services.get(BuildFeatures)
+                def isRequested = buildFeatures.configurationCache.requested.orElse(false)
+                inputs.property('configCacheStatus', isRequested)
+
                 doLast {
-                    println "isConfigurationCacheRequested=" + isConfigurationCacheRequested
+                    def status = inputs.properties.get('configCacheStatus')
+                    println "isConfigurationCacheRequested=" + status
                 }
             }
             """);
@@ -91,15 +93,13 @@ class ConfigurationCacheTests {
             """);
         assertThatThrownBy(() -> invoker.withArgs("help").buildsSuccessfully())
                 .isInstanceOf(UnexpectedConfigurationCacheFailure.class)
-                .hasMessageContaining(
-                        "Unexpected build execution failure. Build Execution failure caused by configuration cache"
-                                + " incompatibility.");
+                .hasMessageContaining("Configuration cache incompatibility: Build execution failed.");
 
         assertThatThrownBy(() -> invoker.withArgs("help").buildsWithFailure())
                 .isInstanceOf(UnexpectedConfigurationCacheFailure.class)
                 .hasMessageContaining(
-                        "The GradleInvocation was run with configuration cache enabled. Expected configuration cache"
-                                + " entry to be stored, but it wasn't.");
+                        "Build Execution failure caused by configuration cache issues. Expected configuration cache"
+                                + " entry to be stored, but it wasn't");
     }
 
     @Test
@@ -115,7 +115,8 @@ class ConfigurationCacheTests {
 
         assertThatThrownBy(() -> invoker.withArgs("deleteConfigCache").buildsSuccessfully())
                 .isInstanceOf(UnexpectedConfigurationCacheFailure.class)
-                .hasMessageContaining("The GradleInvocation was run with configuration cache enabled.")
+                .hasMessageContaining(
+                        "Configuration cache reuse failure: The second run failed to reuse the cached configuration.")
                 .hasMessageContaining(
                         "Calculating task graph as no cached configuration is available for tasks: deleteConfigCache");
 
@@ -147,9 +148,7 @@ class ConfigurationCacheTests {
 
         assertThatThrownBy(() -> invoker.withArgs("badConfigCache").buildsSuccessfully())
                 .isInstanceOf(UnexpectedConfigurationCacheFailure.class)
-                .hasMessageContaining(
-                        "Unexpected build execution failure. Build Execution failure caused by configuration cache"
-                                + " incompatibility.")
+                .hasMessageContaining("Configuration cache incompatibility: Build execution failed.")
                 .hasMessageContaining("1 problem was found storing the configuration cache.");
     }
 }

@@ -19,15 +19,27 @@ package com.palantir.gradle.testing.execution;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 
-public record ConfigurationCacheInvoker(Path projectDir, GradleInvoker gradleInvoker) implements GradleInvoker {
+public final class ConfigurationCacheInvoker implements GradleInvoker {
+
+    private final Path rootProjectDir;
+    private final GradleInvoker gradleInvoker;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public ConfigurationCacheInvoker {}
+    public ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) {
+        this.rootProjectDir = rootProjectDir;
+        this.gradleInvoker = gradleInvoker;
+    }
 
     @Override
     public GradleInvocation withArgs(String... args) {
+        cleanupConfigurationCache();
+
         String[] withConfigurationCacheEnabled = ImmutableList.<String>builder()
                 .add(args)
                 .add("--configuration-cache")
@@ -40,6 +52,25 @@ public record ConfigurationCacheInvoker(Path projectDir, GradleInvoker gradleInv
                 .add("--dry-run")
                 .build()
                 .toArray(String[]::new));
-        return new ConfigurationCacheInvocation(projectDir, initialGradleInvocation, secondGradleInvocation);
+        return new ConfigurationCacheInvocation(rootProjectDir, initialGradleInvocation, secondGradleInvocation);
+    }
+
+    public Path getRootProjectDir() {
+        return this.rootProjectDir;
+    }
+
+    private void cleanupConfigurationCache() {
+        File configurationCacheDirectory =
+                rootProjectDir.resolve(".gradle/configuration-cache").toFile();
+        try {
+            FileUtils.deleteDirectory(configurationCacheDirectory);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    String.format(
+                            "Failed to delete the configuration cache directory `%s`. This is the first step when"
+                                    + " running GradlePlguinTests with configuration cache enabled.",
+                            configurationCacheDirectory),
+                    e);
+        }
     }
 }

@@ -47,7 +47,7 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
         InvocationResult result;
         try {
             result = initialGradleInvocation.buildsSuccessfully();
-            assertConfigCacheStoredOrReused(result);
+            assertConfigCacheStored(result);
             InvocationResult configurationCacheResult = secondGradleInvocation.buildsSuccessfully();
             assertConfigCacheReused(configurationCacheResult);
             return result;
@@ -72,14 +72,12 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
     @Override
     public InvocationResult buildsWithFailure() {
         InvocationResult result = initialGradleInvocation.buildsWithFailure();
-        assertConfigCacheStoredOrReused(result);
+        assertConfigCacheStored(result);
         return result;
     }
 
-    private void assertConfigCacheStoredOrReused(InvocationResult result) {
-        if (!result.output().contains("Configuration cache entry stored.")
-                // We might be still re-using the cache from a previous call.
-                && !result.output().contains("Configuration cache entry reused.")) {
+    private void assertConfigCacheStored(InvocationResult result) {
+        if (!result.output().contains("Configuration cache entry stored.")) {
             throw new UnexpectedConfigurationCacheFailure(String.format("""
                 Build Execution failure caused by configuration cache issues. Expected configuration cache entry to be stored, but it wasn't.
                 The GradleInvocation was run with configuration cache enabled because the `gradleTestUtils.configurationCacheEnabled` property was set.

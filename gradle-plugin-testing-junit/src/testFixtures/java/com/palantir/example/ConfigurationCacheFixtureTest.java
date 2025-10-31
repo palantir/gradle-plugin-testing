@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.junit;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.InvocationResult;
-import com.palantir.gradle.testing.execution.TaskOutcome;
+import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@DisabledConfigurationCache(reason = "testing class level annotation")
-class WithoutConfigurationCacheTest {
+public class ConfigurationCacheFixtureTest {
 
     @Test
-    void configuration_cache_is_disabled_by_default(GradleInvoker invoker, RootProject rootProject) {
+    void test_name(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             plugins { id 'java' }
 
@@ -45,10 +41,11 @@ class WithoutConfigurationCacheTest {
             }
             """);
 
-        InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        assertThat(result.output()).contains("isConfigurationCacheRequested=false");
-        assertThat(result.task(":checkConfigurationCache")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
-        });
+        // This exception is just so we can pass the output back up to the JUnit testkit-based test that
+        // is running this fixture.
+        throw new RuntimeException(gradleInvoker
+                .withArgs("checkConfigurationCache")
+                .buildsSuccessfully()
+                .output());
     }
 }
