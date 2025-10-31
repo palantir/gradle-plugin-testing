@@ -26,13 +26,13 @@ class BuildGradleFileTest {
     @Test
     void all_sections_with_nested_buildscript(RootProject rootProject) {
         // Test all section methods in reverse order to verify intelligent ordering
-        rootProject.buildGradle().subprojects().append("apply plugin: 'java'");
-        rootProject.buildGradle().allprojects().append("group = 'com.example'");
-        rootProject.buildGradle().dependencies().append("implementation 'com.google.guava:guava:32.0.0-jre'");
-        rootProject.buildGradle().repositories().append("mavenCentral()");
-        rootProject.buildGradle().plugins().append("id 'java'");
-        rootProject.buildGradle().buildscript().dependencies().append("classpath 'plugin:1.0'");
-        rootProject.buildGradle().buildscript().repositories().append("gradlePluginPortal()");
+        rootProject.buildGradle().subprojects().appendLine("apply plugin: 'java'");
+        rootProject.buildGradle().allprojects().appendLine("group = 'com.example'");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'com.google.guava:guava:32.0.0-jre'");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+        rootProject.buildGradle().buildscript().dependencies().appendLine("classpath 'plugin:1.0'");
+        rootProject.buildGradle().buildscript().repositories().appendLine("gradlePluginPortal()");
 
         // Verify full structure is correct
         rootProject.buildGradle().assertThat().hasContent("""
@@ -69,11 +69,11 @@ class BuildGradleFileTest {
 
     @Test
     void multiple_edits_to_same_section(RootProject rootProject) {
-        rootProject.buildGradle().plugins().append("id 'java'");
-        rootProject.buildGradle().repositories().append("mavenCentral()");
-        rootProject.buildGradle().repositories().append("google()");
-        rootProject.buildGradle().dependencies().append("implementation 'junit:junit:4.13.2'");
-        rootProject.buildGradle().plugins().append("id 'maven-publish'");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().repositories().appendLine("google()");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'junit:junit:4.13.2'");
+        rootProject.buildGradle().plugins().appendLine("id 'maven-publish'");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -94,14 +94,14 @@ class BuildGradleFileTest {
 
     @Test
     void section_operations_prepend_overwrite_edit(RootProject rootProject) {
-        rootProject.buildGradle().repositories().append("mavenCentral()");
-        rootProject.buildGradle().repositories().append("google()");
-        rootProject.buildGradle().repositories().prepend("gradlePluginPortal()");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().repositories().appendLine("google()");
+        rootProject.buildGradle().repositories().prependLine("gradlePluginPortal()");
 
-        rootProject.buildGradle().dependencies().append("implementation 'a:b:1'");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'a:b:1'");
         rootProject.buildGradle().dependencies().overwrite("testImplementation 'x:y:2'");
 
-        rootProject.buildGradle().plugins().append("id 'original'");
+        rootProject.buildGradle().plugins().appendLine("id 'original'");
         rootProject.buildGradle().plugins().edit(content -> content.replace("original", "modified"));
 
         rootProject.buildGradle().assertThat().hasContent("""
@@ -123,11 +123,11 @@ class BuildGradleFileTest {
 
     @Test
     void nested_buildscript_with_multiple_edits(RootProject rootProject) {
-        rootProject.buildGradle().buildscript().repositories().append("mavenCentral()");
-        rootProject.buildGradle().plugins().append("id 'java'");
-        rootProject.buildGradle().buildscript().repositories().append("google()");
-        rootProject.buildGradle().buildscript().dependencies().append("classpath 'first:1.0'");
-        rootProject.buildGradle().buildscript().dependencies().append("classpath 'second:2.0'");
+        rootProject.buildGradle().buildscript().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+        rootProject.buildGradle().buildscript().repositories().appendLine("google()");
+        rootProject.buildGradle().buildscript().dependencies().appendLine("classpath 'first:1.0'");
+        rootProject.buildGradle().buildscript().dependencies().appendLine("classpath 'second:2.0'");
 
         rootProject.buildGradle().assertThat().hasContent("""
             buildscript {
@@ -149,9 +149,9 @@ class BuildGradleFileTest {
 
     @Test
     void direct_append_with_structured_sections(RootProject rootProject) {
-        rootProject.buildGradle().plugins().append("id 'java'");
-        rootProject.buildGradle().append("version = '1.0.0'");
-        rootProject.buildGradle().repositories().append("mavenCentral()");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+        rootProject.buildGradle().appendLine("version = '1.0.0'");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -178,9 +178,9 @@ class BuildGradleFileTest {
             version = '1.0.0'
             """);
 
-        rootProject.buildGradle().repositories().append("mavenCentral()");
-        rootProject.buildGradle().dependencies().append("implementation 'junit:junit:4.13.2'");
-        rootProject.buildGradle().buildscript().repositories().append("gradlePluginPortal()");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'junit:junit:4.13.2'");
+        rootProject.buildGradle().buildscript().repositories().appendLine("gradlePluginPortal()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             buildscript {
@@ -208,13 +208,13 @@ class BuildGradleFileTest {
 
     @Test
     void unrecognized_content_preserved(RootProject rootProject) {
-        rootProject.buildGradle().append("""
+        rootProject.buildGradle().appendLine("""
             // Custom configuration
             version = '1.0.0'
             group = 'com.example'
             """);
 
-        rootProject.buildGradle().plugins().append("id 'java'");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -229,14 +229,14 @@ class BuildGradleFileTest {
 
     @Test
     void comments_within_sections_preserved(RootProject rootProject) {
-        rootProject.buildGradle().plugins().append("""
+        rootProject.buildGradle().plugins().appendLine("""
             // Application plugins
             id 'java'
             // Publishing
             id 'maven-publish'
             """);
 
-        rootProject.buildGradle().repositories().append("mavenCentral()");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -268,7 +268,7 @@ class BuildGradleFileTest {
             }
             """);
 
-        rootProject.buildGradle().dependencies().append("implementation 'junit:junit:4.13.2'");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'junit:junit:4.13.2'");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -300,7 +300,7 @@ class BuildGradleFileTest {
             description = 'My project'
             """);
 
-        rootProject.buildGradle().repositories().append("mavenCentral()");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -318,7 +318,7 @@ class BuildGradleFileTest {
 
     @Test
     void tasks_block_preserved_as_unrecognized(RootProject rootProject) {
-        rootProject.buildGradle().plugins().append("id 'java'");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
 
         rootProject.buildGradle().append("""
             tasks.named('test') {
@@ -326,7 +326,7 @@ class BuildGradleFileTest {
             }
             """);
 
-        rootProject.buildGradle().repositories().append("mavenCentral()");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -346,13 +346,13 @@ class BuildGradleFileTest {
     @Test
     void two_level_nesting_configurations_all(RootProject rootProject) {
         // Test 2-level nesting: configurations { all { ... } }
-        rootProject.buildGradle().plugins().append("id 'java'");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
         rootProject
                 .buildGradle()
                 .configurations()
                 .all()
-                .append("exclude group: 'commons-logging', module: 'commons-logging'");
-        rootProject.buildGradle().repositories().append("mavenCentral()");
+                .appendLine("exclude group: 'commons-logging', module: 'commons-logging'");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {
@@ -374,14 +374,14 @@ class BuildGradleFileTest {
     @Test
     void three_level_nesting_configurations_all_resolutionStrategy(RootProject rootProject) {
         // Test 3-level nesting: configurations { all { resolutionStrategy { ... } } }
-        rootProject.buildGradle().plugins().append("id 'java'");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
         rootProject
                 .buildGradle()
                 .configurations()
                 .all()
                 .resolutionStrategy()
-                .append("force 'com.google.guava:guava:32.0.0-jre'");
-        rootProject.buildGradle().repositories().append("mavenCentral()");
+                .appendLine("force 'com.google.guava:guava:32.0.0-jre'");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
 
         rootProject.buildGradle().assertThat().hasContent("""
             plugins {

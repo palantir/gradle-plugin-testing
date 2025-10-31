@@ -119,11 +119,11 @@ class SettingsGradleFileTest {
         settingsGradleFile.include("module1");
         settingsGradleFile.include("module2");
         settingsGradleFile.rootProjectName("my-app");
-        settingsGradleFile.plugins().append("id 'settings-plugin'");
-        settingsGradleFile.buildscript().dependencies().append("classpath 'com.example:plugin:1.0'");
-        settingsGradleFile.buildscript().repositories().append("mavenCentral()");
-        settingsGradleFile.pluginManagement().plugins().append("id 'plugin1' version '1.0'");
-        settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
+        settingsGradleFile.plugins().appendLine("id 'settings-plugin'");
+        settingsGradleFile.buildscript().dependencies().appendLine("classpath 'com.example:plugin:1.0'");
+        settingsGradleFile.buildscript().repositories().appendLine("mavenCentral()");
+        settingsGradleFile.pluginManagement().plugins().appendLine("id 'plugin1' version '1.0'");
+        settingsGradleFile.pluginManagement().repositories().appendLine("gradlePluginPortal()");
 
         // Verify full structure is correct
         settingsGradleFile.assertThat().hasContent("""
@@ -157,11 +157,11 @@ class SettingsGradleFileTest {
 
     @Test
     void multiple_edits_to_same_section() {
-        settingsGradleFile.pluginManagement().repositories().append("gradlePluginPortal()");
-        settingsGradleFile.plugins().append("id 'first'");
-        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
-        settingsGradleFile.plugins().append("id 'second'");
-        settingsGradleFile.buildscript().repositories().append("google()");
+        settingsGradleFile.pluginManagement().repositories().appendLine("gradlePluginPortal()");
+        settingsGradleFile.plugins().appendLine("id 'first'");
+        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
+        settingsGradleFile.plugins().appendLine("id 'second'");
+        settingsGradleFile.buildscript().repositories().appendLine("google()");
 
         settingsGradleFile.assertThat().hasContent("""
             pluginManagement {
@@ -186,14 +186,14 @@ class SettingsGradleFileTest {
 
     @Test
     void section_operations_prepend_overwrite_edit() {
-        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
-        settingsGradleFile.pluginManagement().repositories().append("google()");
-        settingsGradleFile.pluginManagement().repositories().prepend("gradlePluginPortal()");
+        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
+        settingsGradleFile.pluginManagement().repositories().appendLine("google()");
+        settingsGradleFile.pluginManagement().repositories().prependLine("gradlePluginPortal()");
 
-        settingsGradleFile.plugins().append("id 'original'");
+        settingsGradleFile.plugins().appendLine("id 'original'");
         settingsGradleFile.plugins().overwrite("id 'replaced'");
 
-        settingsGradleFile.buildscript().repositories().append("mavenCentral()");
+        settingsGradleFile.buildscript().repositories().appendLine("mavenCentral()");
         settingsGradleFile.buildscript().repositories().edit(content -> content.replace("mavenCentral()", "google()"));
 
         settingsGradleFile.assertThat().hasContent("""
@@ -232,7 +232,7 @@ class SettingsGradleFileTest {
     @Test
     void rootProjectName_replacement() {
         settingsGradleFile.rootProjectName("first-name");
-        settingsGradleFile.plugins().append("id 'base'");
+        settingsGradleFile.plugins().appendLine("id 'base'");
         settingsGradleFile.rootProjectName("second-name");
 
         settingsGradleFile.assertThat().hasContent("""
@@ -261,8 +261,8 @@ class SettingsGradleFileTest {
             rootProject.name = 'existing'
             """);
 
-        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
-        settingsGradleFile.buildscript().repositories().append("google()");
+        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
+        settingsGradleFile.buildscript().repositories().appendLine("google()");
         settingsGradleFile.include("new-module");
 
         settingsGradleFile.assertThat().hasContent("""
