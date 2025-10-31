@@ -14,40 +14,41 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle;
+package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Template for nested blocks (buildscript, pluginManagement).
- * Defines canonical block ordering: repositories, dependencies, plugins.
+ * Template for nested blocks within Gradle files (e.g., buildscript, configurations.all).
+ * Unlike top-level templates, nested templates work with a specific set of child block names.
  */
-enum NestedGradleTemplate implements GradleFileTemplate {
-    INSTANCE;
+public final class NestedGradleTemplate implements GradleFileTemplate {
+    private final ImmutableList<String> blockNames;
 
-    private static final ImmutableList<String> BLOCK_NAMES =
-            ImmutableList.of("repositories", "dependencies", "plugins");
+    NestedGradleTemplate(List<String> blockNames) {
+        this.blockNames = ImmutableList.copyOf(blockNames);
+    }
 
     @Override
     public String render(GradleFileState state) {
         String sections = Stream.concat(
-                        BLOCK_NAMES.stream().map(blockName -> renderBlock(blockName, state)),
+                        blockNames.stream().map(blockName -> renderBlock(blockName, state)),
                         Stream.of(state.unstructuredContent()))
                 .filter(s -> !s.isEmpty())
-                .collect(java.util.stream.Collectors.joining("\n"));
+                .collect(java.util.stream.Collectors.joining("\n\n"));
 
-        // No trailing newline for nested content
-        return sections;
+        return sections.isEmpty() || sections.endsWith("\n") ? sections : sections + "\n";
     }
 
     @Override
     public GradleFileState parse(String content) {
-        return parseBlocks(content, BLOCK_NAMES);
+        return parseBlocks(content, blockNames);
     }
 
     @Override
     public ImmutableList<String> blockNames() {
-        return BLOCK_NAMES;
+        return blockNames;
     }
 }

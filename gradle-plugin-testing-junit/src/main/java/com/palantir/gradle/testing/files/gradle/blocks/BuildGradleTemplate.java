@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle;
+package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.collect.ImmutableList;
 import java.util.stream.Stream;
 
 /**
  * Template for build.gradle files.
- * Defines canonical block ordering: buildscript, plugins, allprojects, subprojects, repositories, dependencies.
+ * Defines canonical block ordering: buildscript, plugins, allprojects, subprojects, repositories, dependencies, configurations.
  */
-enum BuildGradleTemplate implements GradleFileTemplate {
+public enum BuildGradleTemplate implements GradleFileTemplate {
     INSTANCE;
 
-    private static final ImmutableList<String> BLOCK_NAMES =
-            ImmutableList.of("buildscript", "plugins", "allprojects", "subprojects", "repositories", "dependencies");
+    private static final ImmutableList<String> BLOCK_NAMES = ImmutableList.of(
+            "buildscript", "plugins", "allprojects", "subprojects", "repositories", "dependencies", "configurations");
 
     @Override
     public String render(GradleFileState state) {

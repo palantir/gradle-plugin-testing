@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle;
+package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * Template for parsing and rendering Gradle files with structured blocks.
  * Maintains canonical ordering of blocks and handles nested content.
  */
-interface GradleFileTemplate {
+public interface GradleFileTemplate {
     /**
      * Render state to Gradle file content.
      */

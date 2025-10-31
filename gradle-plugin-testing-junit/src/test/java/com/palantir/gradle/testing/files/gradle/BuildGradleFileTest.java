@@ -342,4 +342,63 @@ class BuildGradleFileTest {
             }
             """);
     }
+
+    @Test
+    void two_level_nesting_configurations_all(RootProject rootProject) {
+        // Test 2-level nesting: configurations { all { ... } }
+        rootProject.buildGradle().plugins().append("id 'java'");
+        rootProject
+                .buildGradle()
+                .configurations()
+                .all()
+                .append("exclude group: 'commons-logging', module: 'commons-logging'");
+        rootProject.buildGradle().repositories().append("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            configurations {
+                all {
+                    exclude group: 'commons-logging', module: 'commons-logging'
+                }
+            }
+            """);
+    }
+
+    @Test
+    void three_level_nesting_configurations_all_resolutionStrategy(RootProject rootProject) {
+        // Test 3-level nesting: configurations { all { resolutionStrategy { ... } } }
+        rootProject.buildGradle().plugins().append("id 'java'");
+        rootProject
+                .buildGradle()
+                .configurations()
+                .all()
+                .resolutionStrategy()
+                .append("force 'com.google.guava:guava:32.0.0-jre'");
+        rootProject.buildGradle().repositories().append("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            configurations {
+                all {
+                    resolutionStrategy {
+                        force 'com.google.guava:guava:32.0.0-jre'
+                    }
+                }
+            }
+            """);
+    }
 }

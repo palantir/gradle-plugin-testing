@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle;
+package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
@@ -24,16 +24,16 @@ import java.util.Optional;
  * Immutable state container for Gradle file content.
  * Stores named blocks (e.g., plugins, repositories) and unstructured content.
  */
-record GradleFileState(ImmutableMap<String, String> namedBlocks, String unstructuredContent) {
-    static GradleFileState empty() {
+public record GradleFileState(ImmutableMap<String, String> namedBlocks, String unstructuredContent) {
+    public static GradleFileState empty() {
         return new GradleFileState(ImmutableMap.of(), "");
     }
 
-    String getBlock(String blockName) {
+    public String getBlock(String blockName) {
         return namedBlocks.getOrDefault(blockName, "");
     }
 
-    GradleFileState withBlock(String blockName, String content) {
+    public GradleFileState withBlock(String blockName, String content) {
         if (content.trim().isEmpty()) {
             return new GradleFileState(
                     namedBlocks.entrySet().stream()

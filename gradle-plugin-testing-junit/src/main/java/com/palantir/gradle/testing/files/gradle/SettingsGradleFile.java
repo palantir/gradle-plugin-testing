@@ -18,9 +18,11 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import com.palantir.gradle.testing.files.gradle.blocks.GradleFileTemplate;
+import com.palantir.gradle.testing.files.gradle.blocks.NamedBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.SettingsGradleTemplate;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 
 public final class SettingsGradleFile extends OrderedGradleFile {
@@ -30,7 +32,7 @@ public final class SettingsGradleFile extends OrderedGradleFile {
     }
 
     @Override
-    protected GradleFileTemplate template() {
+    protected GradleFileTemplate templateInternal() {
         return SettingsGradleTemplate.INSTANCE;
     }
 
@@ -82,66 +84,66 @@ public final class SettingsGradleFile extends OrderedGradleFile {
     }
 
     public PluginManagementBlock pluginManagement() {
-        return new PluginManagementBlock();
+        return new PluginManagementBlock(this);
     }
 
     public BuildscriptBlock buildscript() {
-        return new BuildscriptBlock();
+        return new BuildscriptBlock(this);
     }
 
     public NamedBlock plugins() {
-        return new NamedBlock("plugins");
+        return new NamedBlock(this, "plugins");
     }
 
     /**
      * PluginManagement block with repositories, plugins, and resolutionStrategy children.
      */
-    public final class PluginManagementBlock extends NestedBlock {
-        private PluginManagementBlock() {
-            super(
-                    "pluginManagement",
-                    List.of(
-                            new NamedBlock("repositories"),
-                            new NamedBlock("plugins"),
-                            new NamedBlock("resolutionStrategy")));
+    public static final class PluginManagementBlock extends NamedBlock {
+        private PluginManagementBlock(SettingsGradleFile file) {
+            super(file, "pluginManagement");
+        }
+
+        @Override
+        protected java.util.List<String> childBlockNames() {
+            return java.util.List.of("repositories", "plugins", "resolutionStrategy");
         }
 
         public NamedBlock repositories() {
-            return nested("repositories");
+            return nested("repositories", this);
         }
 
         public NamedBlock plugins() {
-            return nested("plugins");
+            return nested("plugins", this);
         }
 
         public NamedBlock resolutionStrategy() {
-            return nested("resolutionStrategy");
+            return nested("resolutionStrategy", this);
         }
     }
 
     /**
      * Buildscript block with repositories, dependencies, and plugins children.
      */
-    public final class BuildscriptBlock extends NestedBlock {
-        private BuildscriptBlock() {
-            super(
-                    "buildscript",
-                    List.of(
-                            new NamedBlock("repositories"),
-                            new NamedBlock("dependencies"),
-                            new NamedBlock("plugins")));
+    public static final class BuildscriptBlock extends NamedBlock {
+        private BuildscriptBlock(SettingsGradleFile file) {
+            super(file, "buildscript");
+        }
+
+        @Override
+        protected java.util.List<String> childBlockNames() {
+            return java.util.List.of("repositories", "dependencies", "plugins");
         }
 
         public NamedBlock repositories() {
-            return nested("repositories");
+            return nested("repositories", this);
         }
 
         public NamedBlock dependencies() {
-            return nested("dependencies");
+            return nested("dependencies", this);
         }
 
         public NamedBlock plugins() {
-            return nested("plugins");
+            return nested("plugins", this);
         }
     }
 }

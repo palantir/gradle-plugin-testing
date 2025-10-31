@@ -18,8 +18,10 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import com.palantir.gradle.testing.files.gradle.blocks.BuildGradleTemplate;
+import com.palantir.gradle.testing.files.gradle.blocks.GradleFileTemplate;
+import com.palantir.gradle.testing.files.gradle.blocks.NamedBlock;
 import java.nio.file.Path;
-import java.util.List;
 
 public final class BuildGradleFile extends OrderedGradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
@@ -28,57 +30,97 @@ public final class BuildGradleFile extends OrderedGradleFile {
     }
 
     @Override
-    protected GradleFileTemplate template() {
+    protected GradleFileTemplate templateInternal() {
         return BuildGradleTemplate.INSTANCE;
     }
 
     public BuildscriptBlock buildscript() {
-        return new BuildscriptBlock();
+        return new BuildscriptBlock(this);
     }
 
     public NamedBlock plugins() {
-        return new NamedBlock("plugins");
+        return new NamedBlock(this, "plugins");
     }
 
     public NamedBlock repositories() {
-        return new NamedBlock("repositories");
+        return new NamedBlock(this, "repositories");
     }
 
     public NamedBlock dependencies() {
-        return new NamedBlock("dependencies");
+        return new NamedBlock(this, "dependencies");
     }
 
     public NamedBlock allprojects() {
-        return new NamedBlock("allprojects");
+        return new NamedBlock(this, "allprojects");
     }
 
     public NamedBlock subprojects() {
-        return new NamedBlock("subprojects");
+        return new NamedBlock(this, "subprojects");
+    }
+
+    public ConfigurationsBlock configurations() {
+        return new ConfigurationsBlock(this);
     }
 
     /**
      * Buildscript block with repositories, dependencies, and plugins children.
      */
-    public final class BuildscriptBlock extends NestedBlock {
-        private BuildscriptBlock() {
-            super(
-                    "buildscript",
-                    List.of(
-                            new NamedBlock("repositories"),
-                            new NamedBlock("dependencies"),
-                            new NamedBlock("plugins")));
+    public static final class BuildscriptBlock extends NamedBlock {
+        private BuildscriptBlock(BuildGradleFile file) {
+            super(file, "buildscript");
+        }
+
+        @Override
+        protected java.util.List<String> childBlockNames() {
+            return java.util.List.of("repositories", "dependencies", "plugins");
         }
 
         public NamedBlock repositories() {
-            return nested("repositories");
+            return nested("repositories", this);
         }
 
         public NamedBlock dependencies() {
-            return nested("dependencies");
+            return nested("dependencies", this);
         }
 
         public NamedBlock plugins() {
-            return nested("plugins");
+            return nested("plugins", this);
+        }
+    }
+
+    /**
+     * Configurations block with nested all() that can contain resolutionStrategy.
+     */
+    public static final class ConfigurationsBlock extends NamedBlock {
+        private ConfigurationsBlock(BuildGradleFile file) {
+            super(file, "configurations");
+        }
+
+        @Override
+        protected java.util.List<String> childBlockNames() {
+            return java.util.List.of("all");
+        }
+
+        public AllConfigurationBlock all() {
+            return new AllConfigurationBlock(this);
+        }
+    }
+
+    /**
+     * All configuration block within configurations that can contain resolutionStrategy.
+     */
+    public static final class AllConfigurationBlock extends NamedBlock {
+        private AllConfigurationBlock(ConfigurationsBlock parent) {
+            super(parent, "all");
+        }
+
+        @Override
+        protected java.util.List<String> childBlockNames() {
+            return java.util.List.of("resolutionStrategy");
+        }
+
+        public NamedBlock resolutionStrategy() {
+            return nested("resolutionStrategy", this);
         }
     }
 }

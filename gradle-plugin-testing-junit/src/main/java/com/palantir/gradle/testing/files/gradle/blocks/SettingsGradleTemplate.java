@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle;
+package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.collect.ImmutableList;
 import java.util.stream.Stream;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  * Template for settings.gradle files.
  * Defines canonical block ordering: pluginManagement, buildscript, plugins, then unstructured content.
  */
-enum SettingsGradleTemplate implements GradleFileTemplate {
+public enum SettingsGradleTemplate implements GradleFileTemplate {
     INSTANCE;
 
     private static final ImmutableList<String> BLOCK_NAMES =
