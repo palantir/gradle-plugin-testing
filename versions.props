@@ -1,8 +1,11 @@
 com.fasterxml.jackson.*:* = 2.20.0
 com.fasterxml.jackson.core:jackson-annotations = 2.20
 org.apache.commons:commons-lang3 = 3.19.0
+com.google.auto.service:* = 1.1.1
+com.google.errorprone:* = 2.42.0
 com.google.guava:guava = 33.5.0-jre
 com.palantir.baseline:gradle-baseline-java = 6.8.0
+com.palantir.suppressible-error-prone:* = 2.21.0
 org.assertj:* = 3.27.2
 org.junit.jupiter:* = 5.13.4
 commons-io:commons-io = 2.19.0
@@ -15,5 +18,4 @@ com.palantir.gradle.consistentversions:gradle-consistent-versions = 2.31.0
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2
-com.google.errorprone:error_prone_annotations = 2.11.0
 org.junit.platform:* = 1.13.4

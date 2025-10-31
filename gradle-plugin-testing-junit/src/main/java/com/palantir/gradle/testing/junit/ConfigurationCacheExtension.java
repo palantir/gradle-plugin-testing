@@ -28,6 +28,6 @@ final class ConfigurationCacheExtension implements BeforeAllCallback {
                 .orElseThrow(
                         () -> new RuntimeException("Not configured whether to run with configuration cache or not. "
                                 + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
-        ConfigurationCacheStore.setConfigurationCacheEnabled(context, configurationCacheEnabled);
+        ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
     }
 }

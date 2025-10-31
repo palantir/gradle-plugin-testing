@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.plugintesting;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
@@ -24,16 +26,12 @@ import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class PluginTestingJunitPluginTest {
+
     @BeforeEach
     void beforeEach(RootProject rootProject) {
         rootProject
                 .gradlePropertiesFile()
                 .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
-    }
-
-    @Test
-    void correct_versions_from_extension_are_used_by_junit_library(
-            GradleInvoker gradleInvoker, RootProject rootProject) {
 
         rootProject.buildGradle().append("""
             plugins {
@@ -59,6 +57,11 @@ class PluginTestingJunitPluginTest {
                 gradleVersions = ['7.6.5', '8.14.3']
             }
             """);
+    }
+
+    @Test
+    void correct_versions_from_extension_are_used_by_junit_library(
+            GradleInvoker gradleInvoker, RootProject rootProject) {
 
         rootProject.testSourceSet().java().writeClass("""
             package test;
@@ -95,5 +98,49 @@ class PluginTestingJunitPluginTest {
                 .file("gradle-plugin-testing/TestClass/testMethod/8.14.3/gradle-version")
                 .assertThat()
                 .hasContent("8.14.3");
+    }
+
+    @Test
+    void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().prepend("""
+            plugins {
+                id 'net.ltgt.errorprone'
+            }
+            """);
+
+        rootProject.buildGradle().append("""
+            dependencies {
+                errorprone 'com.google.errorprone:error_prone_core:2.42.0'
+            }
+
+            afterEvaluate {
+                tasks.withType(JavaCompile).configureEach {
+                    options.errorprone {
+                        // By default, suppressible-error-prone includes the build directory in the excluded paths,
+                        // meaning our test error-prone never runs
+                        // TODO(callumr): setup error-prone authoring plugin for suppressible-error-prone that disables this
+                        excludedPaths = ''
+                    }
+                }
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import java.nio.file.Files;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            class TestClass {
+                @Test
+                void test() throws Exception {
+                    Files.createTempDirectory("prefix");
+                }
+            }
+            """);
+
+        assertThat(gradle.withArgs("test").buildsWithFailure().output()).contains("[GradleTestTemporaryFile]");
     }
 }

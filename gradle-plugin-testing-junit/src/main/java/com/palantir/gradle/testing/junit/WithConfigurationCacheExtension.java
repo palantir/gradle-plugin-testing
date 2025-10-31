@@ -16,18 +16,20 @@
 
 package com.palantir.gradle.testing.junit;
 
-import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class WithConfigurationCacheExtension implements BeforeAllCallback {
+public final class WithConfigurationCacheExtension implements BeforeEachCallback {
 
     private static final Logger log = LoggerFactory.getLogger(WithConfigurationCacheExtension.class);
 
     @Override
-    public void beforeAll(ExtensionContext context) {
-        log.info("Forcing configuration cache when running GradlePluginTests.");
-        ConfigurationCacheStore.setConfigurationCacheEnabled(context, true);
+    public void beforeEach(ExtensionContext context) {
+        log.error("Forcing configuration cache when running GradlePluginTests.");
+        ConfigurationCacheStore.setConfigurationCache(context, true);
+
+        System.setProperty("com.palantir.gradle.testing.configuration_cache_enabled", "true");
     }
 }

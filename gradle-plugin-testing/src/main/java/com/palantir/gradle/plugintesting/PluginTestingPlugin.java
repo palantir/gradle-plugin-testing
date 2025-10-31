@@ -17,6 +17,7 @@ package com.palantir.gradle.plugintesting;
 
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
+import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorPronePlugin;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -64,6 +65,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
     private static void doApply(Project project) {
         PluginTestingExtension testUtilsExt = project.getExtensions().getByType(PluginTestingExtension.class);
 
+        setupErrorprones(project);
         addTestDependency(project);
 
         TaskProvider<TestDependencyVersionsTask> testDependencyVersions = project.getTasks()
@@ -120,6 +122,17 @@ public class PluginTestingPlugin implements Plugin<Project> {
         });
     }
 
+    private static void setupErrorprones(Project project) {
+        project.getPluginManager().withPlugin("net.ltgt.errorprone", _ignored -> {
+            project.getPluginManager().apply(SuppressibleErrorPronePlugin.class);
+
+            String errorProneJarCoordinate = coreMavenCoordinates("gradle-plugin-testing-error-prone") + ":"
+                    + jarImplementationVersionOrTestVersion(project);
+
+            project.getDependencies().add("errorprone", errorProneJarCoordinate);
+        });
+    }
+
     /**
      * Add test dependency on the utility jars to the project so that an explicit dependency statement isn't needed.
      * This is done by getting the Implementation-Version metainfo from the compiled jar when this plugin is used
@@ -134,10 +147,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
     private static void addTestDependency(Project project) {
         SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
         SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-        String version = Optional.ofNullable((String) project.findProperty(PLUGIN_VERSION_PROPERTY_NAME))
-                .or(() -> Optional.ofNullable(
-                        PluginTestingPlugin.class.getPackage().getImplementationVersion()))
-                .orElseThrow(() -> new RuntimeException("PluginTestingPlugin implementation version not found"));
+        String version = jarImplementationVersionOrTestVersion(project);
 
         String testImplConfigName = testSourceSet.getImplementationConfigurationName();
         project.getConfigurations().named(testImplConfigName).configure(conf -> {
@@ -151,5 +161,12 @@ public class PluginTestingPlugin implements Plugin<Project> {
                 CORE_MAVEN_NAMES.forEach(name -> task.ignore(MAVEN_GROUP, name));
             });
         });
+    }
+
+    private static String jarImplementationVersionOrTestVersion(Project project) {
+        return Optional.ofNullable((String) project.findProperty(PLUGIN_VERSION_PROPERTY_NAME))
+                .or(() -> Optional.ofNullable(
+                        PluginTestingPlugin.class.getPackage().getImplementationVersion()))
+                .orElseThrow(() -> new RuntimeException("PluginTestingPlugin implementation version not found"));
     }
 }

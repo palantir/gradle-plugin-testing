@@ -30,7 +30,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@WithConfigurationCache
 class ConfigurationCacheTests {
 
     @Test

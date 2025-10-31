@@ -50,6 +50,18 @@ class JavaSrcDirTest {
         }
 
         @Test
+        void writes_class_out_with_formatting() {
+            String javaSource = """
+                package %s;
+                class SomeClass {}
+                """;
+
+            javaSrcDir.writeClass(javaSource, "foo");
+
+            assertThat(srcDirPath.resolve("foo/SomeClass.java")).hasContent(javaSource.formatted("foo"));
+        }
+
+        @Test
         void writes_interface_out_to_correct_location() {
             String javaSource = """
                 package foo;
