@@ -20,6 +20,7 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.GradleFileTemplate;
 import com.palantir.gradle.testing.files.gradle.blocks.NamedBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.NestedBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.SettingsGradleTemplate;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -84,7 +85,7 @@ public final class SettingsGradleFile extends OrderedGradleFile {
     /**
      * PluginManagement block with repositories, plugins, and resolutionStrategy children.
      */
-    public static final class PluginManagementBlock extends NamedBlock {
+    public static final class PluginManagementBlock extends NestedBlock {
         private PluginManagementBlock(SettingsGradleFile file) {
             super(file, "pluginManagement");
         }
@@ -95,22 +96,22 @@ public final class SettingsGradleFile extends OrderedGradleFile {
         }
 
         public NamedBlock repositories() {
-            return nested("repositories", this);
+            return nested("repositories");
         }
 
         public NamedBlock plugins() {
-            return nested("plugins", this);
+            return nested("plugins");
         }
 
         public NamedBlock resolutionStrategy() {
-            return nested("resolutionStrategy", this);
+            return nested("resolutionStrategy");
         }
     }
 
     /**
      * Buildscript block with repositories, dependencies, and plugins children.
      */
-    public static final class BuildscriptBlock extends NamedBlock {
+    public static final class BuildscriptBlock extends NestedBlock {
         private BuildscriptBlock(SettingsGradleFile file) {
             super(file, "buildscript");
         }
@@ -121,15 +122,15 @@ public final class SettingsGradleFile extends OrderedGradleFile {
         }
 
         public NamedBlock repositories() {
-            return nested("repositories", this);
+            return nested("repositories");
         }
 
         public NamedBlock dependencies() {
-            return nested("dependencies", this);
+            return nested("dependencies");
         }
 
         public NamedBlock plugins() {
-            return nested("plugins", this);
+            return nested("plugins");
         }
     }
 }

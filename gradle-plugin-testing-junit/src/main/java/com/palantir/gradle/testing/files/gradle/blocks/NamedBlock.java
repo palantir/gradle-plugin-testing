@@ -20,22 +20,22 @@ import com.palantir.gradle.testing.files.ProjectFile;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import com.palantir.gradle.testing.files.gradle.OrderedGradleFile;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Named block that operates on a specific block within a Gradle file.
- * Can optionally have a parent block for nested structures.
+ * This is a leaf block that cannot have children.
+ * For blocks with children, use {@link NestedBlock}.
  */
 public class NamedBlock implements GradleFile {
     private final OrderedGradleFile file;
     protected final String blockName;
-    private final NamedBlock parent;
+    private final NestedBlock parent;
 
     public NamedBlock(OrderedGradleFile file, String blockName) {
         this(file, blockName, null);
     }
 
-    public NamedBlock(OrderedGradleFile file, String blockName, NamedBlock parent) {
+    NamedBlock(OrderedGradleFile file, String blockName, NestedBlock parent) {
         this.file = file;
         this.blockName = blockName;
         this.parent = parent;
@@ -44,8 +44,12 @@ public class NamedBlock implements GradleFile {
     /**
      * Constructor for nested blocks - inherits file from parent.
      */
-    public NamedBlock(NamedBlock parent, String blockName) {
-        this(parent.file, blockName, parent);
+    NamedBlock(NestedBlock parent, String blockName) {
+        this(parent.file(), blockName, parent);
+    }
+
+    final OrderedGradleFile file() {
+        return file;
     }
 
     @Override
@@ -119,23 +123,5 @@ public class NamedBlock implements GradleFile {
             }
             return content + "\n" + existing;
         });
-    }
-
-    /**
-     * Access a nested child block by name.
-     */
-    protected NamedBlock nested(String childName, NamedBlock parentBlock) {
-        return new NamedBlock(file, childName, parentBlock);
-    }
-
-    /**
-     * Define the canonical ordering of child blocks for this block.
-     * Must be overridden by subclasses that have nested children.
-     * Blocks without children should not be subclassed.
-     */
-    protected List<String> childBlockOrder() {
-        throw new UnsupportedOperationException(
-                "Block '%s' does not support nested blocks. Override childBlockOrder() if this block should have children."
-                        .formatted(blockName));
     }
 }

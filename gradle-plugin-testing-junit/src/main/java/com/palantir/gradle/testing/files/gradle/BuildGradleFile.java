@@ -21,6 +21,7 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.BuildGradleTemplate;
 import com.palantir.gradle.testing.files.gradle.blocks.GradleFileTemplate;
 import com.palantir.gradle.testing.files.gradle.blocks.NamedBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.NestedBlock;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public final class BuildGradleFile extends OrderedGradleFile {
     /**
      * Buildscript block with repositories, dependencies, and plugins children.
      */
-    public static final class BuildscriptBlock extends NamedBlock {
+    public static final class BuildscriptBlock extends NestedBlock {
         private BuildscriptBlock(BuildGradleFile file) {
             super(file, "buildscript");
         }
@@ -77,22 +78,22 @@ public final class BuildGradleFile extends OrderedGradleFile {
         }
 
         public NamedBlock repositories() {
-            return nested("repositories", this);
+            return nested("repositories");
         }
 
         public NamedBlock dependencies() {
-            return nested("dependencies", this);
+            return nested("dependencies");
         }
 
         public NamedBlock plugins() {
-            return nested("plugins", this);
+            return nested("plugins");
         }
     }
 
     /**
      * Configurations block with nested all() that can contain resolutionStrategy.
      */
-    public static final class ConfigurationsBlock extends NamedBlock {
+    public static final class ConfigurationsBlock extends NestedBlock {
         private ConfigurationsBlock(BuildGradleFile file) {
             super(file, "configurations");
         }
@@ -110,7 +111,7 @@ public final class BuildGradleFile extends OrderedGradleFile {
     /**
      * All configuration block within configurations that can contain resolutionStrategy.
      */
-    public static final class AllConfigurationBlock extends NamedBlock {
+    public static final class AllConfigurationBlock extends NestedBlock {
         private AllConfigurationBlock(ConfigurationsBlock parent) {
             super(parent, "all");
         }
@@ -121,7 +122,7 @@ public final class BuildGradleFile extends OrderedGradleFile {
         }
 
         public NamedBlock resolutionStrategy() {
-            return nested("resolutionStrategy", this);
+            return nested("resolutionStrategy");
         }
     }
 }
