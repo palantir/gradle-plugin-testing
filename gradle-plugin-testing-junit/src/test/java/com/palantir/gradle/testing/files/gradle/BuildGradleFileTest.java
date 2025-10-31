@@ -80,6 +80,7 @@ class BuildGradleFileTest {
                 id 'java'
                 id 'maven-publish'
             }
+
             repositories {
                 mavenCentral()
                 google()
@@ -113,6 +114,7 @@ class BuildGradleFileTest {
                 mavenCentral()
                 google()
             }
+
             dependencies {
                 testImplementation 'x:y:2'
             }
@@ -190,6 +192,7 @@ class BuildGradleFileTest {
             plugins {
                 id 'base'
             }
+
             repositories {
                 google()
                 mavenCentral()
@@ -200,6 +203,143 @@ class BuildGradleFileTest {
             }
 
             version = '1.0.0'
+            """);
+    }
+
+    @Test
+    void unrecognized_content_preserved(RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            // Custom configuration
+            version = '1.0.0'
+            group = 'com.example'
+            """);
+
+        rootProject.buildGradle().plugins().append("id 'java'");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            // Custom configuration
+            version = '1.0.0'
+            group = 'com.example'
+            """);
+    }
+
+    @Test
+    void comments_within_sections_preserved(RootProject rootProject) {
+        rootProject.buildGradle().plugins().append("""
+            // Application plugins
+            id 'java'
+            // Publishing
+            id 'maven-publish'
+            """);
+
+        rootProject.buildGradle().repositories().append("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                // Application plugins
+                id 'java'
+                // Publishing
+                id 'maven-publish'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+            """);
+    }
+
+    @Test
+    void comments_before_sections_become_unrecognized(RootProject rootProject) {
+        // Comments before section blocks are extracted as unrecognized content
+        // and moved to the end after all sections
+        rootProject.buildGradle().append("""
+            // Plugin configuration
+            plugins {
+                id 'java'
+            }
+
+            // Repository configuration
+            repositories {
+                mavenCentral()
+            }
+            """);
+
+        rootProject.buildGradle().dependencies().append("implementation 'junit:junit:4.13.2'");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation 'junit:junit:4.13.2'
+            }
+
+            // Plugin configuration
+            // Repository configuration
+            """);
+    }
+
+    @Test
+    void mixed_unrecognized_content_and_sections(RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            version = '1.0.0'
+
+            plugins {
+                id 'base'
+            }
+
+            description = 'My project'
+            """);
+
+        rootProject.buildGradle().repositories().append("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'base'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            version = '1.0.0'
+            description = 'My project'
+            """);
+    }
+
+    @Test
+    void tasks_block_preserved_as_unrecognized(RootProject rootProject) {
+        rootProject.buildGradle().plugins().append("id 'java'");
+
+        rootProject.buildGradle().append("""
+            tasks.named('test') {
+                useJUnitPlatform()
+            }
+            """);
+
+        rootProject.buildGradle().repositories().append("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            tasks.named('test') {
+                useJUnitPlatform()
+            }
             """);
     }
 }
