@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
+import java.util.List;
 
 public final class BuildGradleFile extends OrderedGradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
@@ -31,8 +32,8 @@ public final class BuildGradleFile extends OrderedGradleFile {
         return BuildGradleTemplate.INSTANCE;
     }
 
-    public NestedBlock buildscript() {
-        return new NestedBlock("buildscript");
+    public BuildscriptBlock buildscript() {
+        return new BuildscriptBlock();
     }
 
     public NamedBlock plugins() {
@@ -53,5 +54,31 @@ public final class BuildGradleFile extends OrderedGradleFile {
 
     public NamedBlock subprojects() {
         return new NamedBlock("subprojects");
+    }
+
+    /**
+     * Buildscript block with repositories, dependencies, and plugins children.
+     */
+    public final class BuildscriptBlock extends NestedBlock {
+        private BuildscriptBlock() {
+            super(
+                    "buildscript",
+                    List.of(
+                            new NamedBlock("repositories"),
+                            new NamedBlock("dependencies"),
+                            new NamedBlock("plugins")));
+        }
+
+        public NamedBlock repositories() {
+            return nested("repositories");
+        }
+
+        public NamedBlock dependencies() {
+            return nested("dependencies");
+        }
+
+        public NamedBlock plugins() {
+            return nested("plugins");
+        }
     }
 }

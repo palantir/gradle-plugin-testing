@@ -119,42 +119,59 @@ public abstract class OrderedGradleFile implements GradleFile {
     }
 
     /**
-     * Nested block that can contain child blocks (repositories, dependencies, plugins).
+     * Nested block that can contain child blocks.
+     * Children are defined as a list and determine both the available nested blocks and their rendering order.
      */
     public class NestedBlock extends NamedBlock {
-        protected NestedBlock(String blockName) {
+        protected final java.util.List<NamedBlock> children;
+        private final java.util.Map<String, NamedBlock> childrenByName;
+
+        protected NestedBlock(String blockName, java.util.List<NamedBlock> children) {
             super(blockName);
+            this.children = children;
+            this.childrenByName = children.stream()
+                    .collect(java.util.stream.Collectors.toMap(child -> child.blockName, child -> child, (a, b) -> {
+                        throw new IllegalStateException("Duplicate child block name: " + a.blockName);
+                    }));
         }
 
-        public NamedBlock repositories() {
-            return new NestedChildBlock(blockName, "repositories");
-        }
-
-        public NamedBlock dependencies() {
-            return new NestedChildBlock(blockName, "dependencies");
-        }
-
-        public NamedBlock plugins() {
-            return new NestedChildBlock(blockName, "plugins");
+        /**
+         * Get a nested child block by name.
+         */
+        protected NamedBlock nested(String childName) {
+            NamedBlock childDef = childrenByName.get(childName);
+            if (childDef == null) {
+                throw new IllegalStateException(
+                        "Child block '%s' not found in nested block '%s'. Available children: %s"
+                                .formatted(childName, blockName, childrenByName.keySet()));
+            }
+            return new NestedChildBlock(blockName, childDef);
         }
     }
 
     /**
      * Child block nested within a parent block (e.g., repositories within buildscript).
+     * Handles recursive nesting by tracking the child definition which may itself be a NestedBlock.
      */
     private final class NestedChildBlock extends NamedBlock {
         private final String parentBlockName;
+        private final NamedBlock childDefinition;
 
-        private NestedChildBlock(String parentBlockName, String childBlockName) {
-            super(childBlockName);
+        private NestedChildBlock(String parentBlockName, NamedBlock childDefinition) {
+            super(childDefinition.blockName);
             this.parentBlockName = parentBlockName;
+            this.childDefinition = childDefinition;
         }
 
         @Override
         public String text() {
             GradleFileState parentState = parseState();
             String parentContent = parentState.getBlock(parentBlockName);
-            GradleFileState childState = NestedGradleTemplate.INSTANCE.parse(parentContent);
+
+            // Parse parent using its children structure
+            NestedBlock parentBlock = findParentBlock(parentBlockName);
+            GradleFileState childState = parseWithChildren(parentContent, parentBlock.children);
+
             return childState.getBlock(blockName);
         }
 
@@ -162,17 +179,67 @@ public abstract class OrderedGradleFile implements GradleFile {
         public NamedBlock edit(ProjectFile.FileEditor editor) {
             GradleFileState parentState = parseState();
             String parentContent = parentState.getBlock(parentBlockName);
-            GradleFileState childState = NestedGradleTemplate.INSTANCE.parse(parentContent);
+
+            // Parse parent using its children structure
+            NestedBlock parentBlock = findParentBlock(parentBlockName);
+            GradleFileState childState = parseWithChildren(parentContent, parentBlock.children);
 
             String currentContent = childState.getBlock(blockName);
             String newContent = editor.edit(currentContent);
             GradleFileState newChildState = childState.withBlock(blockName, newContent);
 
-            String newParentContent = NestedGradleTemplate.INSTANCE.render(newChildState);
+            String newParentContent = renderWithChildren(newChildState, parentBlock.children);
             GradleFileState newParentState = parentState.withBlock(parentBlockName, newParentContent);
 
             OrderedGradleFile.this.overwrite(template().render(newParentState));
             return this;
+        }
+
+        /**
+         * If this child is itself a NestedBlock, provide access to its children.
+         */
+        protected NamedBlock nested(String grandchildName) {
+            if (!(childDefinition instanceof NestedBlock nestedChild)) {
+                throw new IllegalStateException("Cannot access nested block '%s' on non-nested block '%s'"
+                        .formatted(grandchildName, blockName));
+            }
+            return nestedChild.nested(grandchildName);
+        }
+
+        private NestedBlock findParentBlock(String parentName) {
+            // This is a bit hacky - we need to find the parent NestedBlock definition
+            // For now, use NestedGradleTemplate as fallback
+            // TODO: Could be improved by passing parent definition through constructor
+            return new NestedBlock(
+                    parentName,
+                    java.util.List.of(
+                            new NamedBlock("repositories"), new NamedBlock("dependencies"), new NamedBlock("plugins")));
+        }
+
+        private GradleFileState parseWithChildren(String content, java.util.List<NamedBlock> children) {
+            java.util.List<String> childNames =
+                    children.stream().map(child -> child.blockName).collect(java.util.stream.Collectors.toList());
+            return template().parseBlocks(content, childNames);
+        }
+
+        private String renderWithChildren(GradleFileState state, java.util.List<NamedBlock> children) {
+            StringBuilder result = new StringBuilder();
+            for (NamedBlock child : children) {
+                String blockContent = state.getBlock(child.blockName);
+                if (!blockContent.isEmpty()) {
+                    if (!result.isEmpty()) {
+                        result.append("\n\n");
+                    }
+                    result.append(template().formatBlock(child.blockName, blockContent));
+                }
+            }
+            if (!state.unstructuredContent().isEmpty()) {
+                if (!result.isEmpty()) {
+                    result.append("\n\n");
+                }
+                result.append(state.unstructuredContent());
+            }
+            return result.toString();
         }
     }
 }
