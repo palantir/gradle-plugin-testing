@@ -34,6 +34,7 @@ final class ProjectDirsAreMadeCorrectlyInBuildDirTest {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(ProjectDirsAreMadeCorrectlyInBuildDirFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "true")
                 .execute();
 
         executionResults.testEvents().finished().assertThatEvents().allSatisfy(event -> {
