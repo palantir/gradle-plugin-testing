@@ -149,12 +149,13 @@ public final class GradleContentBuilder {
         // Append unrecognized content
         if (!unrecognizedContent.isEmpty()) {
             if (!sectionsText.isEmpty()) {
-                return sectionsText + separator + unrecognizedContent;
+                String result = sectionsText + separator + unrecognizedContent;
+                return isTopLevel && !result.endsWith("\n") ? result + "\n" : result;
             }
-            return unrecognizedContent;
+            return isTopLevel && !unrecognizedContent.endsWith("\n") ? unrecognizedContent + "\n" : unrecognizedContent;
         }
 
-        return sectionsText;
+        return isTopLevel && !sectionsText.isEmpty() && !sectionsText.endsWith("\n") ? sectionsText + "\n" : sectionsText;
     }
 
     /**

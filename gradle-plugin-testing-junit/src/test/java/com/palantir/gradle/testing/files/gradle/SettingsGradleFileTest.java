@@ -151,9 +151,9 @@ class SettingsGradleFileTest {
                 id 'settings-plugin'
             }
 
-            rootProject.name = 'my-app'
             include 'module1'
             include 'module2'
+            rootProject.name = 'my-app'
             """);
     }
 
@@ -231,62 +231,62 @@ class SettingsGradleFileTest {
             """);
     }
 
-    //    @Test
-    //    void rootProjectName_replacement() {
-    //        settingsGradleFile.rootProjectName("first-name");
-    //        settingsGradleFile.plugins().append("id 'base'");
-    //        settingsGradleFile.rootProjectName("second-name");
-    //
-    //        settingsGradleFile.assertThat().hasContent("""
-    //            plugins {
-    //                id 'base'
-    //            }
-    //
-    //            rootProject.name = 'second-name'
-    //            """);
-    //        settingsGradleFile.assertThat().content().doesNotContain("first-name");
-    //    }
+    @Test
+    void rootProjectName_replacement() {
+        settingsGradleFile.rootProjectName("first-name");
+        settingsGradleFile.plugins().append("id 'base'");
+        settingsGradleFile.rootProjectName("second-name");
 
-    //    @Test
-    //    void editing_existing_file_with_structured_sections() {
-    //        settingsGradleFile.append("""
-    //            pluginManagement {
-    //                repositories {
-    //                    gradlePluginPortal()
-    //                }
-    //            }
-    //
-    //            plugins {
-    //                id 'base'
-    //            }
-    //
-    //            rootProject.name = 'existing'
-    //            """);
-    //
-    //        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
-    //        settingsGradleFile.buildscript().repositories().append("google()");
-    //        settingsGradleFile.include("new-module");
-    //
-    //        settingsGradleFile.assertThat().hasContent("""
-    //            pluginManagement {
-    //                repositories {
-    //                    gradlePluginPortal()
-    //                    mavenCentral()
-    //                }
-    //            }
-    //
-    //            buildscript {
-    //                repositories {
-    //                    google()
-    //                }
-    //            }
-    //
-    //            plugins {
-    //                id 'base'
-    //            }
-    //
-    //            rootProject.name = 'existing'
-    //            include 'new-module'
-    //            """);
-    //    }
+        settingsGradleFile.assertThat().hasContent("""
+            plugins {
+                id 'base'
+            }
+
+            rootProject.name = 'second-name'
+            """);
+        settingsGradleFile.assertThat().content().doesNotContain("first-name");
+    }
+
+    @Test
+    void editing_existing_file_with_structured_sections() {
+        settingsGradleFile.append("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                }
+            }
+
+            plugins {
+                id 'base'
+            }
+
+            rootProject.name = 'existing'
+            """);
+
+        settingsGradleFile.pluginManagement().repositories().append("mavenCentral()");
+        settingsGradleFile.buildscript().repositories().append("google()");
+        settingsGradleFile.include("new-module");
+
+        settingsGradleFile.assertThat().hasContent("""
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    mavenCentral()
+                }
+            }
+
+            buildscript {
+                repositories {
+                    google()
+                }
+            }
+
+            plugins {
+                id 'base'
+            }
+
+            rootProject.name = 'existing'
+            include 'new-module'
+            """);
+    }
 }
