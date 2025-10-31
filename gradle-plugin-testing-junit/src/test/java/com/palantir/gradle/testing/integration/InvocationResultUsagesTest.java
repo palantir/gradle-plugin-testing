@@ -85,8 +85,8 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":sub:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.path()).isEqualTo(":sub:foo");
+        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
+            assertThat(taskResult.path()).isEqualTo(":subProject:foo");
         });
     }
 
@@ -101,7 +101,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":sub:foo").outcome().isEqualTo(TaskOutcome.SUCCESS);
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.SUCCESS);
     }
 
     @Test
@@ -116,7 +116,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
-        result.assertThat().task(":sub:foo").outcome().isEqualTo(TaskOutcome.FAILED);
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.FAILED);
     }
 
     @Test
@@ -129,7 +129,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":sub:foo").outcome().isEqualTo(TaskOutcome.UP_TO_DATE);
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.UP_TO_DATE);
     }
 
     @Test
@@ -142,7 +142,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":sub:foo").outcome().isEqualTo(TaskOutcome.SKIPPED);
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.SKIPPED);
     }
 
     @Test
@@ -153,6 +153,6 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        result.assertThat().task(":sub:foo").outcome().isEqualTo(TaskOutcome.NO_SOURCE);
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.NO_SOURCE);
     }
 }

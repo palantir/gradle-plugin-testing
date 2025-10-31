@@ -16,19 +16,34 @@
 
 package com.palantir.gradle.testing.files.java;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.PrintFormat;
 
 public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public JavaFile {}
 
     @Override
+    @FormatMethod
+    public JavaFile overwrite(@Language("Java") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.overwrite(text, args);
+    }
+
+    @Override
     public JavaFile overwrite(@Language("Java") String text) {
         return ProjectFile.super.overwrite(text);
+    }
+
+    @Override
+    @FormatMethod
+    public JavaFile append(@Language("Java") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.append(text, args);
     }
 
     @Override
@@ -37,13 +52,31 @@ public record JavaFile(Path path) implements ProjectFile<JavaFile> {
     }
 
     @Override
+    @FormatMethod
+    public JavaFile appendLine(@Language("Java") @PrintFormat @FormatString String line, Object... args) {
+        return ProjectFile.super.appendLine(line, args);
+    }
+
+    @Override
     public JavaFile appendLine(@Language("Java") String line) {
         return ProjectFile.super.appendLine(line);
     }
 
     @Override
+    @FormatMethod
+    public JavaFile prepend(@Language("Java") @PrintFormat @FormatString String text, Object... args) {
+        return ProjectFile.super.prepend(text, args);
+    }
+
+    @Override
     public JavaFile prepend(@Language("Java") String text) {
         return ProjectFile.super.prepend(text);
+    }
+
+    @Override
+    @FormatMethod
+    public JavaFile prependLine(@Language("Java") @PrintFormat @FormatString String line, Object... args) {
+        return ProjectFile.super.prependLine(line, args);
     }
 
     @Override

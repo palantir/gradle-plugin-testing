@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.execution;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import org.gradle.testkit.runner.GradleRunner;
 
@@ -34,10 +35,21 @@ public final class GradleInvoker {
     public GradleInvocation withArgs(String... args) {
         return new GradleInvocation(GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
-                .withDebug(false)
+                .withDebug(isJavaDebugAgentLoaded())
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
                 .withArguments(args));
+    }
+
+    private static boolean isJavaDebugAgentLoaded() {
+        // When you run a test with debug in intellij, it passes an arg to the test process like:
+        //   -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=127.0.0.1:54342
+        // We can use this to detect whether we should run with Gradle tooling `.withDebug` or not,
+        // `withDebug(true)` will run the Gradle tooling inside the same JVM as the test, meaning
+        // debugging works, whereas `withDebug(false)` will run Gradle in a new daemon. There can be
+        // differences between these two modes!
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .anyMatch(s -> s.contains("-agentlib:jdwp"));
     }
 }

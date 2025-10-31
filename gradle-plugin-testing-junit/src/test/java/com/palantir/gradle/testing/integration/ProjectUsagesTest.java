@@ -22,6 +22,8 @@ import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
@@ -38,37 +40,40 @@ class ProjectUsagesTest {
     }
 
     @Test
-    void root_project_parameter_with_custom_name_ending_in_project(GradleInvoker gradle, RootProject serviceProject) {
+    void root_project_parameter_with_different_name_still_gets_named_root(
+            GradleInvoker gradle, RootProject serviceProject) {
         serviceProject.buildGradle().append("""
             println "hello from ${path}"
             println "project name: ${name}"
             """);
 
         gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :");
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("project name: service");
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("project name: root");
     }
 
     @Test
-    void root_project_parameter_with_custom_name_not_ending_in_project(GradleInvoker gradle, RootProject service) {
-        service.buildGradle().append("""
+    void root_project_can_be_renamed_explicitly(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.settingsGradle().rootProjectName("custom-service");
+        rootProject.buildGradle().append("""
             println "hello from ${path}"
             println "project name: ${name}"
             """);
 
         gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :");
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("project name: service");
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("project name: custom-service");
     }
 
     @Test
-    void sub_project_parameter_ending_in_project(GradleInvoker gradle, SubProject assetProject) {
+    void sub_project_uses_exact_parameter_name(GradleInvoker gradle, SubProject assetProject) {
         assetProject.buildGradle().append("""
             println "hello from ${path}"
             """);
 
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :asset");
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :assetProject");
     }
 
-    void sub_project_parameter_ending_not_ending_in_project(GradleInvoker gradle, SubProject service) {
+    @Test
+    void sub_project_parameter_not_ending_in_project(GradleInvoker gradle, SubProject service) {
         service.buildGradle().append("""
             println "hello from ${path}"
             """);
@@ -95,7 +100,11 @@ class ProjectUsagesTest {
             println "hello from ${path}"
             """);
 
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :service:under-service");
+        gradle.withArgs()
+                .buildsSuccessfully()
+                .assertThat()
+                .output()
+                .contains("hello from :serviceProject:under-service");
     }
 
     @Test
@@ -111,5 +120,23 @@ class ProjectUsagesTest {
             """);
 
         gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :subproject");
+    }
+
+    @Nested
+    class RootProjectNamePersistence {
+        @BeforeEach
+        void beforeEach(RootProject rootProject) {
+            rootProject.settingsGradle().rootProjectName("something-else");
+        }
+
+        @Test
+        void root_project_name_should_not_be_reset_to_root_in_test_method(
+                GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                println "project name: ${name}"
+                """);
+
+            gradle.withArgs().buildsSuccessfully().assertThat().output().contains("project name: something-else");
+        }
     }
 }
