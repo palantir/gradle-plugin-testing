@@ -19,13 +19,6 @@ package com.palantir.gradle.testing.execution;
 import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 
 public final class UnexpectedInvocationSuccess extends UnexpectedInvocationResult {
-    public UnexpectedInvocationSuccess(String message, UnexpectedBuildSuccess unexpectedBuildSuccess) {
-        super(message, new InvocationResult(unexpectedBuildSuccess.getBuildResult()));
-    }
-
-    public UnexpectedInvocationSuccess(String message, InvocationResult invocationResult) {
-        super(message, invocationResult);
-    }
 
     public UnexpectedInvocationSuccess(UnexpectedBuildSuccess unexpectedBuildSuccess) {
         super(unexpectedBuildSuccess.getMessage(), new InvocationResult(unexpectedBuildSuccess.getBuildResult()));

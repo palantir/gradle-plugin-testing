@@ -17,9 +17,14 @@
 package com.palantir.gradle.testing.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 
 public record ConfigurationCacheInvoker(Path projectDir, GradleInvoker gradleInvoker) implements GradleInvoker {
+
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public ConfigurationCacheInvoker {}
 
     @Override
     public GradleInvocation withArgs(String... args) {

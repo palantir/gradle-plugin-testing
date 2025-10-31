@@ -24,9 +24,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Annotation that can be used alongside {@link GradlePluginTests} to disable configuration cache testing.
- * When applied, all Gradle tasks executed via {@link com.palantir.gradle.testing.execution.GradleInvoker} will run without
- * the "--configuration-cache" flag. This is useful for tests that are incompatible with the configuration cache.
- * This annotation can be applied to a class or to individual test methods.
+ * When applied, all Gradle tasks executed via {@link com.palantir.gradle.testing.execution.GradleInvoker} will run the
+ * {@link com.palantir.gradle.testing.execution.DefaultGradleInvoker}. This is useful for tests that are incompatible
+ * with the configuration cache. This annotation can be applied to a class or to individual test methods.
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

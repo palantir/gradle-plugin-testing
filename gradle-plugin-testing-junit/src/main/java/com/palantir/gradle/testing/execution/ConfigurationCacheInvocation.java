@@ -19,13 +19,8 @@ package com.palantir.gradle.testing.execution;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class ConfigurationCacheInvocation implements GradleInvocation {
-
-    private static final Logger log = LoggerFactory.getLogger(ConfigurationCacheInvocation.class);
-
     private final Path projectDir;
     private final GradleInvocation initialGradleInvocation;
     private final GradleInvocation secondGradleInvocation;

@@ -107,6 +107,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
                             String.join(",", testUtilsExt.getGradleVersions().get());
                     test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
 
+                    // add system property for whether to use configuration-cache by default in tests
                     test.systemProperty(
                             ConfigurationCacheHelper.CONFIG_CACHE_SYSTEM_PROPERTY,
                             testUtilsExt.getIsConfigurationCacheEnabled().get());

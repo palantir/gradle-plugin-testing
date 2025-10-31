@@ -41,8 +41,9 @@ public final class ConfigurationCacheParameterExtension implements BeforeAllCall
                         "com.palantir.gradle.testing.configuration_cache_enabled")
                 .map(Boolean::parseBoolean)
                 .orElseThrow(() -> new RuntimeException(
-                        "Not configured to run with configuration cache in the gradle plugin test. "
-                                + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
+                        "Could not configure whether to run the tests with configuration-cache.Have you"
+                                + " applied the latest `com.palantir.gradle-plugin-testing` plugin to this"
+                                + " project?"));
         ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
     }
 }
