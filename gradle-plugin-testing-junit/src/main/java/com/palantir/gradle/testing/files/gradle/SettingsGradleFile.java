@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.sections.BuildScriptSection;
@@ -24,7 +23,6 @@ import com.palantir.gradle.testing.files.gradle.sections.GradleSection;
 import com.palantir.gradle.testing.files.gradle.sections.PluginManagementSection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 
 public record SettingsGradleFile(Path path) implements GradleFile {
@@ -32,14 +30,22 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     public SettingsGradleFile {}
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        edit(text -> {
-            return Splitter.on('\n')
-                    .splitToStream(text)
-                    .filter(line -> !line.startsWith("rootProject.name"))
-                    .collect(Collectors.joining("\n"));
-        });
+        String rootProjectNameLine = "rootProject.name = '%s'".formatted(rootProjectName);
 
-        prependLine("rootProject.name = '%s'".formatted(rootProjectName));
+        edit(text -> {
+            long count = text.lines()
+                    .filter(line -> line.matches("rootProject\\.name[^\\n]*"))
+                    .count();
+
+            if (count > 1) {
+                throw new IllegalStateException("Found multiple rootProject.name assignments in settings.gradle. "
+                        + "Please remove the duplicate assignments and use the rootProjectName() method instead.");
+            }
+
+            return text.contains("rootProject.name")
+                    ? text.replaceFirst("rootProject\\.name[^\\n]*", rootProjectNameLine)
+                    : text + rootProjectNameLine + "\n";
+        });
 
         return this;
     }
