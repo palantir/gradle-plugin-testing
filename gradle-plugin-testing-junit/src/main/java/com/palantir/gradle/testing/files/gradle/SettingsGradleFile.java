@@ -18,21 +18,26 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
-import com.palantir.gradle.testing.files.gradle.sections.BuildScriptSection;
-import com.palantir.gradle.testing.files.gradle.sections.GradleSection;
-import com.palantir.gradle.testing.files.gradle.sections.PluginManagementSection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.intellij.lang.annotations.Language;
 
-public record SettingsGradleFile(Path path) implements GradleFile {
+public final class SettingsGradleFile extends OrderedGradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public SettingsGradleFile {}
+    public SettingsGradleFile(Path path) {
+        super(path);
+    }
+
+    @Override
+    protected GradleFileTemplate template() {
+        return SettingsGradleTemplate.INSTANCE;
+    }
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
         String rootProjectNameLine = "rootProject.name = '%s'".formatted(rootProjectName);
 
-        edit(text -> {
+        // Bypass template system to preserve exact formatting
+        editWithoutTemplate(text -> {
             long count = text.lines()
                     .filter(line -> line.matches("rootProject\\.name[^\\n]*"))
                     .count();
@@ -50,11 +55,24 @@ public record SettingsGradleFile(Path path) implements GradleFile {
         return this;
     }
 
+    private void editWithoutTemplate(com.palantir.gradle.testing.files.ProjectFile.FileEditor editor) {
+        String text = Files.exists(path()) ? text() : "";
+        String newContent = editor.edit(text);
+        try {
+            Files.createDirectories(path().getParent());
+            Files.writeString(
+                    path(), newContent, java.nio.charset.StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
     public SettingsGradleFile include(String projectPath) {
         @Language("Gradle")
         String includeLine = "include '%s'".formatted(projectPath);
 
-        if (Files.exists(path) && text().contains(includeLine)) {
+        if (Files.exists(path()) && text().contains(includeLine)) {
             return this;
         }
 
@@ -62,15 +80,15 @@ public record SettingsGradleFile(Path path) implements GradleFile {
         return this;
     }
 
-    public PluginManagementSection pluginManagement() {
-        return new PluginManagementSection(this);
+    public NestedBlock pluginManagement() {
+        return new NestedBlock("pluginManagement");
     }
 
-    public BuildScriptSection<SettingsGradleFile> buildscript() {
-        return new BuildScriptSection<>(this);
+    public NestedBlock buildscript() {
+        return new NestedBlock("buildscript");
     }
 
-    public GradleSection<SettingsGradleFile> plugins() {
-        return new GradleSection<>(this, "plugins");
+    public NamedBlock plugins() {
+        return new NamedBlock("plugins");
     }
 }

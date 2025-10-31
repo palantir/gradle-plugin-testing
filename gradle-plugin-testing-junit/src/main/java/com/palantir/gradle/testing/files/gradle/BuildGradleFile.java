@@ -18,35 +18,40 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
-import com.palantir.gradle.testing.files.gradle.sections.BuildScriptSection;
-import com.palantir.gradle.testing.files.gradle.sections.GradleSection;
 import java.nio.file.Path;
 
-public record BuildGradleFile(Path path) implements GradleFile {
+public final class BuildGradleFile extends OrderedGradleFile {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public BuildGradleFile {}
-
-    public BuildScriptSection<BuildGradleFile> buildscript() {
-        return new BuildScriptSection<>(this);
+    public BuildGradleFile(Path path) {
+        super(path);
     }
 
-    public GradleSection<BuildGradleFile> plugins() {
-        return new GradleSection<>(this, "plugins");
+    @Override
+    protected GradleFileTemplate template() {
+        return BuildGradleTemplate.INSTANCE;
     }
 
-    public GradleSection<BuildGradleFile> repositories() {
-        return new GradleSection<>(this, "repositories");
+    public NestedBlock buildscript() {
+        return new NestedBlock("buildscript");
     }
 
-    public GradleSection<BuildGradleFile> dependencies() {
-        return new GradleSection<>(this, "dependencies");
+    public NamedBlock plugins() {
+        return new NamedBlock("plugins");
     }
 
-    public GradleSection<BuildGradleFile> allprojects() {
-        return new GradleSection<>(this, "allprojects");
+    public NamedBlock repositories() {
+        return new NamedBlock("repositories");
     }
 
-    public GradleSection<BuildGradleFile> subprojects() {
-        return new GradleSection<>(this, "subprojects");
+    public NamedBlock dependencies() {
+        return new NamedBlock("dependencies");
+    }
+
+    public NamedBlock allprojects() {
+        return new NamedBlock("allprojects");
+    }
+
+    public NamedBlock subprojects() {
+        return new NamedBlock("subprojects");
     }
 }
