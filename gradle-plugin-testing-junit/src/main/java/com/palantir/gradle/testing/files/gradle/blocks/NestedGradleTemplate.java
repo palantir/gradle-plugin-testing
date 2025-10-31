@@ -18,37 +18,13 @@ package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Template for nested blocks within Gradle files (e.g., buildscript, configurations.all).
  * Unlike top-level templates, nested templates work with a specific set of child block names.
  */
-public final class NestedGradleTemplate implements GradleFileTemplate {
-    private final ImmutableList<String> blockNames;
-
+public record NestedGradleTemplate(ImmutableList<String> blockNames) implements GradleFileTemplate {
     NestedGradleTemplate(List<String> blockNames) {
-        this.blockNames = ImmutableList.copyOf(blockNames);
-    }
-
-    @Override
-    public String render(GradleFileState state) {
-        String sections = Stream.concat(
-                        blockNames.stream().map(blockName -> renderBlock(blockName, state)),
-                        Stream.of(state.unstructuredContent()))
-                .filter(s -> !s.isEmpty())
-                .collect(java.util.stream.Collectors.joining("\n\n"));
-
-        return sections.isEmpty() || sections.endsWith("\n") ? sections : sections + "\n";
-    }
-
-    @Override
-    public GradleFileState parse(String content) {
-        return parseBlocks(content, blockNames);
-    }
-
-    @Override
-    public ImmutableList<String> blockNames() {
-        return blockNames;
+        this(ImmutableList.copyOf(blockNames));
     }
 }

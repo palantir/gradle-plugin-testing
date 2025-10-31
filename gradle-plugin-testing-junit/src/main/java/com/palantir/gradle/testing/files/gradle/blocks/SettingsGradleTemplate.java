@@ -17,7 +17,6 @@
 package com.palantir.gradle.testing.files.gradle.blocks;
 
 import com.google.common.collect.ImmutableList;
-import java.util.stream.Stream;
 
 /**
  * Template for settings.gradle files.
@@ -28,22 +27,6 @@ public enum SettingsGradleTemplate implements GradleFileTemplate {
 
     private static final ImmutableList<String> BLOCK_NAMES =
             ImmutableList.of("pluginManagement", "buildscript", "plugins");
-
-    @Override
-    public String render(GradleFileState state) {
-        String sections = Stream.concat(
-                        BLOCK_NAMES.stream().map(blockName -> renderBlock(blockName, state)),
-                        Stream.of(state.unstructuredContent()))
-                .filter(s -> !s.isEmpty())
-                .collect(java.util.stream.Collectors.joining("\n\n"));
-
-        return sections.isEmpty() || sections.endsWith("\n") ? sections : sections + "\n";
-    }
-
-    @Override
-    public GradleFileState parse(String content) {
-        return parseBlocks(content, BLOCK_NAMES);
-    }
 
     @Override
     public ImmutableList<String> blockNames() {

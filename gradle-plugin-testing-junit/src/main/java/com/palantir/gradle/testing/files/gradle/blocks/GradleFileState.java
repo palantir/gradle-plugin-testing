@@ -52,15 +52,7 @@ public record GradleFileState(ImmutableMap<String, String> namedBlocks, String u
                 unstructuredContent);
     }
 
-    GradleFileState withUnstructuredContent(String content) {
-        return new GradleFileState(namedBlocks, content);
-    }
-
     Optional<String> getNamedBlock(String blockName) {
         return Optional.ofNullable(namedBlocks.get(blockName)).filter(s -> !s.isEmpty());
-    }
-
-    boolean hasBlock(String blockName) {
-        return namedBlocks.containsKey(blockName) && !namedBlocks.get(blockName).isEmpty();
     }
 }

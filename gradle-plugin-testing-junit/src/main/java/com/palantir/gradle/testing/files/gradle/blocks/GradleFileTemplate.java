@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Template for parsing and rendering Gradle files with structured blocks.
@@ -32,12 +33,22 @@ public interface GradleFileTemplate {
     /**
      * Render state to Gradle file content.
      */
-    String render(GradleFileState state);
+    default String render(GradleFileState state) {
+        String sections = Stream.concat(
+                        blockNames().stream().map(blockName -> renderBlock(blockName, state)),
+                        Stream.of(state.unstructuredContent()))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining("\n\n"));
+
+        return sections.isEmpty() || sections.endsWith("\n") ? sections : sections + "\n";
+    }
 
     /**
      * Parse Gradle file content into state.
      */
-    GradleFileState parse(String content);
+    default GradleFileState parse(String content) {
+        return parseBlocks(content, blockNames());
+    }
 
     /**
      * Get the canonical ordering of named blocks.
