@@ -22,15 +22,27 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.intellij.lang.annotations.Language;
 
 /**
  * Base class for all block implementations that represent a specific block within a GradleFile.
  * Blocks are themselves GradleFiles, allowing natural chaining like:
  * buildGradle.buildscript().repositories().append("mavenCentral()")
+ *
+ * <p>This class is designed for extension. Subclasses should use the protected {@link #root} and
+ * {@link #blockPath} fields to navigate to nested blocks.
  */
 public class GradleBlock implements GradleFile {
-    protected final StructuredGradleFile root;
-    protected final String[] blockPath;
+    private final StructuredGradleFile root;
+    private final String[] blockPath;
+
+    protected final StructuredGradleFile getRoot() {
+        return root;
+    }
+
+    protected final String[] getBlockPath() {
+        return blockPath;
+    }
 
     public GradleBlock(StructuredGradleFile root, String... path) {
         this.root = root;
@@ -38,53 +50,49 @@ public class GradleBlock implements GradleFile {
     }
 
     @Override
-    public Path path() {
+    public final Path path() {
         return root.path();
     }
 
     @Override
-    public String text() {
+    public final String text() {
         ParsedContent parsed = root.parseContent(root.text());
 
-        Map<String, Block> blockMap =
-                root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
+        Map<String, Block> blockMap = root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
 
         Block block = parsed.getBlockAt(blockMap, blockPath);
         return block.render();
     }
 
     @Override
-    public GradleBlock edit(FileEditor editor) {
+    public final GradleBlock edit(FileEditor editor) {
         ParsedContent parsed = root.parseContent(root.text());
 
-        Map<String, Block> blockMap =
-                root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
+        Map<String, Block> blockMap = root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
 
         Block block = parsed.getBlockAt(blockMap, blockPath);
         Block updated = block.edit(editor::edit);
         ParsedContent withUpdate = parsed.withBlockAt(blockMap, blockPath, updated);
 
+        @Language("Gradle")
         String rendered = root.renderContent(withUpdate);
         root.overwrite(rendered);
         return this;
     }
 
     @Override
-    public GradleBlock append(String text) {
-        return edit(existing -> existing.isEmpty()
-                ? text
-                : Stream.of(existing, text).collect(Collectors.joining("\n")));
+    public final GradleBlock append(String text) {
+        return edit(existing -> existing.isEmpty() ? text : String.join("\n", existing, text));
     }
 
     @Override
-    public GradleBlock prepend(String text) {
-        return edit(existing -> existing.isEmpty()
-                ? text
-                : text.endsWith("\n") ? text + existing : text + "\n" + existing);
+    public final GradleBlock prepend(String text) {
+        return edit(
+                existing -> existing.isEmpty() ? text : text.endsWith("\n") ? text + existing : text + "\n" + existing);
     }
 
     @Override
-    public GradleBlock overwrite(String text) {
+    public final GradleBlock overwrite(String text) {
         return edit(_existing -> text);
     }
 

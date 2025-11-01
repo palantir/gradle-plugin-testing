@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 /**
  * Block implementation for property assignments like rootProject.name = 'value'.
  * Unlike closure blocks, this doesn't have nested structure.
+ * Subclasses must override pattern() to define the regex for parsing.
  */
 public non-sealed class PropertyBlock implements Block {
     private final String name;
@@ -33,36 +34,40 @@ public non-sealed class PropertyBlock implements Block {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return name;
     }
 
-    public String value() {
+    public final String value() {
         return value;
     }
 
+    /**
+     * Returns the regex pattern for this property block.
+     * Must be overridden by subclasses to define how to parse the property.
+     */
     @Override
     public Pattern pattern() {
         throw new UnsupportedOperationException("Pattern must be overridden in subclass");
     }
 
     @Override
-    public Block parse(String content) {
+    public final Block parse(String content) {
         return new PropertyBlock(name, content.trim());
     }
 
     @Override
-    public String render() {
+    public final String render() {
         return value.isEmpty() ? "" : name + " = '" + value + "'";
     }
 
     @Override
-    public Block merge(Block other) {
+    public final Block merge(Block other) {
         return other instanceof PropertyBlock o && !o.value.isEmpty() ? o : this;
     }
 
     @Override
-    public Block edit(Function<String, String> editor) {
+    public final Block edit(Function<String, String> editor) {
         return parse(editor.apply(render()));
     }
 }

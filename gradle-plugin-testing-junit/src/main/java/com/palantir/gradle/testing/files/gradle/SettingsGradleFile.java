@@ -98,15 +98,15 @@ public final class SettingsGradleFile extends StructuredGradleFile {
         }
 
         public GradleBlock repositories() {
-            return new GradleBlock(root, concat(blockPath, "repositories"));
+            return new GradleBlock(getRoot(), concat(getBlockPath(), "repositories"));
         }
 
         public GradleBlock plugins() {
-            return new GradleBlock(root, concat(blockPath, "plugins"));
+            return new GradleBlock(getRoot(), concat(getBlockPath(), "plugins"));
         }
 
         public GradleBlock resolutionStrategy() {
-            return new GradleBlock(root, concat(blockPath, "resolutionStrategy"));
+            return new GradleBlock(getRoot(), concat(getBlockPath(), "resolutionStrategy"));
         }
     }
 
@@ -119,15 +119,15 @@ public final class SettingsGradleFile extends StructuredGradleFile {
         }
 
         public GradleBlock repositories() {
-            return new GradleBlock(root, concat(blockPath, "repositories"));
+            return new GradleBlock(getRoot(), concat(getBlockPath(), "repositories"));
         }
 
         public GradleBlock dependencies() {
-            return new GradleBlock(root, concat(blockPath, "dependencies"));
+            return new GradleBlock(getRoot(), concat(getBlockPath(), "dependencies"));
         }
 
         public GradleBlock plugins() {
-            return new GradleBlock(root, concat(blockPath, "plugins"));
+            return new GradleBlock(getRoot(), concat(getBlockPath(), "plugins"));
         }
     }
 }

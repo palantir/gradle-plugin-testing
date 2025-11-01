@@ -38,18 +38,18 @@ public record ClosureBlock(String name, String content) implements Block {
     }
 
     @Override
-    public Block parse(String content) {
-        return new ClosureBlock(name, normalizeIndentation(content.trim()));
+    public Block parse(String textContent) {
+        return new ClosureBlock(name, normalizeIndentation(textContent.trim()));
     }
 
     /**
      * Normalize indentation by stripping ALL leading whitespace from each line.
      * Content should be stored without any indentation - indentation is added during rendering.
      */
-    private static String normalizeIndentation(String content) {
-        return content.isEmpty()
-                ? content
-                : content.lines().map(String::stripLeading).collect(Collectors.joining("\n"));
+    private static String normalizeIndentation(String textContent) {
+        return textContent.isEmpty()
+                ? textContent
+                : textContent.lines().map(String::stripLeading).collect(Collectors.joining("\n"));
     }
 
     @Override

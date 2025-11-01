@@ -16,10 +16,11 @@
 
 package com.palantir.gradle.testing.files.gradle.blocks;
 
-import java.util.function.Function;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
  * A closure block that contains nested child blocks (e.g., buildscript, configurations).
  * This is a composite node in the block tree that can contain both structured child blocks
  * and unstructured content.
- *
+ * <p>
  * This class combines the Block interface with the factory/descriptor pattern -
  * it knows how to create itself, parse itself, and match itself via regex.
  */
@@ -46,15 +47,7 @@ public record NestedClosureBlock(
 
     @Override
     public Block parse(String content) {
-        class ParseState {
-            String remaining;
-            Map<String, Block> parsedChildren;
-
-            ParseState(String remaining, Map<String, Block> parsedChildren) {
-                this.remaining = remaining;
-                this.parsedChildren = parsedChildren;
-            }
-        }
+        record ParseState(String remaining, Map<String, Block> parsedChildren) {}
 
         ParseState result = childOrder.stream()
                 .filter(children::containsKey)
@@ -62,25 +55,28 @@ public record NestedClosureBlock(
                         new ParseState(content, new HashMap<>(children)),
                         (state, childName) -> {
                             Block childTemplate = children.get(childName);
-                            Matcher matcher = childTemplate.pattern().matcher(state.remaining);
+                            Matcher matcher = childTemplate.pattern().matcher(state.remaining());
 
                             if (matcher.find()) {
-                                state.parsedChildren.put(childName, childTemplate.parse(matcher.group(1)));
-                                state.remaining = state.remaining.substring(0, matcher.start())
-                                        + state.remaining.substring(matcher.end());
+                                state.parsedChildren().put(childName, childTemplate.parse(matcher.group(1)));
+                                String newRemaining = state.remaining().substring(0, matcher.start())
+                                        + state.remaining().substring(matcher.end());
+                                return new ParseState(newRemaining, state.parsedChildren());
                             }
                             return state;
                         },
-                        (s1, s2) -> s1);
+                        (first, second) -> first);
 
-        return new NestedClosureBlock(name, childOrder, result.parsedChildren, result.remaining.trim());
+        return new NestedClosureBlock(
+                name, childOrder, result.parsedChildren(), result.remaining().trim());
     }
 
     @Override
     public String render() {
         return childOrder.stream()
                 .map(children::get)
-                .filter(child -> child != null && !child.render().isEmpty())
+                .flatMap(child -> Optional.ofNullable(child).stream())
+                .filter(child -> !child.render().isEmpty())
                 .map(child -> child.name() + " {\n" + indent(child.render()) + "\n}")
                 .collect(Collectors.collectingAndThen(
                         Collectors.joining("\n"),
@@ -96,25 +92,25 @@ public record NestedClosureBlock(
         }
 
         Map<String, Block> mergedChildren = childOrder.stream()
-                .collect(Collectors.toMap(
-                        childName -> childName,
-                        childName -> {
-                            Block existingChild = children.get(childName);
-                            Block otherChild = o.children.get(childName);
-                            if (existingChild != null && otherChild != null) {
-                                return existingChild.merge(otherChild);
-                            }
-                            return otherChild != null ? otherChild : existingChild;
-                        }));
+                .flatMap(childName -> {
+                    Optional<Block> existingChild = Optional.ofNullable(children.get(childName));
+                    Optional<Block> otherChild = Optional.ofNullable(o.children.get(childName));
+
+                    return existingChild
+                            .flatMap(existing -> otherChild.map(existing::merge))
+                            .or(() -> otherChild)
+                            .or(() -> existingChild)
+                            .stream()
+                            .map(block -> Map.entry(childName, block));
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         String mergedUnstructured = combineUnstructured(unstructuredContent, o.unstructuredContent);
         return new NestedClosureBlock(name, childOrder, mergedChildren, mergedUnstructured);
     }
 
-    private String combineUnstructured(String a, String b) {
-        return Stream.of(a, b)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.joining("\n"));
+    private String combineUnstructured(String first, String second) {
+        return Stream.of(first, second).filter(s -> !s.isEmpty()).collect(Collectors.joining("\n"));
     }
 
     @Override
@@ -123,6 +119,8 @@ public record NestedClosureBlock(
     }
 
     private String indent(String content) {
-        return content.lines().map(line -> line.isEmpty() ? line : "    " + line).collect(Collectors.joining("\n"));
+        return content.lines()
+                .map(line -> line.isEmpty() ? line : "    " + line)
+                .collect(Collectors.joining("\n"));
     }
 }
