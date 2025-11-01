@@ -17,15 +17,86 @@
 package com.palantir.gradle.testing.files.gradle.blocks;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Result of parsing a Gradle file.
  * Contains structured blocks and unstructured content that doesn't match any block.
+ * Also provides shared parsing and rendering utilities.
  */
 public record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
+
+    /**
+     * Parse state tracking remaining content and parsed blocks.
+     */
+    public record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
+
+    /**
+     * Parse content by extracting blocks in order.
+     * For NestedClosureBlock: pass includeTemplatesInResult=true to preserve empty blocks.
+     * For StructuredGradleFile: pass includeTemplatesInResult=false for top-level parsing.
+     */
+    public static ParseState parseBlocks(
+            String content,
+            List<String> blockOrder,
+            Map<String, Block> blockTemplates,
+            boolean includeTemplatesInResult) {
+        Map<String, Block> initialBlocks = includeTemplatesInResult ? new HashMap<>(blockTemplates) : new HashMap<>();
+
+        return blockOrder.stream()
+                .filter(blockTemplates::containsKey)
+                .reduce(
+                        new ParseState(content, initialBlocks),
+                        (state, blockName) -> {
+                            Block template = blockTemplates.get(blockName);
+                            Matcher matcher = template.pattern().matcher(state.remaining());
+
+                            if (matcher.find()) {
+                                state.parsedBlocks().put(blockName, template.parse(matcher.group(1)));
+                                String newRemaining = state.remaining().substring(0, matcher.start())
+                                        + state.remaining().substring(matcher.end());
+                                return new ParseState(newRemaining, state.parsedBlocks());
+                            }
+                            return state;
+                        },
+                        (first, second) -> first);
+    }
+
+    /**
+     * Render blocks in order, wrapping each in "name { content }".
+     */
+    public static String renderBlocks(
+            List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
+        return blockOrder.stream()
+                .map(blocks::get)
+                .flatMap(block -> Optional.ofNullable(block).stream())
+                .filter(block -> !block.render().isEmpty())
+                .map(block -> includeBlockWrapper
+                        ? block.name() + " {\n" + indent(block.render()) + "\n}"
+                        : block.render())
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Indent each line with 4 spaces.
+     */
+    public static String indent(String content) {
+        return content.lines()
+                .map(line -> line.isEmpty() ? line : "    " + line)
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Combine unstructured content from two sources.
+     */
+    public static String combineUnstructured(String first, String second) {
+        return Stream.of(first, second).filter(s -> !s.isEmpty()).collect(Collectors.joining("\n"));
+    }
 
     /**
      * Merge another ParsedContent into this one.
@@ -53,10 +124,9 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
             throw new IllegalArgumentException("Path cannot be empty");
         }
 
-        Block initial = blocks.getOrDefault(path[0], templates.get(path[0]));
-        if (initial == null) {
-            throw new IllegalStateException("Block not found: " + path[0]);
-        }
+        Block initial = Optional.ofNullable(blocks.get(path[0]))
+                .or(() -> Optional.ofNullable(templates.get(path[0])))
+                .orElseThrow(() -> new IllegalStateException("Block not found: " + path[0]));
 
         if (path.length == 1) {
             return initial;
@@ -70,11 +140,9 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
                                 throw new IllegalStateException(
                                         "Cannot navigate to " + path[i] + " - parent is not nested");
                             }
-                            Block child = nested.children().get(path[i]);
-                            if (child == null) {
-                                throw new IllegalStateException("Child block not found: " + path[i]);
-                            }
-                            return child;
+                            return Optional.ofNullable(nested.children().get(path[i]))
+                                    .orElseThrow(() ->
+                                            new IllegalStateException("Child block not found: " + path[i]));
                         },
                         (a, b) -> b);
     }
@@ -96,14 +164,9 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
 
         // Nested block - need to update recursively
         String topBlockName = path[0];
-        Block topBlock = blocks.get(topBlockName);
-        if (topBlock == null) {
-            // Block doesn't exist - get from template
-            topBlock = templates.get(topBlockName);
-            if (topBlock == null) {
-                throw new IllegalStateException("Block not found in template: " + topBlockName);
-            }
-        }
+        Block topBlock = Optional.ofNullable(blocks.get(topBlockName))
+                .or(() -> Optional.ofNullable(templates.get(topBlockName)))
+                .orElseThrow(() -> new IllegalStateException("Block not found in template: " + topBlockName));
 
         if (!(topBlock instanceof NestedClosureBlock nested)) {
             throw new IllegalStateException("Cannot update nested block - parent is not nested: " + topBlockName);
@@ -127,13 +190,11 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
 
         // Need to go deeper
         String childName = path[depth];
-        Block child = parent.children().get(childName);
-        if (child == null) {
-            throw new IllegalStateException("Child block not found: " + childName);
-        }
-        if (!(child instanceof NestedClosureBlock nestedChild)) {
-            throw new IllegalStateException("Cannot navigate deeper - child is not nested: " + childName);
-        }
+        NestedClosureBlock nestedChild = Optional.ofNullable(parent.children().get(childName))
+                .filter(child -> child instanceof NestedClosureBlock)
+                .map(child -> (NestedClosureBlock) child)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Cannot navigate deeper - child not found or not nested: " + childName));
 
         Block updatedChild = updateNestedBlock(nestedChild, path, depth + 1, updatedBlock);
         Map<String, Block> updatedChildren = new HashMap<>(parent.children());

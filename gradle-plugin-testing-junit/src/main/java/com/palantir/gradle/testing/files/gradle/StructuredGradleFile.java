@@ -25,10 +25,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -95,42 +94,26 @@ public abstract class StructuredGradleFile implements GradleFile {
     }
 
     protected final ParsedContent parse(String content) {
-        if (content == null || content.trim().isEmpty()) {
-            return new ParsedContent(Map.of(), "");
-        }
+        return Optional.ofNullable(content)
+                .filter(c -> !c.trim().isEmpty())
+                .map(this::doParse)
+                .orElseGet(() -> new ParsedContent(Map.of(), ""));
+    }
 
+    private ParsedContent doParse(String content) {
         Map<String, Block> blockMap = blocks().stream().collect(Collectors.toMap(Block::name, b -> b));
-
-        record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
-
-        ParseState result = blockOrder().stream()
-                .filter(blockMap::containsKey)
-                .reduce(
-                        new ParseState(content, new HashMap<>()),
-                        (state, blockName) -> {
-                            Block template = blockMap.get(blockName);
-                            Matcher matcher = template.pattern().matcher(state.remaining());
-
-                            if (matcher.find()) {
-                                state.parsedBlocks().put(blockName, template.parse(matcher.group(1)));
-                                String newRemaining = state.remaining().substring(0, matcher.start())
-                                        + state.remaining().substring(matcher.end());
-                                return new ParseState(newRemaining, state.parsedBlocks());
-                            }
-                            return state;
-                        },
-                        (s1, s2) -> s1);
-
+        ParsedContent.ParseState result = ParsedContent.parseBlocks(content, blockOrder(), blockMap, false);
         return new ParsedContent(result.parsedBlocks(), normalizeRemaining(result.remaining()));
     }
 
     protected final String render(ParsedContent content) {
         String blocks = blockOrder().stream()
                 .map(content.blocks()::get)
-                .filter(block -> block != null && !block.render().isEmpty())
+                .flatMap(block -> Optional.ofNullable(block).stream())
+                .filter(block -> !block.render().isEmpty())
                 .map(block -> block instanceof PropertyBlock
                         ? block.render()
-                        : block.name() + " {\n" + indent(block.render()) + "\n}")
+                        : block.name() + " {\n" + ParsedContent.indent(block.render()) + "\n}")
                 .collect(Collectors.joining("\n\n"));
 
         String result = content.unstructuredContent().isEmpty()
@@ -156,12 +139,6 @@ public abstract class StructuredGradleFile implements GradleFile {
         ParsedContent reparsed = parse(edited);
         overwrite(render(reparsed));
         return this;
-    }
-
-    private String indent(String content) {
-        return content == null || content.isEmpty()
-                ? ""
-                : content.lines().map(line -> line.isEmpty() ? line : "    " + line).collect(Collectors.joining("\n"));
     }
 
     private String normalizeRemaining(String remaining) {
