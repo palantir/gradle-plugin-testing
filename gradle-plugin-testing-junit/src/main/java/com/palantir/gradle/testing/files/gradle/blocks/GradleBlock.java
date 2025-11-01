@@ -25,12 +25,13 @@ import java.util.stream.Stream;
 import org.intellij.lang.annotations.Language;
 
 /**
- * Base class for all block implementations that represent a specific block within a GradleFile.
- * Blocks are themselves GradleFiles, allowing natural chaining like:
- * buildGradle.buildscript().repositories().append("mavenCentral()")
- *
- * <p>This class is designed for extension. Subclasses should use the protected {@link #root} and
- * {@link #blockPath} fields to navigate to nested blocks.
+ * A GradleFile wrapper that operates on a specific block within the file.
+ * <p>
+ * Enables natural chaining for nested block access:
+ * {@code buildGradle.buildscript().repositories().append("mavenCentral()")}
+ * <p>
+ * All operations (append, edit, etc.) are scoped to the wrapped block and automatically
+ * update the parent file with proper formatting and block ordering.
  */
 public class GradleBlock implements GradleFile {
     private final StructuredGradleFile root;
@@ -57,27 +58,27 @@ public class GradleBlock implements GradleFile {
     @Override
     public final String text() {
         ParsedContent parsed = root.parseContent(root.text());
-
-        Map<String, Block> blockMap = root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
-
-        Block block = parsed.getBlockAt(blockMap, blockPath);
+        Block block = parsed.getBlockAt(blockTemplates(), blockPath);
         return block.render();
     }
 
     @Override
     public final GradleBlock edit(FileEditor editor) {
         ParsedContent parsed = root.parseContent(root.text());
+        Map<String, Block> templates = blockTemplates();
 
-        Map<String, Block> blockMap = root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
-
-        Block block = parsed.getBlockAt(blockMap, blockPath);
+        Block block = parsed.getBlockAt(templates, blockPath);
         Block updated = block.edit(editor::edit);
-        ParsedContent withUpdate = parsed.withBlockAt(blockMap, blockPath, updated);
+        ParsedContent withUpdate = parsed.withBlockAt(templates, blockPath, updated);
 
         @Language("Gradle")
         String rendered = root.renderContent(withUpdate);
         root.overwrite(rendered);
         return this;
+    }
+
+    private Map<String, Block> blockTemplates() {
+        return root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
     }
 
     @Override

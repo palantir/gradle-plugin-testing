@@ -20,44 +20,51 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
- * Represents a block in a Gradle file (e.g., plugins, repositories, buildscript).
- * Blocks are recursive, self-contained units that know how to parse, render, merge, and edit themselves.
+ * A structural unit in a Gradle file that can be parsed, rendered, merged, and edited.
+ * <p>
+ * Blocks are self-contained - each block knows its own pattern, parsing rules, and rendering logic.
+ * This enables uniform treatment of different block types (closure, nested, property) without
+ * requiring external configuration or templates.
+ * <p>
+ * Examples: plugins { }, buildscript { repositories { } }, version = '1.0'
  */
 public sealed interface Block permits ClosureBlock, NestedClosureBlock, PropertyBlock {
     /**
-     * Parse content into this block. The content is what appears INSIDE the braces.
-     * For example, for "plugins { id 'java' }", the content is "id 'java'".
+     * Parse raw content into a Block instance.
+     * @param content the text that appears inside the block (without wrapper syntax)
+     * @return a new Block containing the parsed content
      */
     Block parse(String content);
 
     /**
-     * Render this block's content (what goes INSIDE the braces).
-     * Does not include the block name or braces themselves.
+     * Render this block's content as a string.
+     * @return the content that should appear inside this block (without wrapper syntax)
      */
     String render();
 
     /**
      * Merge another block's content into this block.
-     * For simple blocks, this typically appends content.
-     * For nested blocks, this recursively merges children.
+     * @param other the block to merge
+     * @return a new Block containing both this block's content and the other's content
      */
     Block merge(Block other);
 
     /**
-     * Edit this block's content locally.
-     * The editor receives the current rendered content and returns new content.
-     * This is then parsed back into the block structure.
+     * Transform this block's content using an editor function.
+     * @param editor function that receives current content and returns new content
+     * @return a new Block with the transformed content
      */
     Block edit(Function<String, String> editor);
 
     /**
-     * Pattern for matching this block in parent content.
-     * The pattern should capture the content inside braces in group 1.
+     * The regex pattern used to identify and extract this block from parent content.
+     * @return pattern with capture group 1 containing the block's inner content
      */
     Pattern pattern();
 
     /**
-     * The name of this block (e.g., "plugins", "repositories").
+     * The identifier for this block.
+     * @return block name (e.g., "plugins", "repositories", "buildscript")
      */
     String name();
 }

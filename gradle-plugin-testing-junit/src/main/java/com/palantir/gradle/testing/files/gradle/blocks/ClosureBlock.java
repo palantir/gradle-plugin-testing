@@ -22,11 +22,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A simple closure block with no nested children (e.g., plugins, repositories, dependencies).
- * This is a leaf node in the block tree.
- *
- * This class combines the Block interface with the factory/descriptor pattern -
- * it knows how to create itself, parse itself, and match itself via regex.
+ * A closure block containing unstructured text content.
+ * <p>
+ * Used for blocks that don't contain nested child blocks - the content is treated as
+ * opaque text. Indentation is normalized during parsing and applied during rendering.
+ * <p>
+ * Examples: plugins { id 'java' }, repositories { mavenCentral() }, dependencies { ... }
  */
 public record ClosureBlock(String name, String content) implements Block {
 
@@ -43,8 +44,8 @@ public record ClosureBlock(String name, String content) implements Block {
     }
 
     /**
-     * Normalize indentation by stripping ALL leading whitespace from each line.
-     * Content should be stored without any indentation - indentation is added during rendering.
+     * Strip leading whitespace from each line so content is stored without indentation.
+     * Indentation is applied during rendering.
      */
     private static String normalizeIndentation(String textContent) {
         return textContent.isEmpty()
@@ -59,13 +60,11 @@ public record ClosureBlock(String name, String content) implements Block {
 
     @Override
     public Block merge(Block other) {
-        return other instanceof ClosureBlock o
-                ? Stream.of(content, o.content)
-                        .filter(c -> !c.isEmpty())
-                        .collect(
-                                Collectors.collectingAndThen(
-                                        Collectors.joining("\n"), merged -> new ClosureBlock(name, merged)))
-                : this;
+        if (!(other instanceof ClosureBlock o)) {
+            return this;
+        }
+        String merged = Stream.of(content, o.content).filter(c -> !c.isEmpty()).collect(Collectors.joining("\n"));
+        return new ClosureBlock(name, merged);
     }
 
     @Override

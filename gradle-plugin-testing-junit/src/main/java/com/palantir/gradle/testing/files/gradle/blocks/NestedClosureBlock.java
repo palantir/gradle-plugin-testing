@@ -24,12 +24,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * A closure block that contains nested child blocks (e.g., buildscript, configurations).
- * This is a composite node in the block tree that can contain both structured child blocks
- * and unstructured content.
+ * A closure block containing ordered child blocks and optional unstructured content.
  * <p>
- * This class combines the Block interface with the factory/descriptor pattern -
- * it knows how to create itself, parse itself, and match itself via regex.
+ * Child blocks are parsed and rendered recursively in the specified order. Any content
+ * that doesn't match a child block pattern is preserved as unstructured content.
+ * <p>
+ * Examples: buildscript { repositories { } dependencies { } },
+ *           configurations { all { resolutionStrategy { } } }
  */
 public record NestedClosureBlock(
         String name, List<String> childOrder, Map<String, Block> children, String unstructuredContent)
@@ -45,7 +46,8 @@ public record NestedClosureBlock(
     @Override
     public Block parse(String content) {
         ParsedContent.ParseState result = ParsedContent.parseBlocks(content, childOrder, children, true);
-        return new NestedClosureBlock(name, childOrder, result.parsedBlocks(), result.remaining().trim());
+        return new NestedClosureBlock(
+                name, childOrder, result.parsedBlocks(), result.remaining().trim());
     }
 
     @Override

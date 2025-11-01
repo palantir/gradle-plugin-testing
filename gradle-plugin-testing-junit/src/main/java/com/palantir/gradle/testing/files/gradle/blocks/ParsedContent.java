@@ -25,21 +25,26 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Result of parsing a Gradle file.
- * Contains structured blocks and unstructured content that doesn't match any block.
- * Also provides shared parsing and rendering utilities.
+ * The result of parsing a Gradle file into structured blocks and unstructured content.
+ * <p>
+ * Blocks are indexed by name for fast lookup. Content that doesn't match any block pattern
+ * is preserved as unstructured content. Provides utilities for parsing, rendering, navigation,
+ * and updates.
  */
 public record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
 
     /**
-     * Parse state tracking remaining content and parsed blocks.
+     * Immutable state during parsing - tracks remaining unparsed content and accumulated blocks.
      */
     public record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
 
     /**
-     * Parse content by extracting blocks in order.
-     * For NestedClosureBlock: pass includeTemplatesInResult=true to preserve empty blocks.
-     * For StructuredGradleFile: pass includeTemplatesInResult=false for top-level parsing.
+     * Extract blocks from content using the provided templates and ordering.
+     * @param content the text to parse
+     * @param blockOrder the order to search for and extract blocks
+     * @param blockTemplates block definitions used for pattern matching and parsing
+     * @param includeTemplatesInResult if true, start with all templates (preserves empty blocks for navigation)
+     * @return parse state with extracted blocks and remaining content
      */
     public static ParseState parseBlocks(
             String content,
@@ -68,7 +73,11 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Render blocks in order, wrapping each in "name { content }".
+     * Render blocks to text in the specified order.
+     * @param blockOrder the order to render blocks
+     * @param blocks the blocks to render
+     * @param includeBlockWrapper if true, wrap each block with "name { ... }"
+     * @return rendered text with blocks joined by newlines
      */
     public static String renderBlocks(
             List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
@@ -83,7 +92,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Indent each line with 4 spaces.
+     * Add 4-space indentation to each non-empty line.
      */
     public static String indent(String content) {
         return content.lines()
@@ -92,16 +101,16 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Combine unstructured content from two sources.
+     * Join non-empty content strings with a newline.
      */
     public static String combineUnstructured(String first, String second) {
         return Stream.of(first, second).filter(s -> !s.isEmpty()).collect(Collectors.joining("\n"));
     }
 
     /**
-     * Merge another ParsedContent into this one.
-     * Blocks with the same name are merged using Block.merge().
-     * Unstructured content is combined.
+     * Combine this ParsedContent with another, merging blocks and unstructured content.
+     * @param other the ParsedContent to merge
+     * @return a new ParsedContent with merged blocks and combined unstructured content
      */
     public ParsedContent merge(ParsedContent other) {
         Map<String, Block> mergedBlocks = Stream.concat(blocks.entrySet().stream(), other.blocks.entrySet().stream())
@@ -115,40 +124,39 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Navigate to a block at the given path using Block templates.
-     * For example, path ["buildscript", "repositories"] navigates to the repositories child
-     * of the buildscript block.
+     * Navigate to a block using a path of block names.
+     * @param templates block definitions for looking up missing blocks
+     * @param path array of block names (e.g., ["buildscript", "repositories"])
+     * @return the block at the end of the path
+     * @throws IllegalStateException if path is invalid or blocks not found
      */
     public Block getBlockAt(Map<String, Block> templates, String... path) {
         if (path.length == 0) {
             throw new IllegalArgumentException("Path cannot be empty");
         }
 
-        Block initial = Optional.ofNullable(blocks.get(path[0]))
+        Block current = Optional.ofNullable(blocks.get(path[0]))
                 .or(() -> Optional.ofNullable(templates.get(path[0])))
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + path[0]));
 
-        if (path.length == 1) {
-            return initial;
+        for (int i = 1; i < path.length; i++) {
+            String childName = path[i];
+            if (!(current instanceof NestedClosureBlock nested)) {
+                throw new IllegalStateException("Cannot navigate to " + childName + " - parent is not nested");
+            }
+            current = Optional.ofNullable(nested.children().get(childName))
+                    .orElseThrow(() -> new IllegalStateException("Child block not found: " + childName));
         }
 
-        return Stream.iterate(1, i -> i < path.length, i -> i + 1)
-                .reduce(
-                        initial,
-                        (current, i) -> {
-                            if (!(current instanceof NestedClosureBlock nested)) {
-                                throw new IllegalStateException(
-                                        "Cannot navigate to " + path[i] + " - parent is not nested");
-                            }
-                            return Optional.ofNullable(nested.children().get(path[i]))
-                                    .orElseThrow(() ->
-                                            new IllegalStateException("Child block not found: " + path[i]));
-                        },
-                        (a, b) -> b);
+        return current;
     }
 
     /**
-     * Update a block at the given path, returning a new ParsedContent with the updated block.
+     * Create a new ParsedContent with an updated block at the specified path.
+     * @param templates block definitions for looking up structure
+     * @param path array of block names identifying the target block
+     * @param updatedBlock the new block to place at the path
+     * @return a new ParsedContent with the block updated
      */
     public ParsedContent withBlockAt(Map<String, Block> templates, String[] path, Block updatedBlock) {
         if (path.length == 0) {

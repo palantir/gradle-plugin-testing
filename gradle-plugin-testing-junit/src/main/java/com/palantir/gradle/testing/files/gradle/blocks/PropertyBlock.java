@@ -20,9 +20,10 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
- * Block implementation for property assignments like rootProject.name = 'value'.
- * Unlike closure blocks, this doesn't have nested structure.
- * Subclasses must override pattern() to define the regex for parsing.
+ * A block representing property assignments (non-closure syntax).
+ * <p>
+ * Used for simple key-value assignments like version = '1.0' or rootProject.name = 'myapp'.
+ * Subclasses must override pattern() to define the specific property pattern to match.
  */
 public non-sealed class PropertyBlock implements Block {
     private final String name;
@@ -43,8 +44,7 @@ public non-sealed class PropertyBlock implements Block {
     }
 
     /**
-     * Returns the regex pattern for this property block.
-     * Must be overridden by subclasses to define how to parse the property.
+     * Must be overridden by subclasses to define the property's parsing pattern.
      */
     @Override
     public Pattern pattern() {
