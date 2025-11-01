@@ -129,6 +129,15 @@ public abstract class StructuredGradleFile implements GradleFile {
     }
 
     @Override
+    public final StructuredGradleFile prepend(String text) {
+        ParsedContent existing = parse(text());
+        ParsedContent toPrepend = parse(text);
+        ParsedContent merged = toPrepend.merge(existing);
+        overwrite(render(merged));
+        return this;
+    }
+
+    @Override
     public final StructuredGradleFile edit(FileEditor editor) {
         ParsedContent parsed = parse(text());
         String edited = editor.edit(render(parsed));

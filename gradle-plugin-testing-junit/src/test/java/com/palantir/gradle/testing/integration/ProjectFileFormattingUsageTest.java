@@ -56,13 +56,11 @@ class ProjectFileFormattingUsageTest {
             }
             """, "myTask");
 
-        assertThat(rootProject.buildGradle().text())
-                .contains("""
-                    plugins {
-                        id 'java'
-                    }
-                    """)
-                .contains("tasks.register('myTask')");
+        assertThat(rootProject.buildGradle().text()).contains("""
+            plugins {
+                id 'java'
+            }
+            """).contains("tasks.register('myTask')");
     }
 
     @Test
@@ -74,13 +72,11 @@ class ProjectFileFormattingUsageTest {
             }
             """.formatted("myTask"));
 
-        assertThat(rootProject.buildGradle().text())
-                .contains("""
-                    plugins {
-                        id 'java'
-                    }
-                    """)
-                .contains("tasks.register('myTask')");
+        assertThat(rootProject.buildGradle().text()).contains("""
+            plugins {
+                id 'java'
+            }
+            """).contains("tasks.register('myTask')");
     }
 
     @Test
