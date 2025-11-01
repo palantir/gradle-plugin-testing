@@ -57,7 +57,7 @@ class ProjectFileFormattingUsageTest {
             """, "myTask");
 
         assertThat(rootProject.buildGradle().text())
-                .contains("plugins { id 'java' }")
+                .contains("plugins {\n id 'java' \n}")
                 .contains("tasks.register('myTask')");
     }
 

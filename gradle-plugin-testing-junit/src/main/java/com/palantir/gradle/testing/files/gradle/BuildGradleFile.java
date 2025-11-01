@@ -19,45 +19,85 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.BuildGradleTemplate;
-import com.palantir.gradle.testing.files.gradle.blocks.GradleFileTemplate;
-import com.palantir.gradle.testing.files.gradle.blocks.NamedBlock;
-import com.palantir.gradle.testing.files.gradle.blocks.NestedBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.BlockHandle;
+import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
+import com.palantir.gradle.testing.files.gradle.blocks.Template;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
-public final class BuildGradleFile extends OrderedGradleFile {
+public final class BuildGradleFile implements GradleFile {
+    private final Path path;
+    private final Template template = BuildGradleTemplate.INSTANCE;
+
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public BuildGradleFile(Path path) {
-        super(path);
+        this.path = path;
     }
 
     @Override
-    protected GradleFileTemplate templateInternal() {
-        return BuildGradleTemplate.INSTANCE;
+    public Path path() {
+        return path;
+    }
+
+    @Override
+    public String text() {
+        try {
+            return Files.exists(path) ? Files.readString(path) : "";
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public BuildGradleFile append(String text) {
+        // Parse existing content, parse new content, merge, then render
+        ParsedContent existing = template.parse(text());
+        ParsedContent toAppend = template.parse(text);
+        ParsedContent merged = existing.merge(toAppend);
+
+        overwrite(template.render(merged));
+        return this;
+    }
+
+    @Override
+    public BuildGradleFile edit(FileEditor editor) {
+        // Parse, edit, reparse, render
+        ParsedContent parsed = template.parse(text());
+        String edited = editor.edit(template.render(parsed));
+        ParsedContent reparsed = template.parse(edited);
+
+        overwrite(template.render(reparsed));
+        return this;
+    }
+
+    Template template() {
+        return template;
     }
 
     public BuildscriptBlock buildscript() {
         return new BuildscriptBlock(this);
     }
 
-    public NamedBlock plugins() {
-        return new NamedBlock(this, "plugins");
+    public BlockHandle plugins() {
+        return new BlockHandle(this, template, "plugins");
     }
 
-    public NamedBlock repositories() {
-        return new NamedBlock(this, "repositories");
+    public BlockHandle repositories() {
+        return new BlockHandle(this, template, "repositories");
     }
 
-    public NamedBlock dependencies() {
-        return new NamedBlock(this, "dependencies");
+    public BlockHandle dependencies() {
+        return new BlockHandle(this, template, "dependencies");
     }
 
-    public NamedBlock allprojects() {
-        return new NamedBlock(this, "allprojects");
+    public BlockHandle allprojects() {
+        return new BlockHandle(this, template, "allprojects");
     }
 
-    public NamedBlock subprojects() {
-        return new NamedBlock(this, "subprojects");
+    public BlockHandle subprojects() {
+        return new BlockHandle(this, template, "subprojects");
     }
 
     public ConfigurationsBlock configurations() {
@@ -67,62 +107,49 @@ public final class BuildGradleFile extends OrderedGradleFile {
     /**
      * Buildscript block with repositories, dependencies, and plugins children.
      */
-    public static final class BuildscriptBlock extends NestedBlock {
+    public static final class BuildscriptBlock extends BlockHandle {
         private BuildscriptBlock(BuildGradleFile file) {
-            super(file, "buildscript");
+            super(file, file.template, "buildscript");
         }
 
-        @Override
-        protected List<String> childBlockOrder() {
-            return List.of("repositories", "dependencies", "plugins");
+        public BlockHandle repositories() {
+            return new BlockHandle(root, template, "buildscript", "repositories");
         }
 
-        public NamedBlock repositories() {
-            return nested("repositories");
+        public BlockHandle dependencies() {
+            return new BlockHandle(root, template, "buildscript", "dependencies");
         }
 
-        public NamedBlock dependencies() {
-            return nested("dependencies");
-        }
-
-        public NamedBlock plugins() {
-            return nested("plugins");
+        public BlockHandle plugins() {
+            return new BlockHandle(root, template, "buildscript", "plugins");
         }
     }
 
     /**
      * Configurations block with nested all() that can contain resolutionStrategy.
      */
-    public static final class ConfigurationsBlock extends NestedBlock {
-        private ConfigurationsBlock(BuildGradleFile file) {
-            super(file, "configurations");
-        }
+    public static final class ConfigurationsBlock {
+        private final BuildGradleFile file;
 
-        @Override
-        protected List<String> childBlockOrder() {
-            return List.of("all");
+        private ConfigurationsBlock(BuildGradleFile file) {
+            this.file = file;
         }
 
         public AllConfigurationBlock all() {
-            return new AllConfigurationBlock(this);
+            return new AllConfigurationBlock(file);
         }
     }
 
     /**
      * All configuration block within configurations that can contain resolutionStrategy.
      */
-    public static final class AllConfigurationBlock extends NestedBlock {
-        private AllConfigurationBlock(ConfigurationsBlock parent) {
-            super(parent, "all");
+    public static final class AllConfigurationBlock extends BlockHandle {
+        private AllConfigurationBlock(BuildGradleFile file) {
+            super(file, file.template, "configurations", "all");
         }
 
-        @Override
-        protected List<String> childBlockOrder() {
-            return List.of("resolutionStrategy");
-        }
-
-        public NamedBlock resolutionStrategy() {
-            return nested("resolutionStrategy");
+        public BlockHandle resolutionStrategy() {
+            return new BlockHandle(root, template, "configurations", "all", "resolutionStrategy");
         }
     }
 }

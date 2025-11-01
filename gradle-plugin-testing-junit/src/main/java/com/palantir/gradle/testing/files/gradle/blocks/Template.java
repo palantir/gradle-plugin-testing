@@ -16,15 +16,26 @@
 
 package com.palantir.gradle.testing.files.gradle.blocks;
 
-import com.google.common.collect.ImmutableList;
-import java.util.List;
+import java.util.Map;
 
 /**
- * Template for nested blocks within Gradle files (e.g., buildscript, configurations.all).
- * Unlike top-level templates, nested templates work with a specific set of child block names.
+ * Template for parsing and rendering Gradle files.
+ * A template defines the structure of a file by specifying top-level blocks and their ordering.
  */
-public record NestedGradleTemplate(ImmutableList<String> blockNames) implements GradleFileTemplate {
-    NestedGradleTemplate(List<String> blockNames) {
-        this(ImmutableList.copyOf(blockNames));
-    }
+public interface Template {
+    /**
+     * Parse entire file content into structured blocks.
+     */
+    ParsedContent parse(String fileContent);
+
+    /**
+     * Render parsed content back to file string.
+     */
+    String render(ParsedContent content);
+
+    /**
+     * Get the block templates (structure definitions) for this template.
+     * These are used to create empty blocks when they don't exist yet.
+     */
+    Map<String, Block> blockTemplates();
 }
