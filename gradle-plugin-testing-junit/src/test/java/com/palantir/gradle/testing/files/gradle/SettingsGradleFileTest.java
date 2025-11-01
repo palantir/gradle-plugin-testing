@@ -56,7 +56,7 @@ class SettingsGradleFileTest {
 
             settingsGradleFile.rootProjectName("name");
 
-            settingsGradleFile.assertThat().hasContent("something already here\nrootProject.name = 'name'\n");
+            settingsGradleFile.assertThat().hasContent("rootProject.name = 'name'\n\nsomething already here\n");
         }
 
         @Test
@@ -72,8 +72,9 @@ class SettingsGradleFileTest {
             settingsGradleFile.rootProjectName("name");
 
             settingsGradleFile.assertThat().hasContent("""
-                // before
                 rootProject.name = 'name'
+
+                // before
                 // after
                 """);
         }
@@ -149,9 +150,10 @@ class SettingsGradleFileTest {
                 id 'settings-plugin'
             }
 
+            rootProject.name = 'my-app'
+
             include 'module1'
             include 'module2'
-            rootProject.name = 'my-app'
             """);
     }
 
@@ -284,6 +286,7 @@ class SettingsGradleFileTest {
             }
 
             rootProject.name = 'existing'
+
             include 'new-module'
             """);
     }

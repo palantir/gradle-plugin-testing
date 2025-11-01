@@ -17,7 +17,10 @@
 package com.palantir.gradle.testing.files.gradle;
 
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
+import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.NestedClosureBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
+import com.palantir.gradle.testing.files.gradle.blocks.PropertyBlock;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -29,6 +32,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base class for structured Gradle files (build.gradle, settings.gradle).
@@ -41,11 +45,27 @@ public abstract class StructuredGradleFile implements GradleFile {
         this.path = path;
     }
 
-    /** Subclasses define their block structure */
+    /** Subclasses define their block structure - order is preserved */
     protected abstract List<Block> blocks();
 
-    /** Subclasses define block order for rendering */
-    protected abstract List<String> blockOrder();
+    /** Block order derived from blocks() */
+    protected List<String> blockOrder() {
+        return blocks().stream().map(Block::name).collect(Collectors.toList());
+    }
+
+    /** Helper to create simple closure block */
+    protected static Block closure(String name) {
+        return new ClosureBlock(name, "");
+    }
+
+    /** Helper to create nested closure block */
+    protected static Block nested(String name, Block... children) {
+        return new NestedClosureBlock(
+                name,
+                Stream.of(children).map(Block::name).collect(Collectors.toList()),
+                Stream.of(children).collect(Collectors.toMap(Block::name, b -> b)),
+                "");
+    }
 
     /** Public accessor for blocks - needed by GradleBlock */
     public List<Block> getBlocks() {
@@ -117,7 +137,9 @@ public abstract class StructuredGradleFile implements GradleFile {
         String blocks = blockOrder().stream()
                 .map(content.blocks()::get)
                 .filter(block -> block != null && !block.render().isEmpty())
-                .map(block -> block.name() + " {\n" + indent(block.render()) + "\n}")
+                .map(block -> block instanceof PropertyBlock
+                        ? block.render()
+                        : block.name() + " {\n" + indent(block.render()) + "\n}")
                 .collect(Collectors.joining("\n\n"));
 
         String result = content.unstructuredContent().isEmpty()

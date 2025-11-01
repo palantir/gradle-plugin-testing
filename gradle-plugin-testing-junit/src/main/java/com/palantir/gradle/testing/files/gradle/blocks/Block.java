@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * Represents a block in a Gradle file (e.g., plugins, repositories, buildscript).
  * Blocks are recursive, self-contained units that know how to parse, render, merge, and edit themselves.
  */
-public interface Block {
+public sealed interface Block permits ClosureBlock, NestedClosureBlock, PropertyBlock {
     /**
      * Parse content into this block. The content is what appears INSIDE the braces.
      * For example, for "plugins { id 'java' }", the content is "id 'java'".

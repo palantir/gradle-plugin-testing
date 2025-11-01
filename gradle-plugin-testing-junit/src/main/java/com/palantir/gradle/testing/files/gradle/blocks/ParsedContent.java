@@ -34,10 +34,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
      */
     public ParsedContent merge(ParsedContent other) {
         Map<String, Block> mergedBlocks = Stream.concat(blocks.entrySet().stream(), other.blocks.entrySet().stream())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (existing, incoming) -> existing.merge(incoming)));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Block::merge));
 
         String mergedUnstructured = Stream.of(unstructuredContent, other.unstructuredContent)
                 .filter(s -> !s.isEmpty())
@@ -56,29 +53,30 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
             throw new IllegalArgumentException("Path cannot be empty");
         }
 
-        Block current = blocks.get(path[0]);
-        if (current == null) {
-            // Block doesn't exist - get from template
-            current = templates.get(path[0]);
-            if (current == null) {
-                throw new IllegalStateException("Block not found: " + path[0]);
-            }
+        Block initial = blocks.getOrDefault(path[0], templates.get(path[0]));
+        if (initial == null) {
+            throw new IllegalStateException("Block not found: " + path[0]);
         }
 
-        // Navigate deeper if needed
-        for (int i = 1; i < path.length; i++) {
-            if (!(current instanceof NestedClosureBlock nested)) {
-                throw new IllegalStateException("Cannot navigate to " + path[i] + " - parent is not nested");
-            }
-
-            Block child = nested.children().get(path[i]);
-            if (child == null) {
-                throw new IllegalStateException("Child block not found: " + path[i]);
-            }
-            current = child;
+        if (path.length == 1) {
+            return initial;
         }
 
-        return current;
+        return Stream.iterate(1, i -> i < path.length, i -> i + 1)
+                .reduce(
+                        initial,
+                        (current, i) -> {
+                            if (!(current instanceof NestedClosureBlock nested)) {
+                                throw new IllegalStateException(
+                                        "Cannot navigate to " + path[i] + " - parent is not nested");
+                            }
+                            Block child = nested.children().get(path[i]);
+                            if (child == null) {
+                                throw new IllegalStateException("Child block not found: " + path[i]);
+                            }
+                            return child;
+                        },
+                        (a, b) -> b);
     }
 
     /**
@@ -117,8 +115,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
         return new ParsedContent(updatedBlocks, unstructuredContent);
     }
 
-    private Block updateNestedBlock(
-            NestedClosureBlock parent, String[] path, int depth, Block updatedBlock) {
+    private Block updateNestedBlock(NestedClosureBlock parent, String[] path, int depth, Block updatedBlock) {
         if (depth == path.length - 1) {
             // We're at the parent of the target block
             String childName = path[depth];

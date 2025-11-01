@@ -28,32 +28,6 @@ import java.util.Map;
 
 public final class BuildGradleFile extends StructuredGradleFile {
 
-    // Block definitions - each knows its own pattern and structure
-    private static final Block BUILDSCRIPT = new NestedClosureBlock(
-            "buildscript",
-            List.of("repositories", "dependencies", "plugins"),
-            Map.of(
-                    "repositories", new ClosureBlock("repositories", ""),
-                    "dependencies", new ClosureBlock("dependencies", ""),
-                    "plugins", new ClosureBlock("plugins", "")),
-            "");
-
-    private static final Block PLUGINS = new ClosureBlock("plugins", "");
-    private static final Block ALLPROJECTS = new ClosureBlock("allprojects", "");
-    private static final Block SUBPROJECTS = new ClosureBlock("subprojects", "");
-    private static final Block REPOSITORIES = new ClosureBlock("repositories", "");
-    private static final Block DEPENDENCIES = new ClosureBlock("dependencies", "");
-
-    private static final Block CONFIGURATIONS = new NestedClosureBlock(
-            "configurations",
-            List.of("all"),
-            Map.of(
-                    "all",
-                    new NestedClosureBlock(
-                            "all", List.of("resolutionStrategy"), Map.of("resolutionStrategy", new ClosureBlock(
-                                    "resolutionStrategy", "")), "")),
-            "");
-
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public BuildGradleFile(Path path) {
         super(path);
@@ -61,14 +35,14 @@ public final class BuildGradleFile extends StructuredGradleFile {
 
     @Override
     protected List<Block> blocks() {
-        return List.of(BUILDSCRIPT, PLUGINS, ALLPROJECTS, SUBPROJECTS, REPOSITORIES, DEPENDENCIES, CONFIGURATIONS);
-    }
-
-    @Override
-    protected List<String> blockOrder() {
         return List.of(
-                "buildscript", "plugins", "allprojects", "subprojects", "repositories", "dependencies",
-                "configurations");
+                nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
+                closure("plugins"),
+                closure("allprojects"),
+                closure("subprojects"),
+                closure("repositories"),
+                closure("dependencies"),
+                nested("configurations", nested("all", closure("resolutionStrategy"))));
     }
 
     public BuildscriptBlock buildscript() {

@@ -19,36 +19,22 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
-import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.GradleBlock;
-import com.palantir.gradle.testing.files.gradle.blocks.NestedClosureBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.PropertyBlock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
+import java.util.regex.Pattern;
 import org.intellij.lang.annotations.Language;
 
 public final class SettingsGradleFile extends StructuredGradleFile {
 
-    private static final Block PLUGIN_MANAGEMENT = new NestedClosureBlock(
-            "pluginManagement",
-            List.of("repositories", "plugins", "resolutionStrategy"),
-            Map.of(
-                    "repositories", new ClosureBlock("repositories", ""),
-                    "plugins", new ClosureBlock("plugins", ""),
-                    "resolutionStrategy", new ClosureBlock("resolutionStrategy", "")),
-            "");
-
-    private static final Block BUILDSCRIPT = new NestedClosureBlock(
-            "buildscript",
-            List.of("repositories", "dependencies", "plugins"),
-            Map.of(
-                    "repositories", new ClosureBlock("repositories", ""),
-                    "dependencies", new ClosureBlock("dependencies", ""),
-                    "plugins", new ClosureBlock("plugins", "")),
-            "");
-
-    private static final Block PLUGINS = new ClosureBlock("plugins", "");
+    private static final PropertyBlock ROOT_PROJECT_NAME = new PropertyBlock("rootProject.name", "") {
+        @Override
+        public Pattern pattern() {
+            return Pattern.compile("rootProject\\.name\\s*=\\s*'([^']*)'", Pattern.MULTILINE);
+        }
+    };
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public SettingsGradleFile(Path path) {
@@ -57,12 +43,11 @@ public final class SettingsGradleFile extends StructuredGradleFile {
 
     @Override
     protected List<Block> blocks() {
-        return List.of(PLUGIN_MANAGEMENT, BUILDSCRIPT, PLUGINS);
-    }
-
-    @Override
-    protected List<String> blockOrder() {
-        return List.of("pluginManagement", "buildscript", "plugins");
+        return List.of(
+                nested("pluginManagement", closure("repositories"), closure("plugins"), closure("resolutionStrategy")),
+                nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
+                closure("plugins"),
+                ROOT_PROJECT_NAME);
     }
 
     public PluginManagementBlock pluginManagement() {
@@ -78,23 +63,17 @@ public final class SettingsGradleFile extends StructuredGradleFile {
     }
 
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        String rootProjectNameLine = "rootProject.name = '%s'".formatted(rootProjectName);
+        // Check for multiple assignments
+        long count = text().lines()
+                .filter(line -> line.matches(".*rootProject\\.name.*"))
+                .count();
 
-        edit(text -> {
-            long count = text.lines()
-                    .filter(line -> line.matches("rootProject\\.name[^\\n]*"))
-                    .count();
+        if (count > 1) {
+            throw new IllegalStateException("Found multiple rootProject.name assignments in settings.gradle. "
+                    + "Please remove the duplicate assignments and use the rootProjectName() method instead.");
+        }
 
-            if (count > 1) {
-                throw new IllegalStateException("Found multiple rootProject.name assignments in settings.gradle. "
-                        + "Please remove the duplicate assignments and use the rootProjectName() method instead.");
-            }
-
-            return text.contains("rootProject.name")
-                    ? text.replaceFirst("rootProject\\.name[^\\n]*", rootProjectNameLine)
-                    : text + rootProjectNameLine + "\n";
-        });
-
+        new GradleBlock(this, "rootProject.name").overwrite("%s", rootProjectName);
         return this;
     }
 
