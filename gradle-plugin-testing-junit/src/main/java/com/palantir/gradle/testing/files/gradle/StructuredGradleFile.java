@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
 import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
-import com.palantir.gradle.testing.files.gradle.blocks.NestedClosureBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -51,15 +50,15 @@ public abstract class StructuredGradleFile implements GradleFile {
 
     /** Helper to create simple closure block */
     protected static Block closure(String name) {
-        return new ClosureBlock(name, "");
+        return new ClosureBlock(name, Map.of(), "");
     }
 
     /** Helper to create nested closure block */
     protected static Block nested(String name, Block... children) {
-        return new NestedClosureBlock(
+        return new ClosureBlock(
                 name,
-                Stream.of(children).map(Block::name).collect(Collectors.toList()),
-                Stream.of(children).collect(Collectors.toMap(Block::name, b -> b)),
+                Stream.of(children)
+                        .collect(Collectors.toMap(Block::name, b -> b, (a, b) -> a, java.util.LinkedHashMap::new)),
                 "");
     }
 

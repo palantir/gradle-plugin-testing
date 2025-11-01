@@ -141,10 +141,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
 
         for (int i = 1; i < path.length; i++) {
             String childName = path[i];
-            if (!(current instanceof NestedClosureBlock nested)) {
-                throw new IllegalStateException("Cannot navigate to " + childName + " - parent is not nested");
-            }
-            current = Optional.ofNullable(nested.children().get(childName))
+            current = current.getChild(childName)
                     .orElseThrow(() -> new IllegalStateException("Child block not found: " + childName));
         }
 
@@ -164,50 +161,36 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
         }
 
         if (path.length == 1) {
-            // Top-level block
             Map<String, Block> updatedBlocks = new HashMap<>(blocks);
             updatedBlocks.put(path[0], updatedBlock);
             return new ParsedContent(updatedBlocks, unstructuredContent);
         }
 
-        // Nested block - need to update recursively
+        // Recursive update for nested blocks
         String topBlockName = path[0];
         Block topBlock = Optional.ofNullable(blocks.get(topBlockName))
                 .or(() -> Optional.ofNullable(templates.get(topBlockName)))
-                .orElseThrow(() -> new IllegalStateException("Block not found in template: " + topBlockName));
+                .orElseThrow(() -> new IllegalStateException("Block not found: " + topBlockName));
 
-        if (!(topBlock instanceof NestedClosureBlock nested)) {
-            throw new IllegalStateException("Cannot update nested block - parent is not nested: " + topBlockName);
-        }
-
-        Block updatedTopBlock = updateNestedBlock(nested, path, 1, updatedBlock);
+        Block updatedTopBlock = updateBlockRecursive(topBlock, path, 1, updatedBlock);
         Map<String, Block> updatedBlocks = new HashMap<>(blocks);
         updatedBlocks.put(topBlockName, updatedTopBlock);
         return new ParsedContent(updatedBlocks, unstructuredContent);
     }
 
-    private Block updateNestedBlock(NestedClosureBlock parent, String[] path, int depth, Block updatedBlock) {
+    private Block updateBlockRecursive(Block parent, String[] path, int depth, Block updatedBlock) {
+        String childName = path[depth];
+
         if (depth == path.length - 1) {
-            // We're at the parent of the target block
-            String childName = path[depth];
-            Map<String, Block> updatedChildren = new HashMap<>(parent.children());
-            updatedChildren.put(childName, updatedBlock);
-            return new NestedClosureBlock(
-                    parent.name(), parent.childOrder(), updatedChildren, parent.unstructuredContent());
+            // We're at the parent of the target block - update it
+            return parent.withChild(childName, updatedBlock);
         }
 
         // Need to go deeper
-        String childName = path[depth];
-        NestedClosureBlock nestedChild = Optional.ofNullable(parent.children().get(childName))
-                .filter(child -> child instanceof NestedClosureBlock)
-                .map(child -> (NestedClosureBlock) child)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Cannot navigate deeper - child not found or not nested: " + childName));
+        Block child = parent.getChild(childName)
+                .orElseThrow(() -> new IllegalStateException("Child block not found: " + childName));
 
-        Block updatedChild = updateNestedBlock(nestedChild, path, depth + 1, updatedBlock);
-        Map<String, Block> updatedChildren = new HashMap<>(parent.children());
-        updatedChildren.put(childName, updatedChild);
-        return new NestedClosureBlock(
-                parent.name(), parent.childOrder(), updatedChildren, parent.unstructuredContent());
+        Block updatedChild = updateBlockRecursive(child, path, depth + 1, updatedBlock);
+        return parent.withChild(childName, updatedChild);
     }
 }

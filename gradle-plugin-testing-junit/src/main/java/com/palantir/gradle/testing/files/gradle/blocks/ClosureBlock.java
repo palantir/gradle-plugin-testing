@@ -16,20 +16,26 @@
 
 package com.palantir.gradle.testing.files.gradle.blocks;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * A closure block containing unstructured text content.
+ * A closure block that may contain child blocks and unstructured content.
  * <p>
- * Used for blocks that don't contain nested child blocks - the content is treated as
- * opaque text. Indentation is normalized during parsing and applied during rendering.
+ * This unified block type handles both simple blocks (plugins, repositories) and nested blocks
+ * (buildscript, configurations). Simple blocks have empty children; nested blocks define child order
+ * via LinkedHashMap insertion order.
  * <p>
- * Examples: plugins { id 'java' }, repositories { mavenCentral() }, dependencies { ... }
+ * Examples:
+ * - Simple: plugins { id 'java' }
+ * - Nested: buildscript { repositories { } dependencies { } }
  */
-public record ClosureBlock(String name, String content) implements Block {
+public record ClosureBlock(String name, Map<String, Block> children, String unstructuredContent) implements Block {
 
     @Override
     public Pattern pattern() {
@@ -39,13 +45,19 @@ public record ClosureBlock(String name, String content) implements Block {
     }
 
     @Override
-    public Block parse(String textContent) {
-        return new ClosureBlock(name, normalizeIndentation(textContent.trim()));
+    public Block parse(String content) {
+        if (children.isEmpty()) {
+            // Simple block - just store normalized content
+            return new ClosureBlock(name, children, normalizeIndentation(content.trim()));
+        }
+        // Nested block - parse children
+        List<String> childOrder = List.copyOf(children.keySet());
+        ParsedContent.ParseState result = ParsedContent.parseBlocks(content, childOrder, children, true);
+        return new ClosureBlock(name, result.parsedBlocks(), result.remaining().trim());
     }
 
     /**
      * Strip leading whitespace from each line so content is stored without indentation.
-     * Indentation is applied during rendering.
      */
     private static String normalizeIndentation(String textContent) {
         return textContent.isEmpty()
@@ -55,7 +67,12 @@ public record ClosureBlock(String name, String content) implements Block {
 
     @Override
     public String renderContent() {
-        return content;
+        if (children.isEmpty()) {
+            return unstructuredContent;
+        }
+        List<String> childOrder = List.copyOf(children.keySet());
+        String renderedBlocks = ParsedContent.renderBlocks(childOrder, children, true);
+        return ParsedContent.combineUnstructured(renderedBlocks, unstructuredContent);
     }
 
     @Override
@@ -68,12 +85,40 @@ public record ClosureBlock(String name, String content) implements Block {
         if (!(other instanceof ClosureBlock o)) {
             return this;
         }
-        String merged = Stream.of(content, o.content).filter(c -> !c.isEmpty()).collect(Collectors.joining("\n"));
-        return new ClosureBlock(name, merged);
+
+        Map<String, Block> mergedChildren = children.keySet().stream()
+                .collect(Collectors.toMap(
+                        childName -> childName,
+                        childName -> {
+                            Block existing = children.get(childName);
+                            Block otherChild = o.children.get(childName);
+
+                            if (existing != null && otherChild != null) {
+                                return existing.merge(otherChild);
+                            }
+                            return otherChild != null ? otherChild : existing;
+                        },
+                        (a, b) -> a,
+                        LinkedHashMap::new));
+
+        String mergedUnstructured = ParsedContent.combineUnstructured(unstructuredContent, o.unstructuredContent);
+        return new ClosureBlock(name, mergedChildren, mergedUnstructured);
     }
 
     @Override
     public Block edit(Function<String, String> editor) {
         return parse(editor.apply(renderContent()));
+    }
+
+    @Override
+    public Optional<Block> getChild(String childName) {
+        return Optional.ofNullable(children.get(childName));
+    }
+
+    @Override
+    public Block withChild(String childName, Block child) {
+        Map<String, Block> updatedChildren = new LinkedHashMap<>(children);
+        updatedChildren.put(childName, child);
+        return new ClosureBlock(name, updatedChildren, unstructuredContent);
     }
 }

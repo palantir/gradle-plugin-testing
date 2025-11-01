@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.files.gradle.blocks;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -74,5 +75,15 @@ public non-sealed class PropertyBlock implements Block {
     @Override
     public final Block edit(Function<String, String> editor) {
         return parse(editor.apply(renderContent()));
+    }
+
+    @Override
+    public final Optional<Block> getChild(String childName) {
+        return Optional.empty();
+    }
+
+    @Override
+    public final Block withChild(String childName, Block child) {
+        throw new UnsupportedOperationException("PropertyBlock does not support children");
     }
 }

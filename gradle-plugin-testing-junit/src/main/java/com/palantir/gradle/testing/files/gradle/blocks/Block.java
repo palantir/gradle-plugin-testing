@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.files.gradle.blocks;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -23,12 +24,12 @@ import java.util.regex.Pattern;
  * A structural unit in a Gradle file that can be parsed, rendered, merged, and edited.
  * <p>
  * Blocks are self-contained - each block knows its own pattern, parsing rules, and rendering logic.
- * This enables uniform treatment of different block types (closure, nested, property) without
+ * This enables uniform treatment of different block types (closure, property) without
  * requiring external configuration or templates.
  * <p>
  * Examples: plugins { }, buildscript { repositories { } }, version = '1.0'
  */
-public sealed interface Block permits ClosureBlock, NestedClosureBlock, PropertyBlock {
+public sealed interface Block permits ClosureBlock, PropertyBlock {
     /**
      * Parse raw content into a Block instance.
      * @param content the text that appears inside the block (without wrapper syntax)
@@ -61,6 +62,22 @@ public sealed interface Block permits ClosureBlock, NestedClosureBlock, Property
      * @return a new Block with the transformed content
      */
     Block edit(Function<String, String> editor);
+
+    /**
+     * Get a child block by name. Only meaningful for blocks with children.
+     * @param childName the name of the child block
+     * @return the child block, or empty if not found or this block doesn't support children
+     */
+    Optional<Block> getChild(String childName);
+
+    /**
+     * Create a new block with an updated child. Only meaningful for blocks with children.
+     * @param childName the name of the child to update
+     * @param child the new child block
+     * @return a new block with the child updated
+     * @throws UnsupportedOperationException if this block doesn't support children
+     */
+    Block withChild(String childName, Block child);
 
     /**
      * The regex pattern used to identify and extract this block from parent content.
