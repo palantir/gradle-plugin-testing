@@ -59,7 +59,7 @@ public class GradleBlock implements GradleFile {
     public final String text() {
         ParsedContent parsed = root.parseContent(root.text());
         Block block = parsed.getBlockAt(blockTemplates(), blockPath);
-        return block.render();
+        return block.renderContent();
     }
 
     @Override

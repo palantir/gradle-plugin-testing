@@ -37,10 +37,16 @@ public sealed interface Block permits ClosureBlock, NestedClosureBlock, Property
     Block parse(String content);
 
     /**
-     * Render this block's content as a string.
-     * @return the content that should appear inside this block (without wrapper syntax)
+     * Render this block's inner content (without wrapper syntax).
+     * @return the content that appears inside the block
      */
-    String render();
+    String renderContent();
+
+    /**
+     * Render the complete block including wrapper syntax (name, braces, indentation).
+     * @return the full block as it should appear in the file
+     */
+    String renderBlock();
 
     /**
      * Merge another block's content into this block.

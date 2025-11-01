@@ -84,10 +84,10 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
         return blockOrder.stream()
                 .map(blocks::get)
                 .flatMap(block -> Optional.ofNullable(block).stream())
-                .filter(block -> !block.render().isEmpty())
+                .filter(block -> !block.renderContent().isEmpty())
                 .map(block -> includeBlockWrapper
-                        ? block.name() + " {\n" + indent(block.render()) + "\n}"
-                        : block.render())
+                        ? block.name() + " {\n" + indent(block.renderContent()) + "\n}"
+                        : block.renderContent())
                 .collect(Collectors.joining("\n"));
     }
 

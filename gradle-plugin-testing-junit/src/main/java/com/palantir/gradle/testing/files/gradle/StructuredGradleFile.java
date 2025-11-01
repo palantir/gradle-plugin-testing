@@ -20,7 +20,6 @@ import com.palantir.gradle.testing.files.gradle.blocks.Block;
 import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.NestedClosureBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
-import com.palantir.gradle.testing.files.gradle.blocks.PropertyBlock;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -110,10 +109,8 @@ public abstract class StructuredGradleFile implements GradleFile {
         String blocks = blockOrder().stream()
                 .map(content.blocks()::get)
                 .flatMap(block -> Optional.ofNullable(block).stream())
-                .filter(block -> !block.render().isEmpty())
-                .map(block -> block instanceof PropertyBlock
-                        ? block.render()
-                        : block.name() + " {\n" + ParsedContent.indent(block.render()) + "\n}")
+                .filter(block -> !block.renderContent().isEmpty())
+                .map(Block::renderBlock)
                 .collect(Collectors.joining("\n\n"));
 
         String result = content.unstructuredContent().isEmpty()

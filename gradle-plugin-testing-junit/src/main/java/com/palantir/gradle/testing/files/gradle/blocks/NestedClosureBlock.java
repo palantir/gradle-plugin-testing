@@ -51,9 +51,14 @@ public record NestedClosureBlock(
     }
 
     @Override
-    public String render() {
+    public String renderContent() {
         String renderedBlocks = ParsedContent.renderBlocks(childOrder, children, true);
         return ParsedContent.combineUnstructured(renderedBlocks, unstructuredContent);
+    }
+
+    @Override
+    public String renderBlock() {
+        return name + " {\n" + ParsedContent.indent(renderContent()) + "\n}";
     }
 
     @Override
@@ -80,6 +85,6 @@ public record NestedClosureBlock(
 
     @Override
     public Block edit(Function<String, String> editor) {
-        return parse(editor.apply(render()));
+        return parse(editor.apply(renderContent()));
     }
 }

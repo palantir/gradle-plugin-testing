@@ -57,8 +57,13 @@ public non-sealed class PropertyBlock implements Block {
     }
 
     @Override
-    public final String render() {
+    public final String renderContent() {
         return value.isEmpty() ? "" : name + " = '" + value + "'";
+    }
+
+    @Override
+    public final String renderBlock() {
+        return renderContent();
     }
 
     @Override
@@ -68,6 +73,6 @@ public non-sealed class PropertyBlock implements Block {
 
     @Override
     public final Block edit(Function<String, String> editor) {
-        return parse(editor.apply(render()));
+        return parse(editor.apply(renderContent()));
     }
 }

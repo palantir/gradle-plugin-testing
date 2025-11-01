@@ -54,8 +54,13 @@ public record ClosureBlock(String name, String content) implements Block {
     }
 
     @Override
-    public String render() {
+    public String renderContent() {
         return content;
+    }
+
+    @Override
+    public String renderBlock() {
+        return name + " {\n" + ParsedContent.indent(renderContent()) + "\n}";
     }
 
     @Override
@@ -69,6 +74,6 @@ public record ClosureBlock(String name, String content) implements Block {
 
     @Override
     public Block edit(Function<String, String> editor) {
-        return parse(editor.apply(render()));
+        return parse(editor.apply(renderContent()));
     }
 }
