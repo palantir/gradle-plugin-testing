@@ -25,13 +25,12 @@ import java.util.stream.Stream;
 import org.intellij.lang.annotations.Language;
 
 /**
- * A GradleFile wrapper that operates on a specific block within the file.
+ * A view onto a specific block within a GradleFile, enabling block-scoped operations.
  * <p>
- * Enables natural chaining for closure block access:
+ * Supports natural chaining for nested access:
  * {@code buildGradle.buildscript().repositories().append("mavenCentral()")}
  * <p>
- * All operations (append, edit, etc.) are scoped to the wrapped block and automatically
- * update the parent file with proper formatting and block ordering.
+ * All operations automatically update the parent file with proper formatting and block ordering.
  */
 public class GradleBlock implements GradleFile {
     private final StructuredGradleFile root;

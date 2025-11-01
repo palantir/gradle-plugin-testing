@@ -1,6 +1,6 @@
 # Gradle Block System
 
-A structured editing system for Gradle build files that maintains proper block ordering and formatting.
+Structured editing for Gradle files with automatic block ordering and formatting.
 
 ## Architecture
 
@@ -10,157 +10,102 @@ GradleFile (interface)
     └── SettingsGradleFile extends StructuredGradleFile
 
 StructuredGradleFile
-    • Defines blocks and their order
+    • Defines blocks and order
     • Parse: text → ParsedContent
     • Render: ParsedContent → text
 
 Block (sealed interface)
-    ├── ClosureBlock - simple blocks (plugins, repositories, dependencies)
-    ├── NestedClosureBlock - blocks with children (buildscript, configurations)
-    └── PropertyBlock - property assignments (version = '1.0')
+    ├── ClosureBlock - all closure blocks (simple & nested)
+    └── PropertyBlock - property assignments
 
-GradleBlock - wrapper enabling chained access to nested blocks
+GradleBlock - view onto a specific block enabling chained operations
 
-ParsedContent - parsing result with blocks map and unstructured content
+ParsedContent - parsed result with blocks map and unstructured content
 ```
 
 ## Core Concepts
 
 ### Self-Contained Blocks
 
-Each block knows its:
-- Name (e.g., "plugins", "buildscript")
-- Regex pattern for parsing
-- How to render itself
-- How to merge with other blocks
+Each block knows its name, regex pattern, rendering, and merging logic:
 
 ```java
-public record ClosureBlock(String name, String content) implements Block {
-    @Override
-    public Pattern pattern() {
-        return Pattern.compile("^\\s*" + Pattern.quote(name) + "\\s*\\{([^{}]*)\\}");
-    }
+public record ClosureBlock(String name, Map<String, Block> children, String unstructuredContent) {
+    // Simple block: empty children, content in unstructuredContent
+    // Nested block: children in LinkedHashMap, content parsed recursively
 }
 ```
 
 ### Block Ordering
 
-Blocks always render in predefined order, regardless of edit order:
+Blocks always render in predefined order:
 
 **BuildGradleFile:** buildscript → plugins → allprojects → subprojects → repositories → dependencies → configurations
 
 **SettingsGradleFile:** pluginManagement → plugins → dependencyResolutionManagement
 
-```java
-// Edit in any order
-buildGradle.dependencies().append("...");
-buildGradle.plugins().append("...");
-
-// Always renders in correct order
-plugins { ... }
-dependencies { ... }
-```
-
 ### Parse → Edit → Render Cycle
 
-1. **Parse** - Extract blocks using regex patterns, preserve unrecognized content
-2. **Edit** - Navigate to target block, apply transformation
-3. **Update** - Replace block in ParsedContent
-4. **Render** - Write blocks in order with proper indentation
+1. **Parse** - Extract blocks via regex, preserve unmatched content
+2. **Edit** - Navigate to block, apply transformation
+3. **Update** - Replace block in ParsedContent (immutable)
+4. **Render** - Write blocks in order with indentation
 
-### Nested Blocks
+### Unified Block Type
 
-Blocks can contain ordered child blocks:
+ClosureBlock handles both simple and nested blocks:
+- **Simple** (empty children): plugins { id 'java' }
+- **Nested** (LinkedHashMap children): buildscript { repositories { } }
 
-```java
-buildGradle.buildscript().repositories().append("mavenCentral()");
+### Polymorphic Navigation
 
-// Renders as:
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-```
-
-### Intelligent Merging
-
-Raw content with blocks is parsed and merged correctly:
+No type checking - uses `getChild()` and `withChild()` polymorphically:
 
 ```java
-buildGradle.plugins().append("id 'java'");
-buildGradle.append("""
-    plugins {
-        id 'maven-publish'
-    }
-    repositories {
-        mavenCentral()
-    }
-    """);
-
-// Result:
-plugins {
-    id 'java'
-    id 'maven-publish'
-}
-
-repositories {
-    mavenCentral()
-}
+Block current = parsed.getBlockAt(templates, "buildscript", "repositories");
+// Works for any nesting depth without instanceof checks
 ```
 
 ## Key Classes
 
-### Block Interface
-Core abstraction with parse(), render(), merge(), edit() methods.
+### Block
+Core interface: parse(), renderContent(), renderBlock(), merge(), edit(), getChild(), withChild()
 
 ### ClosureBlock
-Simple blocks with unstructured text content. Indentation normalized during parse, applied during render.
-
-### NestedClosureBlock
-Composite blocks with ordered children and optional unstructured content. Recursively parses and renders children.
+Unified block for all closures. Stores children in LinkedHashMap for order preservation.
+Empty children = simple block, non-empty = nested.
 
 ### PropertyBlock
 Property assignments like `version = '1.0'`. Subclasses define pattern.
 
 ### ParsedContent
-Immutable parsing result containing:
-- `blocks` - Map of block name to Block
-- `unstructuredContent` - Content not matching any pattern
-
-Static utilities for parsing, rendering, navigation, and updates.
+Immutable parse result. Provides package-private utilities for parsing, rendering, navigation, updates.
 
 ### GradleBlock
-Wrapper for block-scoped operations. Enables chaining:
-```java
-buildGradle.buildscript().repositories().append("mavenCentral()")
-```
+View onto a block within a file. Enables chaining: `buildGradle.buildscript().repositories().append(...)`
 
 ### StructuredGradleFile
-Base class defining block structure. Subclasses specify blocks() and blockOrder().
+Base class defining block structure. Subclasses implement blocks() and blockOrder().
 
-## Usage Examples
+## Usage
 
 ```java
-// Simple block editing
+// Simple blocks
 buildGradle.plugins().append("id 'java'");
 buildGradle.repositories().append("mavenCentral()");
 
-// Nested block editing
+// Nested blocks
 buildGradle.buildscript().repositories().append("gradlePluginPortal()");
-buildGradle.configurations().all().resolutionStrategy().append("force 'x:y:1.0'");
 
-// Block operations
-buildGradle.dependencies().append("implementation 'junit:junit:4.13'");
+// Operations
+buildGradle.dependencies().append("implementation 'x:y:1.0'");
 buildGradle.repositories().prepend("mavenLocal()");
 buildGradle.plugins().overwrite("id 'application'");
 buildGradle.plugins().edit(content -> content.replace("java", "java-library"));
 
 // Raw content merging
 buildGradle.append("""
-    plugins {
-        id 'java'
-    }
+    plugins { id 'java' }
     version = '1.0.0'
     """);
 // Plugins block merged, version preserved as unstructured
@@ -168,32 +113,31 @@ buildGradle.append("""
 
 ## Extension
 
-### Add a New Block Type
+Add new block type:
 
-1. Define block constant:
 ```java
-private static final Block PUBLISHING = new ClosureBlock("publishing", "");
-```
+// 1. Define block
+protected static Block closure(String name) {
+    return new ClosureBlock(name, Map.of(), "");
+}
 
-2. Add to blocks() and blockOrder():
-```java
+// 2. Add to blocks()
 @Override
 protected List<Block> blocks() {
-    return List.of(..., PUBLISHING);
+    return List.of(..., closure("publishing"));
 }
-```
 
-3. Add accessor:
-```java
+// 3. Add accessor
 public GradleBlock publishing() {
     return new GradleBlock(this, "publishing");
 }
 ```
 
-## Implementation Notes
+## Design Principles
 
-- **Indentation:** 4 spaces per level
-- **Unrecognized content:** Preserved at end after structured blocks
-- **Pattern matching:** Blocks extracted in defined order during parsing
-- **Immutability:** All operations return new instances, no mutation
-- **Optional usage:** No null checks - Optional patterns throughout
+- **Self-contained** - blocks know their own behavior
+- **Immutable** - all operations return new instances
+- **Optional-based** - no nulls anywhere
+- **Polymorphic** - no instanceof checks
+- **Order-preserving** - LinkedHashMap for children
+- **Minimal visibility** - package-private utilities where possible

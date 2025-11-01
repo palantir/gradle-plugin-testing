@@ -25,25 +25,24 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The result of parsing a Gradle file into structured blocks and unstructured content.
+ * Parsed Gradle file containing structured blocks and unstructured content.
  * <p>
- * Blocks are indexed by name for fast lookup. Content that doesn't match any block pattern
- * is preserved as unstructured content. Provides utilities for parsing, rendering, navigation,
- * and updates.
+ * Blocks are indexed by name. Unmatched content is preserved as unstructuredContent.
+ * Provides utilities for parsing, rendering, navigation, and immutable updates.
  */
 public record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
 
     /**
-     * Immutable state during parsing - tracks remaining unparsed content and accumulated blocks.
+     * Intermediate parsing state - remaining content and accumulated blocks.
      */
     public record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
 
     /**
-     * Extract blocks from content using the provided templates and ordering.
-     * @param content the text to parse
-     * @param blockOrder the order to search for and extract blocks
-     * @param blockTemplates block definitions used for pattern matching and parsing
-     * @param includeTemplatesInResult if true, start with all templates (preserves empty blocks for navigation)
+     * Extract blocks from content using templates and ordering.
+     * @param content text to parse
+     * @param blockOrder order to search for blocks
+     * @param blockTemplates block definitions for pattern matching
+     * @param includeTemplatesInResult if true, preserve empty blocks (for nested navigation)
      * @return parse state with extracted blocks and remaining content
      */
     public static ParseState parseBlocks(
@@ -91,7 +90,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Add 4-space indentation to each non-empty line.
+     * Indent each non-empty line with 4 spaces.
      */
     public static String indent(String content) {
         return content.lines()
@@ -100,16 +99,16 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Join non-empty content strings with a newline.
+     * Join non-empty strings with newline.
      */
     public static String combineUnstructured(String first, String second) {
         return Stream.of(first, second).filter(s -> !s.isEmpty()).collect(Collectors.joining("\n"));
     }
 
     /**
-     * Combine this ParsedContent with another, merging blocks and unstructured content.
-     * @param other the ParsedContent to merge
-     * @return a new ParsedContent with merged blocks and combined unstructured content
+     * Merge with another ParsedContent.
+     * @param other content to merge
+     * @return new ParsedContent with merged blocks and combined unstructured content
      */
     public ParsedContent merge(ParsedContent other) {
         Map<String, Block> mergedBlocks = Stream.concat(blocks.entrySet().stream(), other.blocks.entrySet().stream())
@@ -123,13 +122,13 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Navigate to a block using a path of block names.
-     * @param templates block definitions for looking up missing blocks
-     * @param path array of block names (e.g., ["buildscript", "repositories"])
-     * @return the block at the end of the path
-     * @throws IllegalStateException if path is invalid or blocks not found
+     * Navigate to a block by path.
+     * @param templates block definitions for missing blocks
+     * @param path block names (e.g., ["buildscript", "repositories"])
+     * @return block at path end
+     * @throws IllegalStateException if path invalid or block not found
      */
-    public Block getBlockAt(Map<String, Block> templates, String... path) {
+    Block getBlockAt(Map<String, Block> templates, String... path) {
         if (path.length == 0) {
             throw new IllegalArgumentException("Path cannot be empty");
         }
@@ -148,13 +147,13 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
     }
 
     /**
-     * Create a new ParsedContent with an updated block at the specified path.
-     * @param templates block definitions for looking up structure
-     * @param path array of block names identifying the target block
-     * @param updatedBlock the new block to place at the path
-     * @return a new ParsedContent with the block updated
+     * Update a block at a path.
+     * @param templates block definitions for structure lookup
+     * @param path block names identifying target
+     * @param updatedBlock new block
+     * @return new ParsedContent with updated block
      */
-    public ParsedContent withBlockAt(Map<String, Block> templates, String[] path, Block updatedBlock) {
+    ParsedContent withBlockAt(Map<String, Block> templates, String[] path, Block updatedBlock) {
         if (path.length == 0) {
             throw new IllegalArgumentException("Path cannot be empty");
         }

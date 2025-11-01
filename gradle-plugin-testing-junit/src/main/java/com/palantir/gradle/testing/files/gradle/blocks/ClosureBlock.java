@@ -25,15 +25,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * A closure block that may contain child blocks and unstructured content.
+ * A closure block containing child blocks and/or unstructured content.
  * <p>
- * This unified block type handles both simple blocks (plugins, repositories) and closure blocks
- * (buildscript, configurations). Simple blocks have empty children; closure blocks define child order
- * via LinkedHashMap insertion order.
+ * Handles both simple blocks (empty children map) and nested blocks (non-empty children).
+ * Child order is preserved via LinkedHashMap insertion order. Content is stored without
+ * indentation and indented during rendering.
  * <p>
  * Examples:
- * - Simple: plugins { id 'java' }
- * - Nested: buildscript { repositories { } dependencies { } }
+ * - Simple: plugins { id 'java' } - empty children, content in unstructuredContent
+ * - Nested: buildscript { repositories { } } - child blocks in children map
  */
 public record ClosureBlock(String name, Map<String, Block> children, String unstructuredContent) implements Block {
 
