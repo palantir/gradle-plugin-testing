@@ -69,7 +69,7 @@ public non-sealed class PropertyBlock implements Block {
 
     @Override
     public final Block merge(Block other) {
-        return other instanceof PropertyBlock o && !o.value.isEmpty() ? o : this;
+        return other instanceof PropertyBlock o && o.name.equals(this.name) && !o.value.isEmpty() ? o : this;
     }
 
     @Override
