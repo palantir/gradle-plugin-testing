@@ -54,14 +54,14 @@ final class ProjectDirsAreMadeCorrectlyInBuildDirTest {
                         "parameterized test/2_ bar/7.6.5",
                         "parameterized test/1_ foo/8.14.3",
                         "parameterized test/2_ bar/8.14.3",
-                        "NestedClass/nested parameterized test/1_ foo/7.6.5",
-                        "NestedClass/nested parameterized test/2_ bar/7.6.5",
-                        "NestedClass/nested parameterized test/1_ foo/8.14.3",
-                        "NestedClass/nested parameterized test/2_ bar/8.14.3",
-                        "NestedClass/DoublyNestedClass/doubly nested parameterized test/1_ foo/7.6.5",
-                        "NestedClass/DoublyNestedClass/doubly nested parameterized test/2_ bar/7.6.5",
-                        "NestedClass/DoublyNestedClass/doubly nested parameterized test/1_ foo/8.14.3",
-                        "NestedClass/DoublyNestedClass/doubly nested parameterized test/2_ bar/8.14.3")
+                        "NestedClass/closure parameterized test/1_ foo/7.6.5",
+                        "NestedClass/closure parameterized test/2_ bar/7.6.5",
+                        "NestedClass/closure parameterized test/1_ foo/8.14.3",
+                        "NestedClass/closure parameterized test/2_ bar/8.14.3",
+                        "NestedClass/DoublyNestedClass/doubly closure parameterized test/1_ foo/7.6.5",
+                        "NestedClass/DoublyNestedClass/doubly closure parameterized test/2_ bar/7.6.5",
+                        "NestedClass/DoublyNestedClass/doubly closure parameterized test/1_ foo/8.14.3",
+                        "NestedClass/DoublyNestedClass/doubly closure parameterized test/2_ bar/8.14.3")
                 .forEach(path -> assertThat(rootTestDir.resolve(path).resolve("settings.gradle"))
                         .exists());
     }

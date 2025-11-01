@@ -79,8 +79,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
      * @param includeBlockWrapper if true, wrap each block with "name { ... }"
      * @return rendered text with blocks joined by newlines
      */
-    public static String renderBlocks(
-            List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
+    public static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
         return blockOrder.stream()
                 .map(blocks::get)
                 .flatMap(block -> Optional.ofNullable(block).stream())
@@ -166,7 +165,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
             return new ParsedContent(updatedBlocks, unstructuredContent);
         }
 
-        // Recursive update for nested blocks
+        // Recursive update for closure blocks
         String topBlockName = path[0];
         Block topBlock = Optional.ofNullable(blocks.get(topBlockName))
                 .or(() -> Optional.ofNullable(templates.get(topBlockName)))

@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 /**
  * A closure block that may contain child blocks and unstructured content.
  * <p>
- * This unified block type handles both simple blocks (plugins, repositories) and nested blocks
- * (buildscript, configurations). Simple blocks have empty children; nested blocks define child order
+ * This unified block type handles both simple blocks (plugins, repositories) and closure blocks
+ * (buildscript, configurations). Simple blocks have empty children; closure blocks define child order
  * via LinkedHashMap insertion order.
  * <p>
  * Examples:
@@ -86,20 +86,16 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return this;
         }
 
-        Map<String, Block> mergedChildren = children.keySet().stream()
-                .collect(Collectors.toMap(
-                        childName -> childName,
-                        childName -> {
-                            Block existing = children.get(childName);
-                            Block otherChild = o.children.get(childName);
+        Map<String, Block> mergedChildren = new LinkedHashMap<>();
+        for (String childName : children.keySet()) {
+            Optional<Block> existing = Optional.ofNullable(children.get(childName));
+            Optional<Block> otherChild = Optional.ofNullable(o.children.get(childName));
 
-                            if (existing != null && otherChild != null) {
-                                return existing.merge(otherChild);
-                            }
-                            return otherChild != null ? otherChild : existing;
-                        },
-                        (a, b) -> a,
-                        LinkedHashMap::new));
+            existing.flatMap(e -> otherChild.map(e::merge))
+                    .or(() -> otherChild)
+                    .or(() -> existing)
+                    .ifPresent(block -> mergedChildren.put(childName, block));
+        }
 
         String mergedUnstructured = ParsedContent.combineUnstructured(unstructuredContent, o.unstructuredContent);
         return new ClosureBlock(name, mergedChildren, mergedUnstructured);

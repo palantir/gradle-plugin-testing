@@ -27,7 +27,7 @@ import org.intellij.lang.annotations.Language;
 /**
  * A GradleFile wrapper that operates on a specific block within the file.
  * <p>
- * Enables natural chaining for nested block access:
+ * Enables natural chaining for closure block access:
  * {@code buildGradle.buildscript().repositories().append("mavenCentral()")}
  * <p>
  * All operations (append, edit, etc.) are scoped to the wrapped block and automatically

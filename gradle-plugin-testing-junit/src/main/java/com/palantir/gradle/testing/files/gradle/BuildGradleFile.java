@@ -92,7 +92,7 @@ public final class BuildGradleFile extends StructuredGradleFile {
     }
 
     /**
-     * Configurations block with nested all() that can contain resolutionStrategy.
+     * Configurations block with closure all() that can contain resolutionStrategy.
      */
     public static final class ConfigurationsBlock extends GradleBlock {
         private ConfigurationsBlock(BuildGradleFile file, String... path) {
