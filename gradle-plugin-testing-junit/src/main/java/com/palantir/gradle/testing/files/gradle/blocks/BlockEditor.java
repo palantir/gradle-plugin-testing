@@ -19,20 +19,28 @@ package com.palantir.gradle.testing.files.gradle.blocks;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import com.palantir.gradle.testing.files.gradle.StructuredGradleFile;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.intellij.lang.annotations.Language;
 
 /**
- * A view onto a specific block within a GradleFile, enabling block-scoped operations.
+ * A view onto a specific block within a {@link GradleFile}, enabling block-scoped operations.
  * <p>
  * Supports natural chaining for nested access:
- * {@code buildGradle.buildscript().repositories().append("mavenCentral()")}
+ * <pre>{@code
+ * buildGradle.buildscript().repositories().append("mavenCentral()")
+ * }</pre>
  * <p>
  * All operations automatically update the parent file with proper formatting and block ordering.
+ * This class delegates to {@link ParsedContent} for parsing and rendering operations.
+ *
+ * @see GradleFile
+ * @see ParsedContent
+ * @see Block
  */
-public class GradleBlock implements GradleFile {
+public class BlockEditor implements GradleFile {
     private final StructuredGradleFile root;
     private final String[] blockPath;
 
@@ -44,7 +52,7 @@ public class GradleBlock implements GradleFile {
         return blockPath;
     }
 
-    public GradleBlock(StructuredGradleFile root, String... path) {
+    public BlockEditor(StructuredGradleFile root, String... path) {
         this.root = root;
         this.blockPath = path;
     }
@@ -56,22 +64,23 @@ public class GradleBlock implements GradleFile {
 
     @Override
     public final String text() {
-        ParsedContent parsed = root.parseContent(root.text());
-        Block block = parsed.getBlockAt(blockTemplates(), blockPath);
+        Map<String, Block> templates = blockTemplates();
+        ParsedContent parsed = ParsedContent.parseContent(root.text(), blockOrder(), templates);
+        Block block = parsed.getBlockAt(templates, blockPath);
         return block.renderContent();
     }
 
     @Override
-    public final GradleBlock edit(FileEditor editor) {
-        ParsedContent parsed = root.parseContent(root.text());
+    public final BlockEditor edit(FileEditor editor) {
         Map<String, Block> templates = blockTemplates();
+        ParsedContent parsed = ParsedContent.parseContent(root.text(), blockOrder(), templates);
 
         Block block = parsed.getBlockAt(templates, blockPath);
-        Block updated = block.edit(editor::edit);
-        ParsedContent withUpdate = parsed.withBlockAt(templates, blockPath, updated);
+        Block updatedBlock = block.edit(editor::edit);
+        ParsedContent updatedTree = parsed.withBlockAt(templates, blockPath, updatedBlock);
 
         @Language("Gradle")
-        String rendered = root.renderContent(withUpdate);
+        String rendered = ParsedContent.renderContent(updatedTree, blockOrder());
         root.overwrite(rendered);
         return this;
     }
@@ -80,19 +89,23 @@ public class GradleBlock implements GradleFile {
         return root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
     }
 
+    private List<String> blockOrder() {
+        return root.getBlocks().stream().map(Block::name).collect(Collectors.toList());
+    }
+
     @Override
-    public final GradleBlock append(String text) {
+    public final BlockEditor append(String text) {
         return edit(existing -> existing.isEmpty() ? text : String.join("\n", existing, text));
     }
 
     @Override
-    public final GradleBlock prepend(String text) {
+    public final BlockEditor prepend(String text) {
         return edit(
                 existing -> existing.isEmpty() ? text : text.endsWith("\n") ? text + existing : text + "\n" + existing);
     }
 
     @Override
-    public final GradleBlock overwrite(String text) {
+    public final BlockEditor overwrite(String text) {
         return edit(_existing -> text);
     }
 

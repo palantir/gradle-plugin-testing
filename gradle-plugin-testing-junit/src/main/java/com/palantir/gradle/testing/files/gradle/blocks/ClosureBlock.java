@@ -28,12 +28,17 @@ import java.util.stream.Collectors;
  * A closure block containing child blocks and/or unstructured content.
  * <p>
  * Handles both simple blocks (empty children map) and nested blocks (non-empty children).
- * Child order is preserved via LinkedHashMap insertion order. Content is stored without
+ * Child order is preserved via {@link LinkedHashMap} insertion order. Content is stored without
  * indentation and indented during rendering.
  * <p>
  * Examples:
- * - Simple: plugins { id 'java' } - empty children, content in unstructuredContent
- * - Nested: buildscript { repositories { } } - child blocks in children map
+ * <ul>
+ *   <li>Simple: {@code plugins { id 'java' }} - empty children, content in {@code unstructuredContent}</li>
+ *   <li>Nested: {@code buildscript { repositories { } }} - child blocks in {@code children} map</li>
+ * </ul>
+ *
+ * @see Block
+ * @see ParsedContent
  */
 public record ClosureBlock(String name, Map<String, Block> children, String unstructuredContent) implements Block {
 
@@ -86,16 +91,18 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return this;
         }
 
-        Map<String, Block> mergedChildren = new LinkedHashMap<>();
-        for (String childName : children.keySet()) {
-            Optional<Block> existing = Optional.ofNullable(children.get(childName));
-            Optional<Block> otherChild = Optional.ofNullable(o.children.get(childName));
+        Map<String, Block> mergedChildren = children.keySet().stream()
+                .map(childName -> {
+                    Optional<Block> existing = Optional.ofNullable(children.get(childName));
+                    Optional<Block> otherChild = Optional.ofNullable(o.children.get(childName));
 
-            existing.flatMap(e -> otherChild.map(e::merge))
-                    .or(() -> otherChild)
-                    .or(() -> existing)
-                    .ifPresent(block -> mergedChildren.put(childName, block));
-        }
+                    return existing.flatMap(e -> otherChild.map(e::merge))
+                            .or(() -> otherChild)
+                            .or(() -> existing)
+                            .map(block -> Map.entry(childName, block));
+                })
+                .<Map.Entry<String, Block>>mapMulti(Optional::ifPresent)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
 
         String mergedUnstructured = ParsedContent.combineUnstructured(unstructuredContent, o.unstructuredContent);
         return new ClosureBlock(name, mergedChildren, mergedUnstructured);

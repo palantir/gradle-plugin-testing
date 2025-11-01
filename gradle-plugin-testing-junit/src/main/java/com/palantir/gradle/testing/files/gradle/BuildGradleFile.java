@@ -19,10 +19,25 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
-import com.palantir.gradle.testing.files.gradle.blocks.GradleBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.BlockEditor;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Represents a Gradle {@code build.gradle} file with structured access to common blocks.
+ * <p>
+ * Provides typed accessors for standard Gradle build file blocks such as:
+ * <ul>
+ *   <li>{@link #buildscript()} - Build script configuration</li>
+ *   <li>{@link #plugins()} - Plugin declarations</li>
+ *   <li>{@link #repositories()} - Repository configuration</li>
+ *   <li>{@link #dependencies()} - Project dependencies</li>
+ *   <li>{@link #configurations()} - Dependency configurations</li>
+ * </ul>
+ *
+ * @see StructuredGradleFile
+ * @see BlockEditor
+ */
 public final class BuildGradleFile extends StructuredGradleFile {
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
@@ -46,24 +61,24 @@ public final class BuildGradleFile extends StructuredGradleFile {
         return new BuildscriptBlock(this, "buildscript");
     }
 
-    public GradleBlock plugins() {
-        return new GradleBlock(this, "plugins");
+    public BlockEditor plugins() {
+        return new BlockEditor(this, "plugins");
     }
 
-    public GradleBlock repositories() {
-        return new GradleBlock(this, "repositories");
+    public BlockEditor repositories() {
+        return new BlockEditor(this, "repositories");
     }
 
-    public GradleBlock dependencies() {
-        return new GradleBlock(this, "dependencies");
+    public BlockEditor dependencies() {
+        return new BlockEditor(this, "dependencies");
     }
 
-    public GradleBlock allprojects() {
-        return new GradleBlock(this, "allprojects");
+    public BlockEditor allprojects() {
+        return new BlockEditor(this, "allprojects");
     }
 
-    public GradleBlock subprojects() {
-        return new GradleBlock(this, "subprojects");
+    public BlockEditor subprojects() {
+        return new BlockEditor(this, "subprojects");
     }
 
     public ConfigurationsBlock configurations() {
@@ -71,30 +86,38 @@ public final class BuildGradleFile extends StructuredGradleFile {
     }
 
     /**
-     * Buildscript block with repositories, dependencies, and plugins children.
+     * {@code buildscript} block with child blocks for repositories, dependencies, and plugins.
+     * <p>
+     * Used to configure the build script classpath.
+     *
+     * @see BlockEditor
      */
-    public static final class BuildscriptBlock extends GradleBlock {
+    public static final class BuildscriptBlock extends BlockEditor {
         private BuildscriptBlock(BuildGradleFile file, String... path) {
             super(file, path);
         }
 
-        public GradleBlock repositories() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "repositories"));
+        public BlockEditor repositories() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "repositories"));
         }
 
-        public GradleBlock dependencies() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "dependencies"));
+        public BlockEditor dependencies() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "dependencies"));
         }
 
-        public GradleBlock plugins() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "plugins"));
+        public BlockEditor plugins() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "plugins"));
         }
     }
 
     /**
-     * Configurations block with closure all() that can contain resolutionStrategy.
+     * {@code configurations} block with nested configuration blocks.
+     * <p>
+     * Provides access to dependency configuration settings.
+     *
+     * @see BlockEditor
      */
-    public static final class ConfigurationsBlock extends GradleBlock {
+    public static final class ConfigurationsBlock extends BlockEditor {
         private ConfigurationsBlock(BuildGradleFile file, String... path) {
             super(file, path);
         }
@@ -105,15 +128,19 @@ public final class BuildGradleFile extends StructuredGradleFile {
     }
 
     /**
-     * All configuration block within configurations that can contain resolutionStrategy.
+     * {@code all} configuration block within {@code configurations}.
+     * <p>
+     * Used to configure resolution strategy and other settings for all configurations.
+     *
+     * @see BlockEditor
      */
-    public static final class AllConfigurationBlock extends GradleBlock {
+    public static final class AllConfigurationBlock extends BlockEditor {
         private AllConfigurationBlock(StructuredGradleFile root, String... path) {
             super(root, path);
         }
 
-        public GradleBlock resolutionStrategy() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "resolutionStrategy"));
+        public BlockEditor resolutionStrategy() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "resolutionStrategy"));
         }
     }
 }

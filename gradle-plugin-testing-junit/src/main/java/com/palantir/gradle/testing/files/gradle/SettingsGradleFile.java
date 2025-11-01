@@ -19,7 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
-import com.palantir.gradle.testing.files.gradle.blocks.GradleBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.BlockEditor;
 import com.palantir.gradle.testing.files.gradle.blocks.PropertyBlock;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +27,21 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.intellij.lang.annotations.Language;
 
+/**
+ * Represents a Gradle {@code settings.gradle} file with structured access to common blocks.
+ * <p>
+ * Provides typed accessors for standard Gradle settings file blocks such as:
+ * <ul>
+ *   <li>{@link #pluginManagement()} - Plugin management configuration</li>
+ *   <li>{@link #buildscript()} - Build script configuration</li>
+ *   <li>{@link #plugins()} - Plugin declarations</li>
+ *   <li>{@link #rootProjectName(String)} - Root project name property</li>
+ *   <li>{@link #include(String)} - Include subprojects</li>
+ * </ul>
+ *
+ * @see StructuredGradleFile
+ * @see BlockEditor
+ */
 public final class SettingsGradleFile extends StructuredGradleFile {
 
     private static final PropertyBlock ROOT_PROJECT_NAME = new PropertyBlock("rootProject.name", "") {
@@ -58,10 +73,22 @@ public final class SettingsGradleFile extends StructuredGradleFile {
         return new BuildscriptBlock(this, "buildscript");
     }
 
-    public GradleBlock plugins() {
-        return new GradleBlock(this, "plugins");
+    /**
+     * Access the {@code plugins} block for plugin declarations.
+     *
+     * @return a {@link BlockEditor} for the plugins block
+     */
+    public BlockEditor plugins() {
+        return new BlockEditor(this, "plugins");
     }
 
+    /**
+     * Set the root project name in the settings file.
+     *
+     * @param rootProjectName the name for the root project
+     * @return this {@link SettingsGradleFile} for chaining
+     * @throws IllegalStateException if multiple {@code rootProject.name} assignments exist
+     */
     public SettingsGradleFile rootProjectName(String rootProjectName) {
         // Check for multiple assignments
         long count = text().lines()
@@ -73,10 +100,18 @@ public final class SettingsGradleFile extends StructuredGradleFile {
                     + "Please remove the duplicate assignments and use the rootProjectName() method instead.");
         }
 
-        new GradleBlock(this, "rootProject.name").overwrite("%s", rootProjectName);
+        new BlockEditor(this, "rootProject.name").overwrite("%s", rootProjectName);
         return this;
     }
 
+    /**
+     * Include a subproject in the build.
+     * <p>
+     * Adds an {@code include 'projectPath'} line if not already present.
+     *
+     * @param projectPath the path to the subproject (e.g., {@code "subproject"}, {@code ":sub:nested"})
+     * @return this {@link SettingsGradleFile} for chaining
+     */
     public SettingsGradleFile include(String projectPath) {
         @Language("Gradle")
         String includeLine = "include '%s'".formatted(projectPath);
@@ -90,44 +125,52 @@ public final class SettingsGradleFile extends StructuredGradleFile {
     }
 
     /**
-     * PluginManagement block with repositories, plugins, and resolutionStrategy children.
+     * {@code pluginManagement} block with child blocks for repositories, plugins, and resolutionStrategy.
+     * <p>
+     * Used to configure how plugins are resolved and applied.
+     *
+     * @see BlockEditor
      */
-    public static final class PluginManagementBlock extends GradleBlock {
+    public static final class PluginManagementBlock extends BlockEditor {
         private PluginManagementBlock(SettingsGradleFile file, String... path) {
             super(file, path);
         }
 
-        public GradleBlock repositories() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "repositories"));
+        public BlockEditor repositories() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "repositories"));
         }
 
-        public GradleBlock plugins() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "plugins"));
+        public BlockEditor plugins() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "plugins"));
         }
 
-        public GradleBlock resolutionStrategy() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "resolutionStrategy"));
+        public BlockEditor resolutionStrategy() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "resolutionStrategy"));
         }
     }
 
     /**
-     * Buildscript block with repositories, dependencies, and plugins children.
+     * {@code buildscript} block with child blocks for repositories, dependencies, and plugins.
+     * <p>
+     * Used to configure the settings script classpath.
+     *
+     * @see BlockEditor
      */
-    public static final class BuildscriptBlock extends GradleBlock {
+    public static final class BuildscriptBlock extends BlockEditor {
         private BuildscriptBlock(SettingsGradleFile file, String... path) {
             super(file, path);
         }
 
-        public GradleBlock repositories() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "repositories"));
+        public BlockEditor repositories() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "repositories"));
         }
 
-        public GradleBlock dependencies() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "dependencies"));
+        public BlockEditor dependencies() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "dependencies"));
         }
 
-        public GradleBlock plugins() {
-            return new GradleBlock(getRoot(), concat(getBlockPath(), "plugins"));
+        public BlockEditor plugins() {
+            return new BlockEditor(getRoot(), concat(getBlockPath(), "plugins"));
         }
     }
 }

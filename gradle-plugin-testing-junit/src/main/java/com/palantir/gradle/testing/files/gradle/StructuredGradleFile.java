@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.files.gradle;
 
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
+import com.palantir.gradle.testing.files.gradle.blocks.BlockEditor;
 import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
 import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
 import java.io.IOException;
@@ -25,13 +26,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Base class for structured Gradle files (build.gradle, settings.gradle).
+ * Base class for structured Gradle files ({@code build.gradle}, {@code settings.gradle}).
+ * <p>
  * Handles parsing, rendering, and block navigation using block definitions.
+ * Subclasses define their block structure via {@link #blocks()}, and this class
+ * delegates to {@link ParsedContent} for parsing and rendering operations.
+ * <p>
+ * The file structure is preserved during edits - blocks maintain their order
+ * and unstructured content is preserved alongside structured blocks.
+ *
+ * @see BuildGradleFile
+ * @see SettingsGradleFile
+ * @see ParsedContent
+ * @see Block
  */
 public abstract class StructuredGradleFile implements GradleFile {
     private final Path path;
@@ -40,20 +51,40 @@ public abstract class StructuredGradleFile implements GradleFile {
         this.path = path;
     }
 
-    /** Subclasses define their block structure - order is preserved */
+    /**
+     * Subclasses define their block structure.
+     * Block order is preserved during parsing and rendering.
+     *
+     * @return list of {@link Block} definitions for this file type
+     */
     protected abstract List<Block> blocks();
 
-    /** Block order derived from blocks() */
+    /**
+     * Block order derived from {@link #blocks()}.
+     *
+     * @return list of block names in order
+     */
     protected List<String> blockOrder() {
         return blocks().stream().map(Block::name).collect(Collectors.toList());
     }
 
-    /** Helper to create simple closure block */
+    /**
+     * Helper to create simple closure block without children.
+     *
+     * @param name the block name (e.g., {@code "plugins"}, {@code "repositories"})
+     * @return a {@link ClosureBlock} with no children
+     */
     protected static Block closure(String name) {
         return new ClosureBlock(name, Map.of(), "");
     }
 
-    /** Helper to create nested closure block */
+    /**
+     * Helper to create nested closure block with child blocks.
+     *
+     * @param name the block name (e.g., {@code "buildscript"})
+     * @param children the child blocks this block can contain
+     * @return a {@link ClosureBlock} with the specified children
+     */
     protected static Block nested(String name, Block... children) {
         return new ClosureBlock(
                 name,
@@ -62,19 +93,13 @@ public abstract class StructuredGradleFile implements GradleFile {
                 "");
     }
 
-    /** Public accessor for blocks - needed by GradleBlock */
+    /**
+     * Public accessor for blocks - needed by {@link BlockEditor}.
+     *
+     * @return list of {@link Block} definitions for this file type
+     */
     public List<Block> getBlocks() {
         return blocks();
-    }
-
-    /** Public accessor for parse - needed by GradleBlock */
-    public ParsedContent parseContent(String content) {
-        return parse(content);
-    }
-
-    /** Public accessor for render - needed by GradleBlock */
-    public String renderContent(ParsedContent content) {
-        return render(content);
     }
 
     @Override
@@ -91,32 +116,13 @@ public abstract class StructuredGradleFile implements GradleFile {
         }
     }
 
-    protected final ParsedContent parse(String content) {
-        return Optional.ofNullable(content)
-                .filter(c -> !c.trim().isEmpty())
-                .map(this::doParse)
-                .orElseGet(() -> new ParsedContent(Map.of(), ""));
-    }
-
-    private ParsedContent doParse(String content) {
+    private ParsedContent parse(String content) {
         Map<String, Block> blockMap = blocks().stream().collect(Collectors.toMap(Block::name, b -> b));
-        ParsedContent.ParseState result = ParsedContent.parseBlocks(content, blockOrder(), blockMap, false);
-        return new ParsedContent(result.parsedBlocks(), normalizeRemaining(result.remaining()));
+        return ParsedContent.parseContent(content, blockOrder(), blockMap);
     }
 
-    protected final String render(ParsedContent content) {
-        String blocks = blockOrder().stream()
-                .map(content.blocks()::get)
-                .flatMap(block -> Optional.ofNullable(block).stream())
-                .filter(block -> !block.renderContent().isEmpty())
-                .map(Block::renderBlock)
-                .collect(Collectors.joining("\n\n"));
-
-        String result = content.unstructuredContent().isEmpty()
-                ? blocks
-                : (blocks.isEmpty() ? content.unstructuredContent() : blocks + "\n\n" + content.unstructuredContent());
-
-        return result.isEmpty() || result.endsWith("\n") ? result : result + "\n";
+    private String render(ParsedContent content) {
+        return ParsedContent.renderContent(content, blockOrder());
     }
 
     @Override
@@ -144,9 +150,5 @@ public abstract class StructuredGradleFile implements GradleFile {
         ParsedContent reparsed = parse(edited);
         overwrite(render(reparsed));
         return this;
-    }
-
-    private String normalizeRemaining(String remaining) {
-        return remaining.trim().replaceAll("\n{2,}", "\n");
     }
 }

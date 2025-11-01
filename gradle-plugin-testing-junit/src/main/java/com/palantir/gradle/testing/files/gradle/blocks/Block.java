@@ -24,16 +24,26 @@ import java.util.regex.Pattern;
  * A structural unit in a Gradle file that can be parsed, rendered, merged, and edited.
  * <p>
  * Blocks are self-contained - each block knows its own pattern, parsing rules, and rendering logic.
- * This enables uniform treatment of different block types (closure, property) without
+ * This enables uniform treatment of different block types ({@link ClosureBlock}, {@link PropertyBlock}) without
  * requiring external configuration or templates.
  * <p>
- * Examples: plugins { }, buildscript { repositories { } }, version = '1.0'
+ * Examples:
+ * <ul>
+ *   <li>{@code plugins { }} - simple closure block</li>
+ *   <li>{@code buildscript { repositories { } }} - nested closure block</li>
+ *   <li>{@code version = '1.0'} - property block</li>
+ * </ul>
+ *
+ * @see ClosureBlock
+ * @see PropertyBlock
+ * @see ParsedContent
  */
 public sealed interface Block permits ClosureBlock, PropertyBlock {
     /**
-     * Parse raw content into a Block instance.
+     * Parse raw content into a {@link Block} instance.
+     *
      * @param content the text that appears inside the block (without wrapper syntax)
-     * @return a new Block containing the parsed content
+     * @return a new {@link Block} containing the parsed content
      */
     Block parse(String content);
 
@@ -51,15 +61,17 @@ public sealed interface Block permits ClosureBlock, PropertyBlock {
 
     /**
      * Merge another block's content into this block.
+     *
      * @param other the block to merge
-     * @return a new Block containing both this block's content and the other's content
+     * @return a new {@link Block} containing both this block's content and the other's content
      */
     Block merge(Block other);
 
     /**
      * Transform this block's content using an editor function.
+     *
      * @param editor function that receives current content and returns new content
-     * @return a new Block with the transformed content
+     * @return a new {@link Block} with the transformed content
      */
     Block edit(Function<String, String> editor);
 
@@ -72,9 +84,10 @@ public sealed interface Block permits ClosureBlock, PropertyBlock {
 
     /**
      * Create a new block with an updated child. Only meaningful for blocks with children.
+     *
      * @param childName the name of the child to update
      * @param child the new child block
-     * @return a new block with the child updated
+     * @return a new {@link Block} with the child updated
      * @throws UnsupportedOperationException if this block doesn't support children
      */
     Block withChild(String childName, Block child);
@@ -87,7 +100,8 @@ public sealed interface Block permits ClosureBlock, PropertyBlock {
 
     /**
      * The identifier for this block.
-     * @return block name (e.g., "plugins", "repositories", "buildscript")
+     *
+     * @return block name (e.g., {@code "plugins"}, {@code "repositories"}, {@code "buildscript"})
      */
     String name();
 }

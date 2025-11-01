@@ -23,8 +23,11 @@ import java.util.regex.Pattern;
 /**
  * A block representing property assignments (non-closure syntax).
  * <p>
- * Used for simple key-value assignments like version = '1.0' or rootProject.name = 'myapp'.
- * Subclasses must override pattern() to define the specific property pattern to match.
+ * Used for simple key-value assignments like {@code version = '1.0'} or {@code rootProject.name = 'myapp'}.
+ * Subclasses must override {@link #pattern()} to define the specific property pattern to match.
+ *
+ * @see Block
+ * @see ClosureBlock
  */
 public non-sealed class PropertyBlock implements Block {
     private final String name;
@@ -84,6 +87,6 @@ public non-sealed class PropertyBlock implements Block {
 
     @Override
     public final Block withChild(String childName, Block child) {
-        throw new UnsupportedOperationException("PropertyBlock does not support children");
+        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support children");
     }
 }
