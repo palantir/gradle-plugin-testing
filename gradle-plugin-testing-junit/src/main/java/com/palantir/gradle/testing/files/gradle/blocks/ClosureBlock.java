@@ -16,11 +16,17 @@
 
 package com.palantir.gradle.testing.files.gradle.blocks;
 
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A simple closure block with no nested children (e.g., plugins, repositories, dependencies).
  * This is a leaf node in the block tree.
+ *
+ * This class combines the Block interface with the factory/descriptor pattern -
+ * it knows how to create itself, parse itself, and match itself via regex.
  */
 public record ClosureBlock(String name, String content) implements Block {
 
@@ -33,9 +39,7 @@ public record ClosureBlock(String name, String content) implements Block {
 
     @Override
     public Block parse(String content) {
-        // Strip leading/trailing whitespace and normalize indentation
-        String normalized = normalizeIndentation(content.trim());
-        return new ClosureBlock(name, normalized);
+        return new ClosureBlock(name, normalizeIndentation(content.trim()));
     }
 
     /**
@@ -43,13 +47,9 @@ public record ClosureBlock(String name, String content) implements Block {
      * Content should be stored without any indentation - indentation is added during rendering.
      */
     private static String normalizeIndentation(String content) {
-        if (content.isEmpty()) {
-            return content;
-        }
-
-        return content.lines()
-                .map(String::stripLeading)  // Remove all leading whitespace from each line
-                .collect(java.util.stream.Collectors.joining("\n"));
+        return content.isEmpty()
+                ? content
+                : content.lines().map(String::stripLeading).collect(Collectors.joining("\n"));
     }
 
     @Override
@@ -59,40 +59,17 @@ public record ClosureBlock(String name, String content) implements Block {
 
     @Override
     public Block merge(Block other) {
-        if (!(other instanceof ClosureBlock o)) {
-            return this;
-        }
-
-        if (content.isEmpty()) {
-            return o;
-        }
-        if (o.content.isEmpty()) {
-            return this;
-        }
-
-        return new ClosureBlock(name, content + "\n" + o.content);
+        return other instanceof ClosureBlock o
+                ? Stream.of(content, o.content)
+                        .filter(c -> !c.isEmpty())
+                        .collect(
+                                Collectors.collectingAndThen(
+                                        Collectors.joining("\n"), merged -> new ClosureBlock(name, merged)))
+                : this;
     }
 
     @Override
-    public Block edit(java.util.function.Function<String, String> editor) {
-        // Edit the rendered content, then parse it back
-        String newContent = editor.apply(render());
-        return parse(newContent);
-    }
-
-    public static Builder builder(String name) {
-        return new Builder(name);
-    }
-
-    public static final class Builder {
-        private final String name;
-
-        public Builder(String name) {
-            this.name = name;
-        }
-
-        public ClosureBlock build() {
-            return new ClosureBlock(name, "");
-        }
+    public Block edit(Function<String, String> editor) {
+        return parse(editor.apply(render()));
     }
 }

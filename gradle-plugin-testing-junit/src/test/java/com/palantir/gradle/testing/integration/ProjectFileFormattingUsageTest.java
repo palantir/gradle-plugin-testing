@@ -49,7 +49,7 @@ class ProjectFileFormattingUsageTest {
 
     @Test
     void can_format_append(RootProject rootProject) {
-        rootProject.buildGradle().overwrite("plugins { id 'java' }\n");
+        rootProject.buildGradle().plugins().append("id 'java'");
         rootProject.buildGradle().append("""
             tasks.register('%s') {
                 doLast {}
@@ -57,13 +57,17 @@ class ProjectFileFormattingUsageTest {
             """, "myTask");
 
         assertThat(rootProject.buildGradle().text())
-                .contains("plugins {\n id 'java' \n}")
+                .contains("""
+                    plugins {
+                        id 'java'
+                    }
+                    """)
                 .contains("tasks.register('myTask')");
     }
 
     @Test
     void can_format_append_manually(RootProject rootProject) {
-        rootProject.buildGradle().overwrite("plugins { id 'java' }\n");
+        rootProject.buildGradle().plugins().append("id 'java'");
         rootProject.buildGradle().append("""
             tasks.register('%s') {
                 doLast {}
@@ -71,7 +75,11 @@ class ProjectFileFormattingUsageTest {
             """.formatted("myTask"));
 
         assertThat(rootProject.buildGradle().text())
-                .contains("plugins { id 'java' }")
+                .contains("""
+                    plugins {
+                        id 'java'
+                    }
+                    """)
                 .contains("tasks.register('myTask')");
     }
 

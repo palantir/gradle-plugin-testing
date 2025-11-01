@@ -18,6 +18,8 @@ package com.palantir.gradle.testing.files.gradle.blocks;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Result of parsing a Gradle file.
@@ -31,32 +33,21 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
      * Unstructured content is combined.
      */
     public ParsedContent merge(ParsedContent other) {
-        Map<String, Block> mergedBlocks = new HashMap<>(blocks);
+        Map<String, Block> mergedBlocks = Stream.concat(blocks.entrySet().stream(), other.blocks.entrySet().stream())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (existing, incoming) -> existing.merge(incoming)));
 
-        // Each block merges itself
-        for (Map.Entry<String, Block> entry : other.blocks.entrySet()) {
-            String blockName = entry.getKey();
-            Block otherBlock = entry.getValue();
-
-            if (mergedBlocks.containsKey(blockName)) {
-                mergedBlocks.put(blockName, mergedBlocks.get(blockName).merge(otherBlock));
-            } else {
-                mergedBlocks.put(blockName, otherBlock);
-            }
-        }
-
-        // Combine unstructured content
-        String mergedUnstructured = unstructuredContent.isEmpty()
-                ? other.unstructuredContent
-                : other.unstructuredContent.isEmpty()
-                        ? unstructuredContent
-                        : unstructuredContent + "\n" + other.unstructuredContent;
+        String mergedUnstructured = Stream.of(unstructuredContent, other.unstructuredContent)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining("\n"));
 
         return new ParsedContent(mergedBlocks, mergedUnstructured);
     }
 
     /**
-     * Navigate to a block at the given path.
+     * Navigate to a block at the given path using Block templates.
      * For example, path ["buildscript", "repositories"] navigates to the repositories child
      * of the buildscript block.
      */
@@ -120,14 +111,14 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
             throw new IllegalStateException("Cannot update nested block - parent is not nested: " + topBlockName);
         }
 
-        Block updatedTopBlock = updateNestedBlock(nested, path, 1, updatedBlock, templates);
+        Block updatedTopBlock = updateNestedBlock(nested, path, 1, updatedBlock);
         Map<String, Block> updatedBlocks = new HashMap<>(blocks);
         updatedBlocks.put(topBlockName, updatedTopBlock);
         return new ParsedContent(updatedBlocks, unstructuredContent);
     }
 
     private Block updateNestedBlock(
-            NestedClosureBlock parent, String[] path, int depth, Block updatedBlock, Map<String, Block> templates) {
+            NestedClosureBlock parent, String[] path, int depth, Block updatedBlock) {
         if (depth == path.length - 1) {
             // We're at the parent of the target block
             String childName = path[depth];
@@ -147,7 +138,7 @@ public record ParsedContent(Map<String, Block> blocks, String unstructuredConten
             throw new IllegalStateException("Cannot navigate deeper - child is not nested: " + childName);
         }
 
-        Block updatedChild = updateNestedBlock(nestedChild, path, depth + 1, updatedBlock, templates);
+        Block updatedChild = updateNestedBlock(nestedChild, path, depth + 1, updatedBlock);
         Map<String, Block> updatedChildren = new HashMap<>(parent.children());
         updatedChildren.put(childName, updatedChild);
         return new NestedClosureBlock(

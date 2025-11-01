@@ -18,138 +18,131 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
-import com.palantir.gradle.testing.files.gradle.blocks.BuildGradleTemplate;
-import com.palantir.gradle.testing.files.gradle.blocks.BlockHandle;
-import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
-import com.palantir.gradle.testing.files.gradle.blocks.Template;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
+import com.palantir.gradle.testing.files.gradle.blocks.Block;
+import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.GradleBlock;
+import com.palantir.gradle.testing.files.gradle.blocks.NestedClosureBlock;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
-public final class BuildGradleFile implements GradleFile {
-    private final Path path;
-    private final Template template = BuildGradleTemplate.INSTANCE;
+public final class BuildGradleFile extends StructuredGradleFile {
+
+    // Block definitions - each knows its own pattern and structure
+    private static final Block BUILDSCRIPT = new NestedClosureBlock(
+            "buildscript",
+            List.of("repositories", "dependencies", "plugins"),
+            Map.of(
+                    "repositories", new ClosureBlock("repositories", ""),
+                    "dependencies", new ClosureBlock("dependencies", ""),
+                    "plugins", new ClosureBlock("plugins", "")),
+            "");
+
+    private static final Block PLUGINS = new ClosureBlock("plugins", "");
+    private static final Block ALLPROJECTS = new ClosureBlock("allprojects", "");
+    private static final Block SUBPROJECTS = new ClosureBlock("subprojects", "");
+    private static final Block REPOSITORIES = new ClosureBlock("repositories", "");
+    private static final Block DEPENDENCIES = new ClosureBlock("dependencies", "");
+
+    private static final Block CONFIGURATIONS = new NestedClosureBlock(
+            "configurations",
+            List.of("all"),
+            Map.of(
+                    "all",
+                    new NestedClosureBlock(
+                            "all", List.of("resolutionStrategy"), Map.of("resolutionStrategy", new ClosureBlock(
+                                    "resolutionStrategy", "")), "")),
+            "");
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public BuildGradleFile(Path path) {
-        this.path = path;
+        super(path);
     }
 
     @Override
-    public Path path() {
-        return path;
+    protected List<Block> blocks() {
+        return List.of(BUILDSCRIPT, PLUGINS, ALLPROJECTS, SUBPROJECTS, REPOSITORIES, DEPENDENCIES, CONFIGURATIONS);
     }
 
     @Override
-    public String text() {
-        try {
-            return Files.exists(path) ? Files.readString(path) : "";
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    @Override
-    public BuildGradleFile append(String text) {
-        // Parse existing content, parse new content, merge, then render
-        ParsedContent existing = template.parse(text());
-        ParsedContent toAppend = template.parse(text);
-        ParsedContent merged = existing.merge(toAppend);
-
-        overwrite(template.render(merged));
-        return this;
-    }
-
-    @Override
-    public BuildGradleFile edit(FileEditor editor) {
-        // Parse, edit, reparse, render
-        ParsedContent parsed = template.parse(text());
-        String edited = editor.edit(template.render(parsed));
-        ParsedContent reparsed = template.parse(edited);
-
-        overwrite(template.render(reparsed));
-        return this;
-    }
-
-    Template template() {
-        return template;
+    protected List<String> blockOrder() {
+        return List.of(
+                "buildscript", "plugins", "allprojects", "subprojects", "repositories", "dependencies",
+                "configurations");
     }
 
     public BuildscriptBlock buildscript() {
-        return new BuildscriptBlock(this);
+        return new BuildscriptBlock(this, "buildscript");
     }
 
-    public BlockHandle plugins() {
-        return new BlockHandle(this, template, "plugins");
+    public GradleBlock plugins() {
+        return new GradleBlock(this, "plugins");
     }
 
-    public BlockHandle repositories() {
-        return new BlockHandle(this, template, "repositories");
+    public GradleBlock repositories() {
+        return new GradleBlock(this, "repositories");
     }
 
-    public BlockHandle dependencies() {
-        return new BlockHandle(this, template, "dependencies");
+    public GradleBlock dependencies() {
+        return new GradleBlock(this, "dependencies");
     }
 
-    public BlockHandle allprojects() {
-        return new BlockHandle(this, template, "allprojects");
+    public GradleBlock allprojects() {
+        return new GradleBlock(this, "allprojects");
     }
 
-    public BlockHandle subprojects() {
-        return new BlockHandle(this, template, "subprojects");
+    public GradleBlock subprojects() {
+        return new GradleBlock(this, "subprojects");
     }
 
     public ConfigurationsBlock configurations() {
-        return new ConfigurationsBlock(this);
+        return new ConfigurationsBlock(this, "configurations");
     }
 
     /**
      * Buildscript block with repositories, dependencies, and plugins children.
      */
-    public static final class BuildscriptBlock extends BlockHandle {
-        private BuildscriptBlock(BuildGradleFile file) {
-            super(file, file.template, "buildscript");
+    public static final class BuildscriptBlock extends GradleBlock {
+        private BuildscriptBlock(BuildGradleFile file, String... path) {
+            super(file, path);
         }
 
-        public BlockHandle repositories() {
-            return new BlockHandle(root, template, "buildscript", "repositories");
+        public GradleBlock repositories() {
+            return new GradleBlock(root, concat(blockPath, "repositories"));
         }
 
-        public BlockHandle dependencies() {
-            return new BlockHandle(root, template, "buildscript", "dependencies");
+        public GradleBlock dependencies() {
+            return new GradleBlock(root, concat(blockPath, "dependencies"));
         }
 
-        public BlockHandle plugins() {
-            return new BlockHandle(root, template, "buildscript", "plugins");
+        public GradleBlock plugins() {
+            return new GradleBlock(root, concat(blockPath, "plugins"));
         }
     }
 
     /**
      * Configurations block with nested all() that can contain resolutionStrategy.
      */
-    public static final class ConfigurationsBlock {
-        private final BuildGradleFile file;
-
-        private ConfigurationsBlock(BuildGradleFile file) {
-            this.file = file;
+    public static final class ConfigurationsBlock extends GradleBlock {
+        private ConfigurationsBlock(BuildGradleFile file, String... path) {
+            super(file, path);
         }
 
         public AllConfigurationBlock all() {
-            return new AllConfigurationBlock(file);
+            return new AllConfigurationBlock(root, concat(blockPath, "all"));
         }
     }
 
     /**
      * All configuration block within configurations that can contain resolutionStrategy.
      */
-    public static final class AllConfigurationBlock extends BlockHandle {
-        private AllConfigurationBlock(BuildGradleFile file) {
-            super(file, file.template, "configurations", "all");
+    public static final class AllConfigurationBlock extends GradleBlock {
+        private AllConfigurationBlock(StructuredGradleFile root, String... path) {
+            super(root, path);
         }
 
-        public BlockHandle resolutionStrategy() {
-            return new BlockHandle(root, template, "configurations", "all", "resolutionStrategy");
+        public GradleBlock resolutionStrategy() {
+            return new GradleBlock(root, concat(blockPath, "resolutionStrategy"));
         }
     }
 }

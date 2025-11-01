@@ -401,4 +401,128 @@ class BuildGradleFileTest {
             }
             """);
     }
+
+    @Test
+    void raw_append_of_plugins_block_goes_in_correct_position(RootProject rootProject) {
+        // Raw append of a plugins block should be placed in the correct position
+        // according to the defined block order, not at the end
+        rootProject.buildGradle().append("""
+            plugins {
+                id 'java'
+            }
+            """);
+
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'junit:junit:4.13.2'");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation 'junit:junit:4.13.2'
+            }
+            """);
+    }
+
+    @Test
+    void raw_append_merges_with_existing_plugins_block(RootProject rootProject) {
+        // If a plugins block already exists, raw append should merge with it
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+
+        rootProject.buildGradle().append("""
+            plugins {
+                id 'maven-publish'
+            }
+            """);
+
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+                id 'maven-publish'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+            """);
+    }
+
+    @Test
+    void raw_append_multiple_blocks_maintains_order(RootProject rootProject) {
+        // Raw append with multiple blocks should place each in correct position
+        rootProject.buildGradle().append("""
+            repositories {
+                google()
+            }
+
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation 'junit:junit:4.13.2'
+            }
+            """);
+
+        // Even though repositories was first in the append, output should follow proper order
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                google()
+            }
+
+            dependencies {
+                implementation 'junit:junit:4.13.2'
+            }
+            """);
+    }
+
+    @Test
+    void raw_append_nested_buildscript_block(RootProject rootProject) {
+        // Raw append of buildscript should go before plugins
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+
+        rootProject.buildGradle().append("""
+            buildscript {
+                repositories {
+                    gradlePluginPortal()
+                }
+                dependencies {
+                    classpath 'plugin:1.0'
+                }
+            }
+            """);
+
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    gradlePluginPortal()
+                }
+                dependencies {
+                    classpath 'plugin:1.0'
+                }
+            }
+
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+            """);
+    }
 }
