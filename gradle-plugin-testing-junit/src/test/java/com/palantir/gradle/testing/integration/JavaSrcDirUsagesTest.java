@@ -16,8 +16,6 @@
 
 package com.palantir.gradle.testing.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
@@ -44,7 +42,7 @@ class JavaSrcDirUsagesTest {
             }
             """);
 
-        assertThat(gradle.withArgs("run").buildsSuccessfully().output()).contains("Hello world!");
+        gradle.withArgs("run").buildsSuccessfully().assertThat().output().contains("Hello world!");
 
         rootProject
                 .mainSourceSet()
@@ -52,6 +50,6 @@ class JavaSrcDirUsagesTest {
                 .fileByClassName("example.Main")
                 .edit(text -> text.replace("world", "universe"));
 
-        assertThat(gradle.withArgs("run").buildsSuccessfully().output()).contains("Hello universe!");
+        gradle.withArgs("run").buildsSuccessfully().assertThat().output().contains("Hello universe!");
     }
 }

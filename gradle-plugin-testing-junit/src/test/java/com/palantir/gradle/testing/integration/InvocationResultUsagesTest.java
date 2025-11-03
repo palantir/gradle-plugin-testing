@@ -56,14 +56,14 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result.output()).contains("hello from build");
+        result.assertThat().output().contains("hello from build");
     }
 
     @Test
     void non_existent_tasks_are_returned_as_optional_empty(GradleInvoker gradle) {
         InvocationResult result = gradle.withArgs().buildsSuccessfully();
 
-        assertThat(result.task(":i-dont-exist")).isEmpty();
+        result.assertThat().task(":i-dont-exist").isEmpty();
     }
 
     @Test
@@ -72,7 +72,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo", "-x", "foo").buildsSuccessfully();
 
-        assertThat(result.task(":foo")).isEmpty();
+        result.assertThat().task(":foo").isEmpty();
     }
 
     @Test
@@ -101,9 +101,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
-        });
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.SUCCESS);
     }
 
     @Test
@@ -118,9 +116,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
-        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.FAILED);
-        });
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.FAILED);
     }
 
     @Test
@@ -133,9 +129,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
-        });
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.UP_TO_DATE);
     }
 
     @Test
@@ -148,9 +142,7 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SKIPPED);
-        });
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.SKIPPED);
     }
 
     @Test
@@ -161,8 +153,6 @@ class InvocationResultUsagesTest {
 
         InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
 
-        assertThat(result.task(":subProject:foo")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.NO_SOURCE);
-        });
+        result.assertThat().task(":subProject:foo").outcome().isEqualTo(TaskOutcome.NO_SOURCE);
     }
 }
