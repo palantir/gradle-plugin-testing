@@ -90,41 +90,6 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
     }
 
     /**
-     * Render blocks to text in the specified order.
-     *
-     * @param blockOrder the order to render blocks
-     * @param blocks the blocks to render
-     * @return rendered text with blocks joined by newlines
-     */
-    static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks) {
-        return nonEmptyBlocksInOrder(blockOrder, blocks)
-                .map(ParsedContent::formatBlock)
-                .collect(Collectors.joining("\n"));
-    }
-
-    /**
-     * Format a block with optional wrapper.
-     */
-    private static String formatBlock(Block block) {
-        return block.name() + " {\n" + block.renderContent().indent(4).stripTrailing() + "\n}";
-    }
-
-    /**
-     * Stream of non-empty rendered blocks in order.
-     */
-    private static Stream<Block> nonEmptyBlocksInOrder(List<String> blockOrder, Map<String, Block> blocks) {
-        return blockOrder.stream().map(blocks::get).filter(Objects::nonNull).filter(block -> !block.renderContent()
-                .isEmpty());
-    }
-
-    /**
-     * Join non-empty strings with newline.
-     */
-    public static String combineUnstructured(String first, String second) {
-        return joinNonEmpty("\n", first, second);
-    }
-
-    /**
      * Join non-empty strings with specified delimiter.
      */
     private static String joinNonEmpty(String delimiter, String... strings) {
@@ -166,7 +131,10 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * @return formatted text with blocks followed by unstructured content
      */
     static String renderContent(ParsedContent content, List<String> blockOrder) {
-        String blocks = nonEmptyBlocksInOrder(blockOrder, content.blocks())
+        String blocks = blockOrder.stream()
+                .map(content.blocks()::get)
+                .filter(Objects::nonNull)
+                .filter(block -> !block.renderContent().isEmpty())
                 .map(Block::renderBlock)
                 .collect(Collectors.joining("\n\n"));
 

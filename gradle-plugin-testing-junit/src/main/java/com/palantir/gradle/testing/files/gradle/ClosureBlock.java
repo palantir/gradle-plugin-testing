@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,13 +48,8 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
         Pattern pattern = Pattern.compile("^\\s*" + Pattern.quote(name) + "\\s*\\{", Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(content);
 
-        return Optional.of(matcher)
-                .filter(Matcher::find)
-                .flatMap(m -> findMatchingBrace(content, m.end() - 1)
-                        .map(closePos -> new ExtractionResult(
-                                content.substring(m.end(), closePos),
-                                m.start(),
-                                closePos + 1)));
+        return Optional.of(matcher).filter(Matcher::find).flatMap(m -> findMatchingBrace(content, m.end() - 1)
+                .map(closePos -> new ExtractionResult(content.substring(m.end(), closePos), m.start(), closePos + 1)));
     }
 
     private static Optional<Integer> findMatchingBrace(String content, int openPos) {
@@ -121,8 +117,8 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return unstructuredContent;
         }
         List<String> childOrder = List.copyOf(children.keySet());
-        String renderedBlocks = ParsedContent.renderBlocks(childOrder, children);
-        return ParsedContent.combineUnstructured(renderedBlocks, unstructuredContent);
+        String renderedBlocks = renderBlocks(childOrder, children);
+        return combineUnstructured(renderedBlocks, unstructuredContent);
     }
 
     @Override
@@ -149,7 +145,7 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
                 .<Map.Entry<String, Block>>mapMulti(Optional::ifPresent)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
 
-        String mergedUnstructured = ParsedContent.combineUnstructured(unstructuredContent, o.unstructuredContent);
+        String mergedUnstructured = combineUnstructured(unstructuredContent, o.unstructuredContent);
         return new ClosureBlock(name, mergedChildren, mergedUnstructured);
     }
 
@@ -163,5 +159,35 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
         Map<String, Block> updatedChildren = new LinkedHashMap<>(children);
         updatedChildren.put(childName, child);
         return new ClosureBlock(name, updatedChildren, unstructuredContent);
+    }
+
+    /**
+     * Render blocks to text in the specified order.
+     *
+     * @param blockOrder the order to render blocks
+     * @param blocks the blocks to render
+     * @return rendered text with blocks joined by newlines
+     */
+    private static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks) {
+        return blockOrder.stream()
+                .map(blocks::get)
+                .filter(Objects::nonNull)
+                .filter(block -> !block.renderContent().isEmpty())
+                .map(block ->
+                        block.name() + " {\n" + block.renderContent().indent(4).stripTrailing() + "\n}")
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Join non-empty strings with newline.
+     */
+    private static String combineUnstructured(String first, String second) {
+        if (first.isEmpty()) {
+            return second;
+        }
+        if (second.isEmpty()) {
+            return first;
+        }
+        return first + "\n" + second;
     }
 }
