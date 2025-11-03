@@ -155,7 +155,11 @@ class GradleAssertionsUsageTest {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
                 doLast {
-                    throw new RuntimeException('intentional failure')
+                    try {
+                        throw new IOException("Some exception")
+                    } catch (Exception e) {
+                        throw new RuntimeException('intentional failure', e)
+                    }
                 }
             }
             """);
@@ -163,6 +167,7 @@ class GradleAssertionsUsageTest {
         InvocationResult result = gradle.withArgs("foo").buildsWithFailure();
 
         result.assertThat().task(":foo").failed();
+        assertThat(result).output().contains("Caused by: java.io.IOException: Some exception");
     }
 
     @Test
