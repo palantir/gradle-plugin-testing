@@ -162,13 +162,10 @@ public final class GradleTestStringFormatting extends BugChecker implements BugC
             VisitorState state) {
         List<String> allArgs = new ArrayList<>();
 
-        // Add format string
         allArgs.add(state.getSourceForNode(formatString));
 
-        // Add format arguments
         formatArgs.stream().map(state::getSourceForNode).forEach(allArgs::add);
 
-        // Add remaining outer call arguments (skip the first which was the formatted string)
         outerCall.getArguments().stream().skip(1).map(state::getSourceForNode).forEach(allArgs::add);
 
         String methodSelect = state.getSourceForNode(outerCall.getMethodSelect());
