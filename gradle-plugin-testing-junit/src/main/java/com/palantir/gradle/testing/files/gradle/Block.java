@@ -38,7 +38,7 @@ import java.util.function.Function;
  * @see StatementBlock
  * @see ParsedContent
  */
-sealed interface Block permits ClosureBlock, StatementBlock {
+interface Block {
     /**
      * Parse raw content into a {@link Block} instance.
      *
@@ -82,7 +82,9 @@ sealed interface Block permits ClosureBlock, StatementBlock {
      * @param childName the name of the child block
      * @return the child block, or empty if not found or this block doesn't support children
      */
-    Optional<Block> getChild(String childName);
+    default Optional<Block> getChild(String childName) {
+        return Optional.empty();
+    }
 
     /**
      * Create a new block with an updated child. Only meaningful for blocks with children.
@@ -92,7 +94,9 @@ sealed interface Block permits ClosureBlock, StatementBlock {
      * @return a new {@link Block} with the child updated
      * @throws UnsupportedOperationException if this block doesn't support children
      */
-    Block withChild(String childName, Block child);
+    default Block withChild(String childName, Block child) {
+        throw new UnsupportedOperationException("This block type does not support children");
+    }
 
     /**
      * The identifier for this block.

@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,31 +55,22 @@ public record ClosureBlock(
 
     /**
      * Find the position of the closing brace matching the opening brace at openPos.
-     * Uses a depth counter tracked through stream reduction.
+     * Simple depth-tracking algorithm - much clearer than stream reduction.
      */
     private static Optional<Integer> findMatchingBrace(String content, int openPos) {
-        record BraceState(int depth, Optional<Integer> closePos) {}
-
-        return java.util.stream.IntStream.range(openPos + 1, content.length())
-                .mapToObj(i -> Map.entry(i, content.charAt(i)))
-                .reduce(
-                        new BraceState(1, Optional.empty()),
-                        (state, entry) -> {
-                            if (state.closePos().isPresent()) {
-                                return state; // Already found, short-circuit
-                            }
-                            int newDepth =
-                                    switch (entry.getValue()) {
-                                        case '{' -> state.depth() + 1;
-                                        case '}' -> state.depth() - 1;
-                                        default -> state.depth();
-                                    };
-                            return newDepth == 0
-                                    ? new BraceState(newDepth, Optional.of(entry.getKey()))
-                                    : new BraceState(newDepth, Optional.empty());
-                        },
-                        (s1, s2) -> s1)
-                .closePos();
+        int depth = 1;
+        for (int i = openPos + 1; i < content.length(); i++) {
+            char chr = content.charAt(i);
+            if (chr == '{') {
+                depth++;
+            } else if (chr == '}') {
+                depth--;
+                if (depth == 0) {
+                    return Optional.of(i);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -108,7 +98,7 @@ public record ClosureBlock(
                 .filter(e -> !e.getValue().isEmpty())
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)));
 
-        ParseResult result = BlockParser.parseNestedBlocks(content, childOrder, templates);
+        ParseResult result = BlockOperations.parseNestedBlocks(content, childOrder, templates);
         String parsedUnstructured =
                 removeLeadingAndTrailingBlankLines(result.remaining()).stripIndent();
         return new ClosureBlock(name, result.blocks(), parsedUnstructured, shouldMerge);
@@ -149,37 +139,21 @@ public record ClosureBlock(
             return List.of(this, other);
         }
 
-        Map<String, List<Block>> mergedChildren = BlockMerger.mergeBlockLists(children, o.children);
+        Map<String, List<Block>> mergedChildren = BlockOperations.mergeBlockLists(children, o.children);
         String mergedUnstructured = combineUnstructured(unstructuredContent, o.unstructuredContent);
-        return List.of(new ClosureBlock(name, mergedChildren, mergedUnstructured, shouldMerge));
+        return List.of(new ClosureBlock(name, mergedChildren, mergedUnstructured, true));
     }
 
     @Override
     public Optional<Block> getChild(String childName) {
-        return Optional.ofNullable(children.get(childName))
-                .filter(list -> !list.isEmpty())
-                .map(list -> list.get(0));
+        return BlockOperations.firstBlock(children.get(childName));
     }
 
     @Override
     public Block withChild(String childName, Block child) {
         Map<String, List<Block>> updatedChildren = new LinkedHashMap<>(children);
-        updatedChildren.put(childName, updateBlockListAtIndex(children.get(childName), 0, child));
+        updatedChildren.put(childName, BlockOperations.updateBlockAt(children.get(childName), 0, child));
         return new ClosureBlock(name, updatedChildren, unstructuredContent, shouldMerge);
-    }
-
-    /**
-     * Update a block list at a specific index, or create new list if null/empty.
-     */
-    private static List<Block> updateBlockListAtIndex(List<Block> existingList, int index, Block updatedBlock) {
-        return Optional.ofNullable(existingList)
-                .filter(list -> !list.isEmpty())
-                .map(list -> {
-                    List<Block> newList = new ArrayList<>(list);
-                    newList.set(index, updatedBlock);
-                    return newList;
-                })
-                .orElseGet(() -> new ArrayList<>(List.of(updatedBlock)));
     }
 
     /**

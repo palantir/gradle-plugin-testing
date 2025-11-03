@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  *
  * @see Block
  */
-non-sealed class StatementBlock implements Block {
+final class StatementBlock implements Block {
     private final String name;
     private final String keyword;
     private final Pattern linePattern;
@@ -56,17 +56,17 @@ non-sealed class StatementBlock implements Block {
     }
 
     @Override
-    public final String name() {
+    public String name() {
         return name;
     }
 
-    public final Pattern pattern() {
+    public Pattern pattern() {
         // Match all statements of this type at this level (greedy to capture multiple lines)
         return Pattern.compile("((?:^" + Pattern.quote(keyword) + "\\s+'[^']+'\\s*\n*)+)", Pattern.MULTILINE);
     }
 
     @Override
-    public final Optional<ExtractionResult> extract(String content) {
+    public Optional<ExtractionResult> extract(String content) {
         Matcher matcher = pattern().matcher(content);
         if (!matcher.find()) {
             return Optional.empty();
@@ -75,7 +75,7 @@ non-sealed class StatementBlock implements Block {
     }
 
     @Override
-    public final Block parse(String content) {
+    public Block parse(String content) {
         Set<String> parsed = linePattern
                 .matcher(content)
                 .results()
@@ -85,7 +85,7 @@ non-sealed class StatementBlock implements Block {
     }
 
     @Override
-    public final String renderContent() {
+    public String renderContent() {
         return statements.stream()
                 .sorted()
                 .map(statement -> keyword + " '" + statement + "'")
@@ -93,28 +93,20 @@ non-sealed class StatementBlock implements Block {
     }
 
     @Override
-    public final String renderBlock() {
+    public String renderBlock() {
         return renderContent();
     }
 
     @Override
-    public final List<Block> merge(Block other) {
-        if (!(other instanceof StatementBlock otherBlock) || !otherBlock.name.equals(this.name)) {
-            return List.of(this, other);
-        }
-        // Combine all unique statements from both blocks
-        Set<String> merged = Stream.concat(this.statements.stream(), otherBlock.statements.stream())
-                .collect(Collectors.toSet());
-        return List.of(new StatementBlock(name, keyword, merged));
-    }
-
-    @Override
-    public final Optional<Block> getChild(String childName) {
-        return Optional.empty();
-    }
-
-    @Override
-    public final Block withChild(String childName, Block child) {
-        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support children");
+    public List<Block> merge(Block other) {
+        return Optional.of(other)
+                .filter(StatementBlock.class::isInstance)
+                .map(StatementBlock.class::cast)
+                .filter(o -> o.name.equals(this.name))
+                .map(o -> Stream.concat(this.statements.stream(), o.statements.stream())
+                        .collect(Collectors.toSet()))
+                .map(merged -> new StatementBlock(name, keyword, merged))
+                .<List<Block>>map(List::of)
+                .orElseGet(() -> List.of(this, other));
     }
 }

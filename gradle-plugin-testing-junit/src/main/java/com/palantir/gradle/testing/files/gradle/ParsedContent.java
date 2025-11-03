@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +61,7 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
         return Optional.ofNullable(content)
                 .filter(c -> !c.trim().isEmpty())
                 .map(c -> {
-                    ParseResult result = BlockParser.parseBlocks(c, blockOrder, blockTemplates, false);
+                    ParseResult result = BlockOperations.parseBlocks(c, blockOrder, blockTemplates, false);
                     String normalizedRemaining = normalizeWhitespace(result.remaining());
                     return new ParsedContent(result.blocks(), normalizedRemaining);
                 })
@@ -111,22 +110,14 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
      * @return new {@link ParsedContent} with merged blocks and combined unstructured content
      */
     ParsedContent merge(ParsedContent other) {
-        Map<String, List<Block>> mergedBlocks = mergeBlockMaps(blocks, other.blocks);
+        Map<String, List<Block>> mergedBlocks = BlockOperations.mergeBlockLists(blocks, other.blocks);
         String mergedUnstructured = joinNonEmpty("\n", unstructuredContent, other.unstructuredContent);
         return new ParsedContent(mergedBlocks, mergedUnstructured);
     }
 
     /**
-     * Merge two block maps by delegating to {@link BlockMerger}.
-     */
-    private static Map<String, List<Block>> mergeBlockMaps(
-            Map<String, List<Block>> first, Map<String, List<Block>> second) {
-        return BlockMerger.mergeBlockLists(first, second);
-    }
-
-    /**
      * Navigate to a block by path.
-     * Supports nested navigation through closure blocks.
+     * Supports nested navigation through closure blocks using stream reduction.
      * Returns the first block if multiple blocks exist for a name.
      *
      * @param templates block definitions for missing blocks
@@ -138,9 +129,15 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
     Block getBlockAt(Map<String, Block> templates, String... path) {
         validatePath(path);
 
+        Block root = getFirstBlockOrTemplate(path[0], templates);
+
         return Arrays.stream(path)
                 .skip(1)
-                .reduce(getFirstBlockOrTemplate(path[0], templates), ParsedContent::getChildBlock, (a, b) -> b);
+                .reduce(
+                        root,
+                        (block, childName) -> block.getChild(childName)
+                                .orElseThrow(() -> new IllegalStateException("Child block not found: " + childName)),
+                        (a, b) -> b);
     }
 
     /**
@@ -172,22 +169,8 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
      */
     private ParsedContent withTopLevelBlock(String blockName, Block updatedBlock) {
         Map<String, List<Block>> updatedBlocks = new HashMap<>(blocks);
-        updatedBlocks.put(blockName, updateBlockListAtIndex(blocks.get(blockName), 0, updatedBlock));
+        updatedBlocks.put(blockName, BlockOperations.updateBlockAt(blocks.get(blockName), 0, updatedBlock));
         return new ParsedContent(updatedBlocks, unstructuredContent);
-    }
-
-    /**
-     * Update a block list at a specific index, or create new list if null/empty.
-     */
-    private static List<Block> updateBlockListAtIndex(List<Block> existingList, int index, Block updatedBlock) {
-        return Optional.ofNullable(existingList)
-                .filter(list -> !list.isEmpty())
-                .map(list -> {
-                    List<Block> newList = new ArrayList<>(list);
-                    newList.set(index, updatedBlock);
-                    return newList;
-                })
-                .orElseGet(() -> new ArrayList<>(List.of(updatedBlock)));
     }
 
     /**
@@ -200,7 +183,8 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
             return parent.withChild(childName, updatedBlock);
         }
 
-        Block child = getChildBlock(parent, childName);
+        Block child = parent.getChild(childName)
+                .orElseThrow(() -> new IllegalStateException("Child block not found: " + childName));
         Block updatedChild = updateBlockRecursive(child, path, depth + 1, updatedBlock);
         return parent.withChild(childName, updatedChild);
     }
@@ -209,19 +193,9 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
      * Get first block with fallback to template.
      */
     private Block getFirstBlockOrTemplate(String blockName, Map<String, Block> templates) {
-        return Optional.ofNullable(blocks.get(blockName))
-                .filter(list -> !list.isEmpty())
-                .map(list -> list.get(0))
+        return BlockOperations.firstBlock(blocks.get(blockName))
                 .or(() -> Optional.ofNullable(templates.get(blockName)))
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + blockName));
-    }
-
-    /**
-     * Get child block or throw exception.
-     */
-    private static Block getChildBlock(Block parent, String childName) {
-        return parent.getChild(childName)
-                .orElseThrow(() -> new IllegalStateException("Child block not found: " + childName));
     }
 
     /**
