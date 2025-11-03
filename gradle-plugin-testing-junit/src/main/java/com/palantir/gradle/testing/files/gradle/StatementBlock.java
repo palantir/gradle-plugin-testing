@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.files.gradle;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -43,6 +42,16 @@ non-sealed class StatementBlock implements Block {
         this.keyword = keyword;
         this.statements = statements;
         this.linePattern = Pattern.compile(Pattern.quote(keyword) + "\\s+'([^']+)'");
+    }
+
+    /**
+     * Create a new StatementBlock with the given statements, reusing this block's name and keyword.
+     *
+     * @param newStatements the statements to include
+     * @return a new StatementBlock with the given statements
+     */
+    StatementBlock withStatements(String... newStatements) {
+        return new StatementBlock(name, keyword, Set.of(newStatements));
     }
 
     @Override

@@ -37,7 +37,6 @@ import java.util.stream.Stream;
  *
  * @see Block
  * @see ClosureBlock
- * @see PropertyBlock
  * @see BlockEditor
  */
 record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {

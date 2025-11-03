@@ -23,7 +23,7 @@ import java.util.function.Function;
  * A structural unit in a Gradle file that can be parsed, rendered, merged, and edited.
  * <p>
  * Blocks are self-contained - each block knows its own pattern, parsing rules, and rendering logic.
- * This enables uniform treatment of different block types ({@link ClosureBlock}, {@link PropertyBlock}) without
+ * This enables uniform treatment of different block types ({@link ClosureBlock}, {@link StatementBlock}) without
  * requiring external configuration or templates.
  * <p>
  * Examples:
@@ -34,11 +34,10 @@ import java.util.function.Function;
  * </ul>
  *
  * @see ClosureBlock
- * @see PropertyBlock
  * @see StatementBlock
  * @see ParsedContent
  */
-sealed interface Block permits ClosureBlock, PropertyBlock, StatementBlock {
+sealed interface Block permits ClosureBlock, StatementBlock {
     /**
      * Parse raw content into a {@link Block} instance.
      *

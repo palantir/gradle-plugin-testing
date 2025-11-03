@@ -21,7 +21,6 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Represents a Gradle {@code settings.gradle} file with structured access to common blocks.
@@ -39,12 +38,10 @@ import java.util.regex.Pattern;
  */
 public final class SettingsGradleFile extends StructuredGradleFile {
 
-    private static final PropertyBlock ROOT_PROJECT_NAME = new PropertyBlock("rootProject.name", "") {
-        @Override
-        public Pattern pattern() {
-            return Pattern.compile("rootProject\\.name\\s*=\\s*'([^']*)'", Pattern.MULTILINE);
-        }
-    };
+    private static final StatementBlock ROOT_PROJECT_NAME =
+            new StatementBlock("rootProject.name", "rootProject.name =", Set.of());
+
+    private static final StatementBlock INCLUDE = new StatementBlock("includes", "include", Set.of());
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public SettingsGradleFile(Path path) {
@@ -57,7 +54,7 @@ public final class SettingsGradleFile extends StructuredGradleFile {
                 nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
                 closure("plugins"),
                 ROOT_PROJECT_NAME,
-                new StatementBlock("includes", "include", Set.of()));
+                INCLUDE);
     }
 
     public BuildscriptBlock buildscript() {
@@ -85,7 +82,8 @@ public final class SettingsGradleFile extends StructuredGradleFile {
                     + "Please remove the duplicate assignments and use the rootProjectName() method instead.");
         }
 
-        new BlockEditor(this, "rootProject.name").overwrite("%s", rootProjectName);
+        new BlockEditor(this, "rootProject.name")
+                .overwrite(ROOT_PROJECT_NAME.withStatements(rootProjectName).renderBlock());
         return this;
     }
 
@@ -98,7 +96,8 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      * @return this {@link SettingsGradleFile} for chaining
      */
     public SettingsGradleFile include(String projectPath) {
-        new BlockEditor(this, "includes").append("include '" + projectPath + "'");
+        new BlockEditor(this, "includes")
+                .append(INCLUDE.withStatements(projectPath).renderBlock());
         return this;
     }
 
