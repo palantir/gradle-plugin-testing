@@ -108,7 +108,7 @@ public class BlockEditor implements GradleFile {
     }
 
     @Override
-    public AbstractPathAssert<?> assertThat() {
+    public final AbstractPathAssert<?> assertThat() {
         // Write the block content to a temporary location for assertion purposes
         Path tempPath = root.path().resolveSibling(root.path().getFileName() + ".block-temp");
         try {

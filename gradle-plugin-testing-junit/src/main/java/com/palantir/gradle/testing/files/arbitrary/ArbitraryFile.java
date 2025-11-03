@@ -20,14 +20,8 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
-import org.assertj.core.api.AbstractPathAssert;
-import org.assertj.core.api.Assertions;
 
 public record ArbitraryFile(Path path) implements ProjectFile<ArbitraryFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public ArbitraryFile {}
-
-    public AbstractPathAssert<?> assertThat() {
-        return Assertions.assertThat(path());
-    }
 }
