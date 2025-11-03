@@ -26,8 +26,6 @@ class BuildGradleFileTest {
     @Test
     void all_sections_with_nested_buildscript(RootProject rootProject) {
         // Test all section methods in reverse order to verify intelligent ordering
-        rootProject.buildGradle().subprojects().appendLine("apply plugin: 'java'");
-        rootProject.buildGradle().allprojects().appendLine("group = 'com.example'");
         rootProject.buildGradle().dependencies().appendLine("implementation 'com.google.guava:guava:32.0.0-jre'");
         rootProject.buildGradle().repositories().appendLine("mavenCentral()");
         rootProject.buildGradle().plugins().appendLine("id 'java'");
@@ -47,14 +45,6 @@ class BuildGradleFileTest {
 
             plugins {
                 id 'java'
-            }
-
-            allprojects {
-                group = 'com.example'
-            }
-
-            subprojects {
-                apply plugin: 'java'
             }
 
             repositories {
@@ -344,65 +334,6 @@ class BuildGradleFileTest {
     }
 
     @Test
-    void two_level_nesting_configurations_all(RootProject rootProject) {
-        // Test 2-level nesting: configurations { all { ... } }
-        rootProject.buildGradle().plugins().appendLine("id 'java'");
-        rootProject
-                .buildGradle()
-                .configurations()
-                .all()
-                .appendLine("exclude group: 'commons-logging', module: 'commons-logging'");
-        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
-
-        rootProject.buildGradle().assertThat().hasContent("""
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                mavenCentral()
-            }
-
-            configurations {
-                all {
-                    exclude group: 'commons-logging', module: 'commons-logging'
-                }
-            }
-            """);
-    }
-
-    @Test
-    void three_level_nesting_configurations_all_resolutionStrategy(RootProject rootProject) {
-        // Test 3-level nesting: configurations { all { resolutionStrategy { ... } } }
-        rootProject.buildGradle().plugins().appendLine("id 'java'");
-        rootProject
-                .buildGradle()
-                .configurations()
-                .all()
-                .resolutionStrategy()
-                .appendLine("force 'com.google.guava:guava:32.0.0-jre'");
-        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
-
-        rootProject.buildGradle().assertThat().hasContent("""
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                mavenCentral()
-            }
-
-            configurations {
-                all {
-                    resolutionStrategy {
-                        force 'com.google.guava:guava:32.0.0-jre'
-                    }
-                }
-            }
-            """);
-    }
-
-    @Test
     void raw_append_of_plugins_block_goes_in_correct_position(RootProject rootProject) {
         // Raw append of a plugins block should be placed in the correct position
         // according to the defined block order, not at the end
@@ -574,37 +505,5 @@ class BuildGradleFileTest {
         rootProject.buildGradle().repositories().assertThat().hasContent("");
         rootProject.buildGradle().buildscript().repositories().assertThat().hasContent("");
         rootProject.buildGradle().plugins().assertThat().hasContent("");
-    }
-
-    @Test
-    void block_editor_text_nested_configurations(RootProject rootProject) {
-        rootProject
-                .buildGradle()
-                .configurations()
-                .all()
-                .resolutionStrategy()
-                .appendLine("force 'com.google.guava:guava:32.0.0-jre'");
-
-        rootProject
-                .buildGradle()
-                .configurations()
-                .all()
-                .resolutionStrategy()
-                .assertThat()
-                .hasContent("force 'com.google.guava:guava:32.0.0-jre'");
-
-        rootProject.buildGradle().configurations().all().assertThat().hasContent("""
-            resolutionStrategy {
-                force 'com.google.guava:guava:32.0.0-jre'
-            }
-            """);
-
-        rootProject.buildGradle().configurations().assertThat().hasContent("""
-            all {
-                resolutionStrategy {
-                    force 'com.google.guava:guava:32.0.0-jre'
-                }
-            }
-            """);
     }
 }

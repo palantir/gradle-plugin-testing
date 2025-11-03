@@ -114,270 +114,176 @@ class SettingsGradleFileTest {
         }
     }
 
-    @Test
-    void all_sections_with_nested_pluginManagement_and_buildscript() {
-        // Test all sections in reverse order to verify intelligent ordering
-        settingsGradleFile.include("module1");
-        settingsGradleFile.include("module2");
-        settingsGradleFile.rootProjectName("my-app");
-        settingsGradleFile.plugins().appendLine("id 'settings-plugin'");
-        settingsGradleFile.buildscript().dependencies().appendLine("classpath 'com.example:plugin:1.0'");
-        settingsGradleFile.buildscript().repositories().appendLine("mavenCentral()");
-        settingsGradleFile.pluginManagement().plugins().appendLine("id 'plugin1' version '1.0'");
-        settingsGradleFile.pluginManagement().repositories().appendLine("gradlePluginPortal()");
+    @Nested
+    class StructuredSections {
+        @Test
+        void all_sections_with_nested_pluginManagement_and_buildscript() {
+            // Test all sections in reverse order to verify intelligent ordering
+            settingsGradleFile.include("module1");
+            settingsGradleFile.include("module2");
+            settingsGradleFile.rootProjectName("my-app");
+            settingsGradleFile.plugins().appendLine("id 'settings-plugin'");
+            settingsGradleFile.buildscript().dependencies().appendLine("classpath 'com.example:plugin:1.0'");
+            settingsGradleFile.buildscript().repositories().appendLine("mavenCentral()");
 
-        // Verify full structure is correct
-        settingsGradleFile.assertThat().hasContent("""
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
+            // Verify full structure is correct
+            settingsGradleFile.assertThat().hasContent("""
+                buildscript {
+                    repositories {
+                        mavenCentral()
+                    }
+                    dependencies {
+                        classpath 'com.example:plugin:1.0'
+                    }
                 }
+
                 plugins {
-                    id 'plugin1' version '1.0'
+                    id 'settings-plugin'
                 }
-            }
 
-            buildscript {
+                rootProject.name = 'my-app'
+
+                include 'module1'
+                include 'module2'
+                """);
+        }
+
+        @Test
+        void multiple_edits_to_same_section() {
+            settingsGradleFile.plugins().appendLine("id 'first'");
+            settingsGradleFile.plugins().appendLine("id 'second'");
+            settingsGradleFile.buildscript().repositories().appendLine("google()");
+
+            settingsGradleFile.assertThat().hasContent("""
+                buildscript {
+                    repositories {
+                        google()
+                    }
+                }
+
+                plugins {
+                    id 'first'
+                    id 'second'
+                }
+                """);
+        }
+
+        @Test
+        void section_operations_prepend_overwrite_edit() {
+            settingsGradleFile.plugins().appendLine("id 'original'");
+            settingsGradleFile.plugins().overwrite("id 'replaced'");
+
+            settingsGradleFile.buildscript().repositories().appendLine("mavenCentral()");
+            settingsGradleFile
+                    .buildscript()
+                    .repositories()
+                    .edit(content -> content.replace("mavenCentral()", "google()"));
+
+            settingsGradleFile.assertThat().hasContent("""
+                buildscript {
+                    repositories {
+                        google()
+                    }
+                }
+
+                plugins {
+                    id 'replaced'
+                }
+                """);
+        }
+
+        @Test
+        void include_deduplication() {
+            settingsGradleFile.include("module-a");
+            settingsGradleFile.include("module-b");
+            settingsGradleFile.include("module-a");
+
+            settingsGradleFile.assertThat().hasContent("""
+                include 'module-a'
+                include 'module-b'
+                """);
+        }
+
+        @Test
+        void rootProjectName_replacement() {
+            settingsGradleFile.rootProjectName("first-name");
+            settingsGradleFile.plugins().appendLine("id 'base'");
+            settingsGradleFile.rootProjectName("second-name");
+
+            settingsGradleFile.assertThat().hasContent("""
+                plugins {
+                    id 'base'
+                }
+
+                rootProject.name = 'second-name'
+                """);
+            settingsGradleFile.assertThat().content().doesNotContain("first-name");
+        }
+
+        @Test
+        void editing_existing_file_with_structured_sections() {
+            settingsGradleFile.append("""
+                plugins {
+                    id 'base'
+                }
+
+                rootProject.name = 'existing'
+                """);
+
+            settingsGradleFile.buildscript().repositories().appendLine("google()");
+            settingsGradleFile.include("new-module");
+
+            settingsGradleFile.assertThat().hasContent("""
+                buildscript {
+                    repositories {
+                        google()
+                    }
+                }
+
+                plugins {
+                    id 'base'
+                }
+
+                rootProject.name = 'existing'
+
+                include 'new-module'
+                """);
+        }
+
+        @Test
+        void block_editor_text_matches_expected_content() {
+            settingsGradleFile.buildscript().repositories().appendLine("google()");
+            settingsGradleFile.buildscript().dependencies().appendLine("classpath 'plugin:2.0'");
+            settingsGradleFile.plugins().appendLine("id 'base'");
+            settingsGradleFile.include("module-a");
+            settingsGradleFile.include("module-b");
+
+            settingsGradleFile.buildscript().assertThat().hasContent("""
                 repositories {
-                    mavenCentral()
+                    google()
                 }
                 dependencies {
-                    classpath 'com.example:plugin:1.0'
+                    classpath 'plugin:2.0'
                 }
-            }
+                """);
 
-            plugins {
-                id 'settings-plugin'
-            }
-
-            rootProject.name = 'my-app'
-
-            include 'module1'
-            include 'module2'
-            """);
-    }
-
-    @Test
-    void multiple_edits_to_same_section() {
-        settingsGradleFile.pluginManagement().repositories().appendLine("gradlePluginPortal()");
-        settingsGradleFile.plugins().appendLine("id 'first'");
-        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
-        settingsGradleFile.plugins().appendLine("id 'second'");
-        settingsGradleFile.buildscript().repositories().appendLine("google()");
-
-        settingsGradleFile.assertThat().hasContent("""
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    mavenCentral()
-                }
-            }
-
-            buildscript {
-                repositories {
-                    google()
-                }
-            }
-
-            plugins {
-                id 'first'
-                id 'second'
-            }
-            """);
-    }
-
-    @Test
-    void section_operations_prepend_overwrite_edit() {
-        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
-        settingsGradleFile.pluginManagement().repositories().appendLine("google()");
-        settingsGradleFile.pluginManagement().repositories().prependLine("gradlePluginPortal()");
-
-        settingsGradleFile.plugins().appendLine("id 'original'");
-        settingsGradleFile.plugins().overwrite("id 'replaced'");
-
-        settingsGradleFile.buildscript().repositories().appendLine("mavenCentral()");
-        settingsGradleFile.buildscript().repositories().edit(content -> content.replace("mavenCentral()", "google()"));
-
-        settingsGradleFile.assertThat().hasContent("""
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    mavenCentral()
-                    google()
-                }
-            }
-
-            buildscript {
-                repositories {
-                    google()
-                }
-            }
-
-            plugins {
-                id 'replaced'
-            }
-            """);
-    }
-
-    @Test
-    void include_deduplication() {
-        settingsGradleFile.include("module-a");
-        settingsGradleFile.include("module-b");
-        settingsGradleFile.include("module-a");
-
-        settingsGradleFile.assertThat().hasContent("""
-            include 'module-a'
-            include 'module-b'
-            """);
-    }
-
-    @Test
-    void rootProjectName_replacement() {
-        settingsGradleFile.rootProjectName("first-name");
-        settingsGradleFile.plugins().appendLine("id 'base'");
-        settingsGradleFile.rootProjectName("second-name");
-
-        settingsGradleFile.assertThat().hasContent("""
-            plugins {
-                id 'base'
-            }
-
-            rootProject.name = 'second-name'
-            """);
-        settingsGradleFile.assertThat().content().doesNotContain("first-name");
-    }
-
-    @Test
-    void editing_existing_file_with_structured_sections() {
-        settingsGradleFile.append("""
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                }
-            }
-
-            plugins {
-                id 'base'
-            }
-
-            rootProject.name = 'existing'
-            """);
-
-        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
-        settingsGradleFile.buildscript().repositories().appendLine("google()");
-        settingsGradleFile.include("new-module");
-
-        settingsGradleFile.assertThat().hasContent("""
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    mavenCentral()
-                }
-            }
-
-            buildscript {
-                repositories {
-                    google()
-                }
-            }
-
-            plugins {
-                id 'base'
-            }
-
-            rootProject.name = 'existing'
-
-            include 'new-module'
-            """);
-    }
-
-    @Test
-    void block_editor_text_matches_expected_content() {
-        // Setup a settings.gradle with various blocks
-        settingsGradleFile.pluginManagement().repositories().appendLine("gradlePluginPortal()");
-        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
-        settingsGradleFile.pluginManagement().plugins().appendLine("id 'plugin1' version '1.0'");
-        settingsGradleFile.buildscript().repositories().appendLine("google()");
-        settingsGradleFile.buildscript().dependencies().appendLine("classpath 'plugin:2.0'");
-        settingsGradleFile.plugins().appendLine("id 'base'");
-        settingsGradleFile.include("module-a");
-        settingsGradleFile.include("module-b");
-
-        // Verify pluginManagement block text() returns only pluginManagement content
-        settingsGradleFile.pluginManagement().assertThat().hasContent("""
-            repositories {
-                gradlePluginPortal()
-                mavenCentral()
-            }
-            plugins {
-                id 'plugin1' version '1.0'
-            }
-            """);
-
-        // Verify pluginManagement.repositories() text() returns only repositories content
-        settingsGradleFile.pluginManagement().repositories().assertThat().hasContent("""
-            gradlePluginPortal()
-            mavenCentral()
-            """);
-
-        // Verify pluginManagement.plugins() text() returns only plugins content
-        settingsGradleFile.pluginManagement().plugins().assertThat().hasContent("""
-            id 'plugin1' version '1.0'
-            """);
-
-        // Verify buildscript block text() returns only buildscript content
-        settingsGradleFile.buildscript().assertThat().hasContent("""
-            repositories {
+            settingsGradleFile.buildscript().repositories().assertThat().hasContent("""
                 google()
-            }
-            dependencies {
+                """);
+
+            settingsGradleFile.buildscript().dependencies().assertThat().hasContent("""
                 classpath 'plugin:2.0'
-            }
-            """);
+                """);
 
-        // Verify buildscript.repositories() text() returns only repositories content
-        settingsGradleFile.buildscript().repositories().assertThat().hasContent("""
-            google()
-            """);
+            settingsGradleFile.plugins().assertThat().hasContent("""
+                id 'base'
+                """);
+        }
 
-        // Verify buildscript.dependencies() text() returns only dependencies content
-        settingsGradleFile.buildscript().dependencies().assertThat().hasContent("""
-            classpath 'plugin:2.0'
-            """);
-
-        // Verify top-level plugins block
-        settingsGradleFile.plugins().assertThat().hasContent("""
-            id 'base'
-            """);
-    }
-
-    @Test
-    void block_editor_text_empty_blocks() {
-        settingsGradleFile.pluginManagement().repositories().assertThat().hasContent("");
-        settingsGradleFile.buildscript().repositories().assertThat().hasContent("");
-        settingsGradleFile.plugins().assertThat().hasContent("");
-    }
-
-    @Test
-    void block_editor_text_nested_plugin_management() {
-        settingsGradleFile.pluginManagement().resolutionStrategy().append("""
-            eachPlugin {
-                useModule('custom:plugin:1.0')
-            }
-            """);
-
-        settingsGradleFile.pluginManagement().resolutionStrategy().assertThat().hasContent("""
-            eachPlugin {
-                useModule('custom:plugin:1.0')
-            }
-            """);
-
-        settingsGradleFile.pluginManagement().assertThat().hasContent("""
-            resolutionStrategy {
-                eachPlugin {
-                    useModule('custom:plugin:1.0')
-                }
-            }
-            """);
+        @Test
+        void block_editor_text_empty_blocks() {
+            settingsGradleFile.buildscript().repositories().assertThat().hasContent("");
+            settingsGradleFile.plugins().assertThat().hasContent("");
+        }
     }
 }

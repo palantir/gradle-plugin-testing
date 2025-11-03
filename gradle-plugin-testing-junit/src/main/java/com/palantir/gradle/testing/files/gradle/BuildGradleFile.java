@@ -30,7 +30,6 @@ import java.util.List;
  *   <li>{@link #plugins()} - Plugin declarations</li>
  *   <li>{@link #repositories()} - Repository configuration</li>
  *   <li>{@link #dependencies()} - Project dependencies</li>
- *   <li>{@link #configurations()} - Dependency configurations</li>
  * </ul>
  *
  * @see StructuredGradleFile
@@ -48,11 +47,8 @@ public final class BuildGradleFile extends StructuredGradleFile {
         return List.of(
                 nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
                 closure("plugins"),
-                closure("allprojects"),
-                closure("subprojects"),
                 closure("repositories"),
-                closure("dependencies"),
-                nested("configurations", nested("all", closure("resolutionStrategy"))));
+                closure("dependencies"));
     }
 
     public BuildscriptBlock buildscript() {
@@ -69,18 +65,6 @@ public final class BuildGradleFile extends StructuredGradleFile {
 
     public BlockEditor dependencies() {
         return new BlockEditor(this, "dependencies");
-    }
-
-    public BlockEditor allprojects() {
-        return new BlockEditor(this, "allprojects");
-    }
-
-    public BlockEditor subprojects() {
-        return new BlockEditor(this, "subprojects");
-    }
-
-    public ConfigurationsBlock configurations() {
-        return new ConfigurationsBlock(this, "configurations");
     }
 
     /**
@@ -105,40 +89,6 @@ public final class BuildGradleFile extends StructuredGradleFile {
 
         public BlockEditor plugins() {
             return new BlockEditor(root(), concat(blockPath(), "plugins"));
-        }
-    }
-
-    /**
-     * {@code configurations} block with nested configuration blocks.
-     * <p>
-     * Provides access to dependency configuration settings.
-     *
-     * @see BlockEditor
-     */
-    public static final class ConfigurationsBlock extends BlockEditor {
-        private ConfigurationsBlock(BuildGradleFile file, String... path) {
-            super(file, path);
-        }
-
-        public AllConfigurationBlock all() {
-            return new AllConfigurationBlock(root(), concat(blockPath(), "all"));
-        }
-    }
-
-    /**
-     * {@code all} configuration block within {@code configurations}.
-     * <p>
-     * Used to configure resolution strategy and other settings for all configurations.
-     *
-     * @see BlockEditor
-     */
-    public static final class AllConfigurationBlock extends BlockEditor {
-        private AllConfigurationBlock(StructuredGradleFile root, String... path) {
-            super(root, path);
-        }
-
-        public BlockEditor resolutionStrategy() {
-            return new BlockEditor(root(), concat(blockPath(), "resolutionStrategy"));
         }
     }
 }

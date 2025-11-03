@@ -28,8 +28,7 @@ import java.util.regex.Pattern;
  * <p>
  * Provides typed accessors for standard Gradle settings file blocks such as:
  * <ul>
- *   <li>{@link #pluginManagement()} - Plugin management configuration</li>
- *   <li>{@link #buildscript()} - Build script configuration</li>
+ * a *   <li>{@link #buildscript()} - Build script configuration</li>
  *   <li>{@link #plugins()} - Plugin declarations</li>
  *   <li>{@link #rootProjectName(String)} - Root project name property</li>
  *   <li>{@link #include(String)} - Include subprojects</li>
@@ -55,26 +54,16 @@ public final class SettingsGradleFile extends StructuredGradleFile {
     @Override
     List<Block> blocks() {
         return List.of(
-                nested("pluginManagement", closure("repositories"), closure("plugins"), closure("resolutionStrategy")),
                 nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
                 closure("plugins"),
                 ROOT_PROJECT_NAME,
                 new StatementBlock("includes", "include", Set.of()));
     }
 
-    public PluginManagementBlock pluginManagement() {
-        return new PluginManagementBlock(this, "pluginManagement");
-    }
-
     public BuildscriptBlock buildscript() {
         return new BuildscriptBlock(this, "buildscript");
     }
 
-    /**
-     * Access the {@code plugins} block for plugin declarations.
-     *
-     * @return a {@link BlockEditor} for the plugins block
-     */
     public BlockEditor plugins() {
         return new BlockEditor(this, "plugins");
     }
@@ -112,31 +101,6 @@ public final class SettingsGradleFile extends StructuredGradleFile {
     public SettingsGradleFile include(String projectPath) {
         new BlockEditor(this, "includes").append("include '" + projectPath + "'");
         return this;
-    }
-
-    /**
-     * {@code pluginManagement} block with child blocks for repositories, plugins, and resolutionStrategy.
-     * <p>
-     * Used to configure how plugins are resolved and applied.
-     *
-     * @see BlockEditor
-     */
-    public static final class PluginManagementBlock extends BlockEditor {
-        private PluginManagementBlock(SettingsGradleFile file, String... path) {
-            super(file, path);
-        }
-
-        public BlockEditor repositories() {
-            return new BlockEditor(root(), concat(blockPath(), "repositories"));
-        }
-
-        public BlockEditor plugins() {
-            return new BlockEditor(root(), concat(blockPath(), "plugins"));
-        }
-
-        public BlockEditor resolutionStrategy() {
-            return new BlockEditor(root(), concat(blockPath(), "resolutionStrategy"));
-        }
     }
 
     /**
