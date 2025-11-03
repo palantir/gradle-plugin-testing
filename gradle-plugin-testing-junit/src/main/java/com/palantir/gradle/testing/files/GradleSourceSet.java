@@ -18,7 +18,7 @@ package com.palantir.gradle.testing.files;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
-import com.palantir.gradle.testing.files.arbitrary.ArbitrarySrcDir;
+import com.palantir.gradle.testing.files.arbitrary.ArbitraryDirectory;
 import com.palantir.gradle.testing.files.java.JavaSrcDir;
 import java.nio.file.Path;
 
@@ -30,7 +30,7 @@ public record GradleSourceSet(Path path) {
         return new JavaSrcDir(path.resolve("java"));
     }
 
-    public ArbitrarySrcDir srcDir(String srcDirName) {
-        return new ArbitrarySrcDir(this.path.resolve(srcDirName));
+    public Directory srcDir(String srcDirName) {
+        return new ArbitraryDirectory(this.path.resolve(srcDirName));
     }
 }

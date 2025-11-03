@@ -76,7 +76,6 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      * @throws IllegalStateException if multiple {@code rootProject.name} assignments exist
      */
     public SettingsGradleFile rootProjectName(String rootProjectName) {
-        // Check for multiple assignments
         long count = text().lines()
                 .filter(line -> line.matches(".*rootProject\\.name.*"))
                 .count();
