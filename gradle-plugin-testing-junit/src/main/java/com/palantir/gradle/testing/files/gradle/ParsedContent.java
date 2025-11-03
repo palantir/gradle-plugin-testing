@@ -47,7 +47,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * Intermediate parsing state - remaining content and accumulated blocks.
      * Used during the parsing process to track progress through the file.
      */
-    public record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
+    record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
 
     /**
      * Extract blocks from content using templates and ordering.
@@ -58,7 +58,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * @param includeTemplatesInResult if {@code true}, preserve empty blocks (for nested navigation)
      * @return {@link ParseState} with extracted blocks and remaining content
      */
-    public static ParseState parseBlocks(
+    static ParseState parseBlocks(
             String content,
             List<String> blockOrder,
             Map<String, Block> blockTemplates,
@@ -97,7 +97,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * @param includeBlockWrapper if {@code true}, wrap each block with {@code "name { ... }"}
      * @return rendered text with blocks joined by newlines
      */
-    public static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
+    static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
         return nonEmptyBlocksInOrder(blockOrder, blocks)
                 .map(block -> formatBlock(block, includeBlockWrapper))
                 .collect(Collectors.joining("\n"));
@@ -123,7 +123,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
     /**
      * Indent each non-empty line with 4 spaces.
      */
-    public static String indent(String content) {
+    static String indent(String content) {
         return content.lines()
                 .map(line -> line.isEmpty() ? line : "    " + line)
                 .collect(Collectors.joining("\n"));
@@ -152,8 +152,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * @param blockTemplates block definitions for pattern matching
      * @return {@link ParsedContent} with extracted blocks and remaining unstructured text
      */
-    public static ParsedContent parseContent(
-            String content, List<String> blockOrder, Map<String, Block> blockTemplates) {
+    static ParsedContent parseContent(String content, List<String> blockOrder, Map<String, Block> blockTemplates) {
         if (content == null || content.trim().isEmpty()) {
             return new ParsedContent(Map.of(), "");
         }
@@ -178,7 +177,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * @param blockOrder order to render blocks
      * @return formatted text with blocks followed by unstructured content
      */
-    public static String renderContent(ParsedContent content, List<String> blockOrder) {
+    static String renderContent(ParsedContent content, List<String> blockOrder) {
         String blocks = nonEmptyBlocksInOrder(blockOrder, content.blocks())
                 .map(Block::renderBlock)
                 .collect(Collectors.joining("\n\n"));
@@ -201,7 +200,7 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      * @param other content to merge
      * @return new {@link ParsedContent} with merged blocks and combined unstructured content
      */
-    public ParsedContent merge(ParsedContent other) {
+    ParsedContent merge(ParsedContent other) {
         Map<String, Block> mergedBlocks = mergeBlockMaps(blocks, other.blocks);
         String mergedUnstructured = joinNonEmpty("\n", unstructuredContent, other.unstructuredContent);
         return new ParsedContent(mergedBlocks, mergedUnstructured);

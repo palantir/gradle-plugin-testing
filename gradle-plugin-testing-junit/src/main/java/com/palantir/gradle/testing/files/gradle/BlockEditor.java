@@ -41,11 +41,11 @@ public class BlockEditor implements GradleFile {
     private final StructuredGradleFile root;
     private final String[] blockPath;
 
-    final StructuredGradleFile getRoot() {
+    final StructuredGradleFile root() {
         return root;
     }
 
-    final String[] getBlockPath() {
+    final String[] blockPath() {
         return blockPath;
     }
 

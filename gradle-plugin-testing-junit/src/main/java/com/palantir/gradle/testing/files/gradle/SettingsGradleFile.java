@@ -53,7 +53,7 @@ public final class SettingsGradleFile extends StructuredGradleFile {
     }
 
     @Override
-    protected List<Block> blocks() {
+    List<Block> blocks() {
         return List.of(
                 nested("pluginManagement", closure("repositories"), closure("plugins"), closure("resolutionStrategy")),
                 nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
@@ -121,21 +121,21 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      *
      * @see BlockEditor
      */
-    static final class PluginManagementBlock extends BlockEditor {
+    public static final class PluginManagementBlock extends BlockEditor {
         private PluginManagementBlock(SettingsGradleFile file, String... path) {
             super(file, path);
         }
 
         public BlockEditor repositories() {
-            return new BlockEditor(getRoot(), concat(getBlockPath(), "repositories"));
+            return new BlockEditor(root(), concat(blockPath(), "repositories"));
         }
 
         public BlockEditor plugins() {
-            return new BlockEditor(getRoot(), concat(getBlockPath(), "plugins"));
+            return new BlockEditor(root(), concat(blockPath(), "plugins"));
         }
 
         public BlockEditor resolutionStrategy() {
-            return new BlockEditor(getRoot(), concat(getBlockPath(), "resolutionStrategy"));
+            return new BlockEditor(root(), concat(blockPath(), "resolutionStrategy"));
         }
     }
 
@@ -146,21 +146,21 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      *
      * @see BlockEditor
      */
-    static final class BuildscriptBlock extends BlockEditor {
+    public static final class BuildscriptBlock extends BlockEditor {
         private BuildscriptBlock(SettingsGradleFile file, String... path) {
             super(file, path);
         }
 
         public BlockEditor repositories() {
-            return new BlockEditor(getRoot(), concat(getBlockPath(), "repositories"));
+            return new BlockEditor(root(), concat(blockPath(), "repositories"));
         }
 
         public BlockEditor dependencies() {
-            return new BlockEditor(getRoot(), concat(getBlockPath(), "dependencies"));
+            return new BlockEditor(root(), concat(blockPath(), "dependencies"));
         }
 
         public BlockEditor plugins() {
-            return new BlockEditor(getRoot(), concat(getBlockPath(), "plugins"));
+            return new BlockEditor(root(), concat(blockPath(), "plugins"));
         }
     }
 }
