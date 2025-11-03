@@ -25,10 +25,8 @@ import com.google.errorprone.matchers.Description;
 import com.google.errorprone.matchers.Matcher;
 import com.google.errorprone.matchers.Matchers;
 import com.google.errorprone.util.ASTHelpers;
-import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 
 @AutoService(BugChecker.class)
@@ -52,17 +50,13 @@ public final class GradleTestTemporaryFile extends BugChecker
                     "getTempDirectory",
                     "getTempDirectoryPath");
 
-    private static final Matcher<Tree> WITHIN_GRADLE_PLUGIN_TESTS_CLASS = Matchers.enclosingNode(Matchers.allOf(
-            Matchers.isInstance(ClassTree.class),
-            Matchers.hasAnnotation("com.palantir.gradle.testing.junit.GradlePluginTests")));
-
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
         if (!MANUAL_TEMPORARY_METHOD_MATCHER.matches(tree, state)) {
             return Description.NO_MATCH;
         }
 
-        if (!WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state)) {
+        if (GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 
@@ -75,7 +69,7 @@ public final class GradleTestTemporaryFile extends BugChecker
             return Description.NO_MATCH;
         }
 
-        if (!WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state)) {
+        if (GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 
