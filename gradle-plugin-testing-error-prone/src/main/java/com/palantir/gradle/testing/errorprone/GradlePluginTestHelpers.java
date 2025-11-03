@@ -37,7 +37,7 @@ public final class GradlePluginTestHelpers {
         return !WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
     }
 
-    static boolean isLibraryMethod(MethodInvocationTree tree, VisitorState state) {
+    static boolean isGradlePluginTestsLibraryMethod(MethodInvocationTree tree, VisitorState state) {
         return Optional.ofNullable(ASTHelpers.getSymbol(tree))
                 .map(Symbol.MethodSymbol::enclClass)
                 .map(classSymbol -> classSymbol.getQualifiedName().toString())
