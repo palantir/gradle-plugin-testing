@@ -80,7 +80,7 @@ public abstract class StructuredGradleFile implements GradleFile {
      * Helper to create simple closure block without children that prevents merging.
      *
      * @param name the block name (e.g., {@code "maven"})
-     * @return a {@link ClosureBlock} with no children and shouldMerge=false
+     * @return a {@link ClosureBlock} with no children that won't merge with other blocks
      */
     static Block closureNoMerge(String name) {
         return new ClosureBlock(name, Map.of(), "", false);

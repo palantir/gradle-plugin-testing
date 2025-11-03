@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -97,14 +98,14 @@ non-sealed class StatementBlock implements Block {
     }
 
     @Override
-    public final Block merge(Block other) {
+    public final List<Block> merge(Block other) {
         if (!(other instanceof StatementBlock otherBlock) || !otherBlock.name.equals(this.name)) {
-            return this;
+            return List.of(this, other);
         }
         // Combine all unique statements from both blocks
         Set<String> merged = Stream.concat(this.statements.stream(), otherBlock.statements.stream())
                 .collect(Collectors.toSet());
-        return new StatementBlock(name, keyword, merged);
+        return List.of(new StatementBlock(name, keyword, merged));
     }
 
     @Override

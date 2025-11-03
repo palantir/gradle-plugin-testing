@@ -105,7 +105,7 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
 
     /**
      * Merge with another {@link ParsedContent}.
-     * Blocks with the same name are merged based on their shouldMerge flag.
+     * Blocks with the same name are merged based on their merge() implementation.
      *
      * @param other content to merge
      * @return new {@link ParsedContent} with merged blocks and combined unstructured content
@@ -117,8 +117,7 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
     }
 
     /**
-     * Merge two block maps. For blocks with shouldMerge=true, merge them together.
-     * For blocks with shouldMerge=false, keep them separate in the list.
+     * Merge two block maps by delegating to {@link BlockMerger}.
      */
     private static Map<String, List<Block>> mergeBlockMaps(
             Map<String, List<Block>> first, Map<String, List<Block>> second) {

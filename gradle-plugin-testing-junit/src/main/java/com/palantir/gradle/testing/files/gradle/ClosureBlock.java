@@ -140,14 +140,18 @@ public record ClosureBlock(
     }
 
     @Override
-    public Block merge(Block other) {
+    public List<Block> merge(Block other) {
         if (!(other instanceof ClosureBlock o)) {
-            return this;
+            return List.of(this, other);
+        }
+
+        if (!shouldMerge) {
+            return List.of(this, other);
         }
 
         Map<String, List<Block>> mergedChildren = BlockMerger.mergeBlockLists(children, o.children);
         String mergedUnstructured = combineUnstructured(unstructuredContent, o.unstructuredContent);
-        return new ClosureBlock(name, mergedChildren, mergedUnstructured, shouldMerge);
+        return List.of(new ClosureBlock(name, mergedChildren, mergedUnstructured, shouldMerge));
     }
 
     @Override

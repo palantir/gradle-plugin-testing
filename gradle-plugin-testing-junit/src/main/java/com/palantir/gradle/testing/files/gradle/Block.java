@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -62,9 +63,9 @@ sealed interface Block permits ClosureBlock, StatementBlock {
      * Merge another block's content into this block.
      *
      * @param other the block to merge
-     * @return a new {@link Block} containing both this block's content and the other's content
+     * @return a list containing either the merged block (if merged) or both blocks (if not merged)
      */
-    Block merge(Block other);
+    List<Block> merge(Block other);
 
     /**
      * Transform this block's content using an editor function.
@@ -99,18 +100,6 @@ sealed interface Block permits ClosureBlock, StatementBlock {
      * @return block name (e.g., {@code "plugins"}, {@code "repositories"}, {@code "buildscript"})
      */
     String name();
-
-    /**
-     * Whether this block should merge with other blocks of the same name.
-     * <p>
-     * When {@code false}, multiple blocks with the same name will be kept separate rather than merged.
-     * This is useful for blocks like {@code maven { uri("foo") }} where each occurrence should remain distinct.
-     *
-     * @return {@code true} if this block should merge with others of the same name (default)
-     */
-    default boolean shouldMerge() {
-        return true;
-    }
 
     /**
      * Extract this block from the given content.

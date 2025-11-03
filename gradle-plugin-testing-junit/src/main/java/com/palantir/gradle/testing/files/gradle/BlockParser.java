@@ -89,7 +89,8 @@ final class BlockParser {
     }
 
     /**
-     * Create a new ParseResult with blocks added/merged according to shouldMerge flag.
+     * Create a new ParseResult with blocks added/merged.
+     * Merges multiple extracted blocks together by repeatedly calling merge().
      */
     private static ParseResult createResultWithBlocks(
             ParseResult originalResult, String blockName, Block template, List<Block> extractedBlocks) {
@@ -102,9 +103,10 @@ final class BlockParser {
                                 .orElse(content),
                         (first, second) -> second);
 
-        List<Block> blocksToStore = template.shouldMerge() && extractedBlocks.size() > 1
-                ? List.of(extractedBlocks.stream().reduce(Block::merge).orElseThrow())
-                : extractedBlocks;
+        // Merge all extracted blocks together by repeatedly calling merge() on pairs
+        List<Block> blocksToStore = extractedBlocks.stream()
+                .skip(1)
+                .reduce(List.of(extractedBlocks.get(0)), BlockMerger::mergeBlockIntoList, (first, second) -> second);
 
         Map<String, List<Block>> updatedBlocks = new HashMap<>(originalResult.blocks());
         updatedBlocks.put(blockName, blocksToStore);
