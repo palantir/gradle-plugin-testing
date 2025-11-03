@@ -18,10 +18,6 @@ package com.palantir.gradle.testing.files.gradle;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
-import com.palantir.gradle.testing.files.gradle.blocks.Block;
-import com.palantir.gradle.testing.files.gradle.blocks.BlockEditor;
-import com.palantir.gradle.testing.files.gradle.blocks.PropertyBlock;
-import com.palantir.gradle.testing.files.gradle.blocks.StatementBlock;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -125,7 +121,7 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      *
      * @see BlockEditor
      */
-    public static final class PluginManagementBlock extends BlockEditor {
+    static final class PluginManagementBlock extends BlockEditor {
         private PluginManagementBlock(SettingsGradleFile file, String... path) {
             super(file, path);
         }
@@ -150,7 +146,7 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      *
      * @see BlockEditor
      */
-    public static final class BuildscriptBlock extends BlockEditor {
+    static final class BuildscriptBlock extends BlockEditor {
         private BuildscriptBlock(SettingsGradleFile file, String... path) {
             super(file, path);
         }

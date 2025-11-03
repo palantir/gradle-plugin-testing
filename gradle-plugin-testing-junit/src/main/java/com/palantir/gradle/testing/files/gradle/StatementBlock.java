@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle.blocks;
+package com.palantir.gradle.testing.files.gradle;
 
 import java.util.Optional;
 import java.util.Set;
@@ -31,13 +31,13 @@ import java.util.stream.Stream;
  *
  * @see Block
  */
-public non-sealed class StatementBlock implements Block {
+non-sealed class StatementBlock implements Block {
     private final String name;
     private final String keyword;
     private final Pattern linePattern;
     private final Set<String> statements;
 
-    public StatementBlock(String name, String keyword, Set<String> statements) {
+    StatementBlock(String name, String keyword, Set<String> statements) {
         this.name = name;
         this.keyword = keyword;
         this.statements = statements;

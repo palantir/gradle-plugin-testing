@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle.blocks;
+package com.palantir.gradle.testing.files.gradle;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -29,11 +29,11 @@ import java.util.regex.Pattern;
  * @see Block
  * @see ClosureBlock
  */
-public non-sealed class PropertyBlock implements Block {
+non-sealed class PropertyBlock implements Block {
     private final String name;
     private final String value;
 
-    public PropertyBlock(String name, String value) {
+    PropertyBlock(String name, String value) {
         this.name = name;
         this.value = value;
     }

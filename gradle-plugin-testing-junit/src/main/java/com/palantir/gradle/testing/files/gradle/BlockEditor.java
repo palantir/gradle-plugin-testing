@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle.blocks;
+package com.palantir.gradle.testing.files.gradle;
 
-import com.palantir.gradle.testing.files.gradle.GradleFile;
-import com.palantir.gradle.testing.files.gradle.StructuredGradleFile;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,11 +41,11 @@ public class BlockEditor implements GradleFile {
     private final StructuredGradleFile root;
     private final String[] blockPath;
 
-    protected final StructuredGradleFile getRoot() {
+    final StructuredGradleFile getRoot() {
         return root;
     }
 
-    protected final String[] getBlockPath() {
+    final String[] getBlockPath() {
         return blockPath;
     }
 
@@ -65,7 +62,7 @@ public class BlockEditor implements GradleFile {
     @Override
     public final String text() {
         Map<String, Block> templates = blockTemplates();
-        ParsedContent parsed = ParsedContent.parseContent(root.text(), blockOrder(), templates);
+        ParsedContent parsed = ParsedContent.parseContent(root.text(), root.blockOrder(), templates);
         Block block = parsed.getBlockAt(templates, blockPath);
         return block.renderContent();
     }
@@ -73,24 +70,20 @@ public class BlockEditor implements GradleFile {
     @Override
     public final BlockEditor edit(FileEditor editor) {
         Map<String, Block> templates = blockTemplates();
-        ParsedContent parsed = ParsedContent.parseContent(root.text(), blockOrder(), templates);
+        ParsedContent parsed = ParsedContent.parseContent(root.text(), root.blockOrder(), templates);
 
         Block block = parsed.getBlockAt(templates, blockPath);
         Block updatedBlock = block.edit(editor::edit);
         ParsedContent updatedTree = parsed.withBlockAt(templates, blockPath, updatedBlock);
 
         @Language("Gradle")
-        String rendered = ParsedContent.renderContent(updatedTree, blockOrder());
+        String rendered = ParsedContent.renderContent(updatedTree, root.blockOrder());
         root.overwrite(rendered);
         return this;
     }
 
     private Map<String, Block> blockTemplates() {
-        return root.getBlocks().stream().collect(Collectors.toMap(Block::name, b -> b));
-    }
-
-    private List<String> blockOrder() {
-        return root.getBlocks().stream().map(Block::name).collect(Collectors.toList());
+        return root.blocks().stream().collect(Collectors.toMap(Block::name, b -> b));
     }
 
     @Override
@@ -109,7 +102,7 @@ public class BlockEditor implements GradleFile {
         return edit(_existing -> text);
     }
 
-    protected static String[] concat(String[] base, String... additional) {
+    static String[] concat(String[] base, String... additional) {
         return Stream.concat(Stream.of(base), Stream.of(additional)).toArray(String[]::new);
     }
 }

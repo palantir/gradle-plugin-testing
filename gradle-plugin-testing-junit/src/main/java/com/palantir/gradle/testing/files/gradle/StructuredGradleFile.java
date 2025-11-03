@@ -16,10 +16,6 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import com.palantir.gradle.testing.files.gradle.blocks.Block;
-import com.palantir.gradle.testing.files.gradle.blocks.BlockEditor;
-import com.palantir.gradle.testing.files.gradle.blocks.ClosureBlock;
-import com.palantir.gradle.testing.files.gradle.blocks.ParsedContent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -57,14 +53,14 @@ public abstract class StructuredGradleFile implements GradleFile {
      *
      * @return list of {@link Block} definitions for this file type
      */
-    protected abstract List<Block> blocks();
+    abstract List<Block> blocks();
 
     /**
      * Block order derived from {@link #blocks()}.
      *
      * @return list of block names in order
      */
-    protected List<String> blockOrder() {
+    List<String> blockOrder() {
         return blocks().stream().map(Block::name).collect(Collectors.toList());
     }
 
@@ -74,7 +70,7 @@ public abstract class StructuredGradleFile implements GradleFile {
      * @param name the block name (e.g., {@code "plugins"}, {@code "repositories"})
      * @return a {@link ClosureBlock} with no children
      */
-    protected static Block closure(String name) {
+    static Block closure(String name) {
         return new ClosureBlock(name, Map.of(), "");
     }
 
@@ -85,21 +81,12 @@ public abstract class StructuredGradleFile implements GradleFile {
      * @param children the child blocks this block can contain
      * @return a {@link ClosureBlock} with the specified children
      */
-    protected static Block nested(String name, Block... children) {
+    static Block nested(String name, Block... children) {
         return new ClosureBlock(
                 name,
                 Stream.of(children)
                         .collect(Collectors.toMap(Block::name, b -> b, (a, b) -> a, java.util.LinkedHashMap::new)),
                 "");
-    }
-
-    /**
-     * Public accessor for blocks - needed by {@link BlockEditor}.
-     *
-     * @return list of {@link Block} definitions for this file type
-     */
-    public List<Block> getBlocks() {
-        return blocks();
     }
 
     @Override

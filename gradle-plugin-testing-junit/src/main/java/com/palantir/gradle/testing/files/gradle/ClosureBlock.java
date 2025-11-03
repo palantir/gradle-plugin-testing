@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle.blocks;
+package com.palantir.gradle.testing.files.gradle;
 
 import java.util.LinkedHashMap;
 import java.util.List;

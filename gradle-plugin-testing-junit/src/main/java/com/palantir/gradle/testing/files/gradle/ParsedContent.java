@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files.gradle.blocks;
+package com.palantir.gradle.testing.files.gradle;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * @see PropertyBlock
  * @see BlockEditor
  */
-public record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
+record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
 
     /**
      * Intermediate parsing state - remaining content and accumulated blocks.
