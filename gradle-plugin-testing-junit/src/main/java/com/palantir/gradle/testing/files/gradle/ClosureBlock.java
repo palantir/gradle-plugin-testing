@@ -20,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -45,46 +44,38 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
 
     @Override
     public Optional<ExtractionResult> extract(String content) {
-        // Find the start of the block
-        Pattern startPattern = Pattern.compile(
-                "^\\s*" + Pattern.quote(name) + "\\s*\\{",
-                Pattern.MULTILINE);
-        Matcher startMatcher = startPattern.matcher(content);
+        Pattern pattern = Pattern.compile("^\\s*" + Pattern.quote(name) + "\\s*\\{", Pattern.MULTILINE);
+        Matcher matcher = pattern.matcher(content);
 
-        if (!startMatcher.find()) {
-            return Optional.empty();
-        }
+        return Optional.of(matcher)
+                .filter(Matcher::find)
+                .flatMap(m -> findMatchingBrace(content, m.end() - 1)
+                        .map(closePos -> new ExtractionResult(
+                                content.substring(m.end(), closePos),
+                                m.start(),
+                                closePos + 1)));
+    }
 
-        int blockStart = startMatcher.start();
-        int openBracePos = startMatcher.end() - 1;
+    private static Optional<Integer> findMatchingBrace(String content, int openPos) {
         int depth = 1;
-        int i = openBracePos + 1;
-
-        // Count braces to find the matching closing brace
-        while (i < content.length() && depth > 0) {
-            char c = content.charAt(i);
-            if (c == '{') {
+        for (int i = openPos + 1; i < content.length(); i++) {
+            if (content.charAt(i) == '{') {
                 depth++;
-            } else if (c == '}') {
+            } else if (content.charAt(i) == '}') {
                 depth--;
+                if (depth == 0) {
+                    return Optional.of(i);
+                }
             }
-            i++;
         }
-
-        if (depth != 0) {
-            // Unmatched braces
-            return Optional.empty();
-        }
-
-        // Extract content between braces
-        String blockContent = content.substring(openBracePos + 1, i - 1);
-        return Optional.of(new ExtractionResult(blockContent, blockStart, i));
+        return Optional.empty();
     }
 
     @Override
     public Block parse(String content) {
         if (children.isEmpty()) {
-            return new ClosureBlock(name, children, normalizeIndentation(content));
+            return new ClosureBlock(
+                    name, children, normalizeIndentation(content).stripIndent().strip());
         }
         // Nested block - parse children
         List<String> childOrder = List.copyOf(children.keySet());
@@ -121,25 +112,7 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return "";
         }
 
-        // Find minimum indentation (excluding empty lines)
-        int minIndent = lines.stream()
-                .filter(line -> !line.isBlank())
-                .mapToInt(ClosureBlock::countLeadingSpaces)
-                .min()
-                .orElse(0);
-
-        // Strip that amount from all lines
-        return lines.stream()
-                .map(line -> line.isBlank() ? "" : line.substring(Math.min(minIndent, line.length())))
-                .collect(Collectors.joining("\n"));
-    }
-
-    private static int countLeadingSpaces(String line) {
-        int count = 0;
-        while (count < line.length() && Character.isWhitespace(line.charAt(count))) {
-            count++;
-        }
-        return count;
+        return String.join("\n", lines);
     }
 
     @Override
@@ -148,13 +121,13 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return unstructuredContent;
         }
         List<String> childOrder = List.copyOf(children.keySet());
-        String renderedBlocks = ParsedContent.renderBlocks(childOrder, children, true);
+        String renderedBlocks = ParsedContent.renderBlocks(childOrder, children);
         return ParsedContent.combineUnstructured(renderedBlocks, unstructuredContent);
     }
 
     @Override
     public String renderBlock() {
-        return name + " {\n" + ParsedContent.indent(renderContent()) + "\n}";
+        return name + " {\n" + renderContent().indent(4).stripTrailing() + "\n}";
     }
 
     @Override

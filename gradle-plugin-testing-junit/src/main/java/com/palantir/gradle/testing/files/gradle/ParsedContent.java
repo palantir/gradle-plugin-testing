@@ -94,22 +94,19 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      *
      * @param blockOrder the order to render blocks
      * @param blocks the blocks to render
-     * @param includeBlockWrapper if {@code true}, wrap each block with {@code "name { ... }"}
      * @return rendered text with blocks joined by newlines
      */
-    static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks, boolean includeBlockWrapper) {
+    static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks) {
         return nonEmptyBlocksInOrder(blockOrder, blocks)
-                .map(block -> formatBlock(block, includeBlockWrapper))
+                .map(ParsedContent::formatBlock)
                 .collect(Collectors.joining("\n"));
     }
 
     /**
      * Format a block with optional wrapper.
      */
-    private static String formatBlock(Block block, boolean includeBlockWrapper) {
-        return includeBlockWrapper
-                ? block.name() + " {\n" + indent(block.renderContent()) + "\n}"
-                : block.renderContent();
+    private static String formatBlock(Block block) {
+        return block.name() + " {\n" + block.renderContent().indent(4).stripTrailing() + "\n}";
     }
 
     /**
@@ -118,15 +115,6 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
     private static Stream<Block> nonEmptyBlocksInOrder(List<String> blockOrder, Map<String, Block> blocks) {
         return blockOrder.stream().map(blocks::get).filter(Objects::nonNull).filter(block -> !block.renderContent()
                 .isEmpty());
-    }
-
-    /**
-     * Indent each non-empty line with 4 spaces.
-     */
-    static String indent(String content) {
-        return content.lines()
-                .map(line -> line.isEmpty() ? line : "    " + line)
-                .collect(Collectors.joining("\n"));
     }
 
     /**
