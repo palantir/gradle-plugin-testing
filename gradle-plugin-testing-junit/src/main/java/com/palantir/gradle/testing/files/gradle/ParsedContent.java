@@ -43,73 +43,6 @@ import java.util.stream.Stream;
 record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent) {
 
     /**
-     * Intermediate parsing state - remaining content and accumulated blocks.
-     * Used during the parsing process to track progress through the file.
-     */
-    record ParseState(String remaining, Map<String, List<Block>> parsedBlocks) {}
-
-    /**
-     * Extract blocks from content using templates and ordering.
-     *
-     * @param content text to parse
-     * @param blockOrder order to search for blocks
-     * @param blockTemplates block definitions for pattern matching
-     * @param includeTemplatesInResult if {@code true}, preserve empty blocks (for nested navigation)
-     * @return {@link ParseState} with extracted blocks and remaining content
-     */
-    static ParseState parseBlocks(
-            String content,
-            List<String> blockOrder,
-            Map<String, Block> blockTemplates,
-            boolean includeTemplatesInResult) {
-        Map<String, List<Block>> initialBlocks = new HashMap<>();
-        if (includeTemplatesInResult) {
-            blockTemplates.forEach((name, template) -> initialBlocks.put(name, new ArrayList<>(List.of(template))));
-        }
-
-        return blockOrder.stream()
-                .filter(blockTemplates::containsKey)
-                .reduce(
-                        new ParseState(content, initialBlocks),
-                        (state, blockName) -> extractBlock(state, blockName, blockTemplates.get(blockName)),
-                        (first, second) -> first);
-    }
-
-    /**
-     * Extract blocks from parse state. If shouldMerge=false, extracts all occurrences.
-     * Otherwise, extracts and merges all occurrences into a single block.
-     */
-    private static ParseState extractBlock(ParseState state, String blockName, Block template) {
-        String remaining = state.remaining();
-        List<Block> extractedBlocks = new ArrayList<>();
-
-        // Extract all occurrences
-        Optional<Block.ExtractionResult> extraction = template.extract(remaining);
-        while (extraction.isPresent()) {
-            Block.ExtractionResult result = extraction.get();
-            Block parsed = template.parse(result.blockContent());
-            extractedBlocks.add(parsed);
-            remaining = remaining.substring(0, result.startPos()) + remaining.substring(result.endPos());
-            extraction = template.extract(remaining);
-        }
-
-        String finalRemaining = remaining;
-        return Optional.of(extractedBlocks)
-                .filter(blocks -> !blocks.isEmpty())
-                .map(blocks -> {
-                    // Merge blocks if needed
-                    List<Block> blocksToStore = template.shouldMerge() && blocks.size() > 1
-                            ? List.of(blocks.stream().reduce(Block::merge).orElseThrow())
-                            : blocks;
-
-                    Map<String, List<Block>> updatedBlocks = new HashMap<>(state.parsedBlocks());
-                    updatedBlocks.put(blockName, blocksToStore);
-                    return new ParseState(finalRemaining, updatedBlocks);
-                })
-                .orElse(state);
-    }
-
-    /**
      * Join non-empty strings with specified delimiter.
      */
     private static String joinNonEmpty(String delimiter, String... strings) {
@@ -126,13 +59,14 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
      * @return {@link ParsedContent} with extracted blocks and remaining unstructured text
      */
     static ParsedContent parseContent(String content, List<String> blockOrder, Map<String, Block> blockTemplates) {
-        if (content == null || content.trim().isEmpty()) {
-            return new ParsedContent(Map.of(), "");
-        }
-
-        ParseState result = parseBlocks(content, blockOrder, blockTemplates, false);
-        String normalizedRemaining = normalizeWhitespace(result.remaining());
-        return new ParsedContent(result.parsedBlocks(), normalizedRemaining);
+        return Optional.ofNullable(content)
+                .filter(c -> !c.trim().isEmpty())
+                .map(c -> {
+                    ParseResult result = BlockParser.parseBlocks(c, blockOrder, blockTemplates, false);
+                    String normalizedRemaining = normalizeWhitespace(result.remaining());
+                    return new ParsedContent(result.blocks(), normalizedRemaining);
+                })
+                .orElseGet(() -> new ParsedContent(Map.of(), ""));
     }
 
     /**
@@ -239,15 +173,22 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
      */
     private ParsedContent withTopLevelBlock(String blockName, Block updatedBlock) {
         Map<String, List<Block>> updatedBlocks = new HashMap<>(blocks);
-        List<Block> blockList = updatedBlocks.getOrDefault(blockName, new ArrayList<>());
-        if (blockList.isEmpty()) {
-            blockList.add(updatedBlock);
-        } else {
-            blockList = new ArrayList<>(blockList);
-            blockList.set(0, updatedBlock);
-        }
-        updatedBlocks.put(blockName, blockList);
+        updatedBlocks.put(blockName, updateBlockListAtIndex(blocks.get(blockName), 0, updatedBlock));
         return new ParsedContent(updatedBlocks, unstructuredContent);
+    }
+
+    /**
+     * Update a block list at a specific index, or create new list if null/empty.
+     */
+    private static List<Block> updateBlockListAtIndex(List<Block> existingList, int index, Block updatedBlock) {
+        return Optional.ofNullable(existingList)
+                .filter(list -> !list.isEmpty())
+                .map(list -> {
+                    List<Block> newList = new ArrayList<>(list);
+                    newList.set(index, updatedBlock);
+                    return newList;
+                })
+                .orElseGet(() -> new ArrayList<>(List.of(updatedBlock)));
     }
 
     /**
@@ -269,11 +210,10 @@ record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent
      * Get first block with fallback to template.
      */
     private Block getFirstBlockOrTemplate(String blockName, Map<String, Block> templates) {
-        List<Block> blockList = blocks.get(blockName);
-        if (blockList != null && !blockList.isEmpty()) {
-            return blockList.get(0);
-        }
-        return Optional.ofNullable(templates.get(blockName))
+        return Optional.ofNullable(blocks.get(blockName))
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0))
+                .or(() -> Optional.ofNullable(templates.get(blockName)))
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + blockName));
     }
 
