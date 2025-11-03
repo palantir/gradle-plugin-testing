@@ -21,11 +21,11 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.blocks.Block;
 import com.palantir.gradle.testing.files.gradle.blocks.BlockEditor;
 import com.palantir.gradle.testing.files.gradle.blocks.PropertyBlock;
-import java.nio.file.Files;
+import com.palantir.gradle.testing.files.gradle.blocks.StatementBlock;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
-import org.intellij.lang.annotations.Language;
 
 /**
  * Represents a Gradle {@code settings.gradle} file with structured access to common blocks.
@@ -62,7 +62,8 @@ public final class SettingsGradleFile extends StructuredGradleFile {
                 nested("pluginManagement", closure("repositories"), closure("plugins"), closure("resolutionStrategy")),
                 nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
                 closure("plugins"),
-                ROOT_PROJECT_NAME);
+                ROOT_PROJECT_NAME,
+                new StatementBlock("includes", "include", Set.of()));
     }
 
     public PluginManagementBlock pluginManagement() {
@@ -113,14 +114,7 @@ public final class SettingsGradleFile extends StructuredGradleFile {
      * @return this {@link SettingsGradleFile} for chaining
      */
     public SettingsGradleFile include(String projectPath) {
-        @Language("Gradle")
-        String includeLine = "include '%s'".formatted(projectPath);
-
-        if (Files.exists(path()) && text().contains(includeLine)) {
-            return this;
-        }
-
-        appendLine(includeLine);
+        new BlockEditor(this, "includes").append("include '" + projectPath + "'");
         return this;
     }
 

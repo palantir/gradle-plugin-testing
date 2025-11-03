@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * @see PropertyBlock
  * @see ParsedContent
  */
-public sealed interface Block permits ClosureBlock, PropertyBlock {
+public sealed interface Block permits ClosureBlock, PropertyBlock, StatementBlock {
     /**
      * Parse raw content into a {@link Block} instance.
      *
