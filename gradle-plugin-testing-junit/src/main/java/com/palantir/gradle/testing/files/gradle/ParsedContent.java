@@ -16,11 +16,11 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,7 +28,8 @@ import java.util.stream.Stream;
 /**
  * Parsed Gradle file containing structured blocks and unstructured content.
  * <p>
- * Blocks are indexed by name. Unmatched content is preserved as {@code unstructuredContent}.
+ * Blocks are indexed by name, with each name potentially having multiple blocks (stored in a list).
+ * Unmatched content is preserved as {@code unstructuredContent}.
  * Provides utilities for parsing, rendering, navigation, and immutable updates.
  * <p>
  * This class acts as an intermediate representation between raw file text and structured
@@ -39,13 +40,13 @@ import java.util.stream.Stream;
  * @see ClosureBlock
  * @see BlockEditor
  */
-record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
+record ParsedContent(Map<String, List<Block>> blocks, String unstructuredContent) {
 
     /**
      * Intermediate parsing state - remaining content and accumulated blocks.
      * Used during the parsing process to track progress through the file.
      */
-    record ParseState(String remaining, Map<String, Block> parsedBlocks) {}
+    record ParseState(String remaining, Map<String, List<Block>> parsedBlocks) {}
 
     /**
      * Extract blocks from content using templates and ordering.
@@ -61,7 +62,10 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
             List<String> blockOrder,
             Map<String, Block> blockTemplates,
             boolean includeTemplatesInResult) {
-        Map<String, Block> initialBlocks = includeTemplatesInResult ? new HashMap<>(blockTemplates) : new HashMap<>();
+        Map<String, List<Block>> initialBlocks = new HashMap<>();
+        if (includeTemplatesInResult) {
+            blockTemplates.forEach((name, template) -> initialBlocks.put(name, new ArrayList<>(List.of(template))));
+        }
 
         return blockOrder.stream()
                 .filter(blockTemplates::containsKey)
@@ -72,20 +76,37 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
     }
 
     /**
-     * Extract a single block from parse state using the block's own extraction logic.
+     * Extract blocks from parse state. If shouldMerge=false, extracts all occurrences.
+     * Otherwise, extracts and merges all occurrences into a single block.
      */
     private static ParseState extractBlock(ParseState state, String blockName, Block template) {
-        Optional<Block.ExtractionResult> result = template.extract(state.remaining());
+        String remaining = state.remaining();
+        List<Block> extractedBlocks = new ArrayList<>();
 
-        if (result.isEmpty()) {
-            return state;
+        // Extract all occurrences
+        Optional<Block.ExtractionResult> extraction = template.extract(remaining);
+        while (extraction.isPresent()) {
+            Block.ExtractionResult result = extraction.get();
+            Block parsed = template.parse(result.blockContent());
+            extractedBlocks.add(parsed);
+            remaining = remaining.substring(0, result.startPos()) + remaining.substring(result.endPos());
+            extraction = template.extract(remaining);
         }
 
-        Block.ExtractionResult extraction = result.get();
-        state.parsedBlocks().put(blockName, template.parse(extraction.blockContent()));
-        String newRemaining = state.remaining().substring(0, extraction.startPos())
-                + state.remaining().substring(extraction.endPos());
-        return new ParseState(newRemaining, state.parsedBlocks());
+        String finalRemaining = remaining;
+        return Optional.of(extractedBlocks)
+                .filter(blocks -> !blocks.isEmpty())
+                .map(blocks -> {
+                    // Merge blocks if needed
+                    List<Block> blocksToStore = template.shouldMerge() && blocks.size() > 1
+                            ? List.of(blocks.stream().reduce(Block::merge).orElseThrow())
+                            : blocks;
+
+                    Map<String, List<Block>> updatedBlocks = new HashMap<>(state.parsedBlocks());
+                    updatedBlocks.put(blockName, blocksToStore);
+                    return new ParseState(finalRemaining, updatedBlocks);
+                })
+                .orElse(state);
     }
 
     /**
@@ -131,8 +152,8 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
      */
     static String renderContent(ParsedContent content, List<String> blockOrder) {
         String blocks = blockOrder.stream()
-                .map(content.blocks()::get)
-                .filter(Objects::nonNull)
+                .filter(content.blocks()::containsKey)
+                .flatMap(blockName -> content.blocks().get(blockName).stream())
                 .filter(block -> !block.renderContent().isEmpty())
                 .map(Block::renderBlock)
                 .collect(Collectors.joining("\n\n"));
@@ -150,28 +171,30 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
 
     /**
      * Merge with another {@link ParsedContent}.
-     * Blocks with the same name are merged using {@link Block#merge(Block)}.
+     * Blocks with the same name are merged based on their shouldMerge flag.
      *
      * @param other content to merge
      * @return new {@link ParsedContent} with merged blocks and combined unstructured content
      */
     ParsedContent merge(ParsedContent other) {
-        Map<String, Block> mergedBlocks = mergeBlockMaps(blocks, other.blocks);
+        Map<String, List<Block>> mergedBlocks = mergeBlockMaps(blocks, other.blocks);
         String mergedUnstructured = joinNonEmpty("\n", unstructuredContent, other.unstructuredContent);
         return new ParsedContent(mergedBlocks, mergedUnstructured);
     }
 
     /**
-     * Merge two block maps, combining values for duplicate keys.
+     * Merge two block maps. For blocks with shouldMerge=true, merge them together.
+     * For blocks with shouldMerge=false, keep them separate in the list.
      */
-    private static Map<String, Block> mergeBlockMaps(Map<String, Block> first, Map<String, Block> second) {
-        return Stream.concat(first.entrySet().stream(), second.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Block::merge));
+    private static Map<String, List<Block>> mergeBlockMaps(
+            Map<String, List<Block>> first, Map<String, List<Block>> second) {
+        return BlockMerger.mergeBlockLists(first, second);
     }
 
     /**
      * Navigate to a block by path.
      * Supports nested navigation through closure blocks.
+     * Returns the first block if multiple blocks exist for a name.
      *
      * @param templates block definitions for missing blocks
      * @param path block names (e.g., {@code ["buildscript", "repositories"]})
@@ -184,12 +207,13 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
 
         return Arrays.stream(path)
                 .skip(1)
-                .reduce(getBlockOrTemplate(path[0], templates), ParsedContent::getChildBlock, (a, b) -> b);
+                .reduce(getFirstBlockOrTemplate(path[0], templates), ParsedContent::getChildBlock, (a, b) -> b);
     }
 
     /**
      * Update a block at a path.
      * Returns a new immutable {@link ParsedContent} with the specified block updated.
+     * Updates the first block if multiple blocks exist for a name.
      *
      * @param templates block definitions for structure lookup
      * @param path block names identifying target
@@ -205,17 +229,24 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
             return withTopLevelBlock(path[0], updatedBlock);
         }
 
-        Block topBlock = getBlockOrTemplate(path[0], templates);
+        Block topBlock = getFirstBlockOrTemplate(path[0], templates);
         Block updatedTopBlock = updateBlockRecursive(topBlock, path, 1, updatedBlock);
         return withTopLevelBlock(path[0], updatedTopBlock);
     }
 
     /**
-     * Create new ParsedContent with updated top-level block.
+     * Create new ParsedContent with updated top-level block (first block if multiple exist).
      */
     private ParsedContent withTopLevelBlock(String blockName, Block updatedBlock) {
-        Map<String, Block> updatedBlocks = new HashMap<>(blocks);
-        updatedBlocks.put(blockName, updatedBlock);
+        Map<String, List<Block>> updatedBlocks = new HashMap<>(blocks);
+        List<Block> blockList = updatedBlocks.getOrDefault(blockName, new ArrayList<>());
+        if (blockList.isEmpty()) {
+            blockList.add(updatedBlock);
+        } else {
+            blockList = new ArrayList<>(blockList);
+            blockList.set(0, updatedBlock);
+        }
+        updatedBlocks.put(blockName, blockList);
         return new ParsedContent(updatedBlocks, unstructuredContent);
     }
 
@@ -235,11 +266,14 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
     }
 
     /**
-     * Get block with fallback to template.
+     * Get first block with fallback to template.
      */
-    private Block getBlockOrTemplate(String blockName, Map<String, Block> templates) {
-        return Optional.ofNullable(blocks.get(blockName))
-                .or(() -> Optional.ofNullable(templates.get(blockName)))
+    private Block getFirstBlockOrTemplate(String blockName, Map<String, Block> templates) {
+        List<Block> blockList = blocks.get(blockName);
+        if (blockList != null && !blockList.isEmpty()) {
+            return blockList.get(0);
+        }
+        return Optional.ofNullable(templates.get(blockName))
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + blockName));
     }
 

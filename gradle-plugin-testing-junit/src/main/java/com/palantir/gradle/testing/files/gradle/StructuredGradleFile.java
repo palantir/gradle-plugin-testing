@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,7 +73,17 @@ public abstract class StructuredGradleFile implements GradleFile {
      * @return a {@link ClosureBlock} with no children
      */
     static Block closure(String name) {
-        return new ClosureBlock(name, Map.of(), "");
+        return new ClosureBlock(name, Map.of(), "", true);
+    }
+
+    /**
+     * Helper to create simple closure block without children that prevents merging.
+     *
+     * @param name the block name (e.g., {@code "maven"})
+     * @return a {@link ClosureBlock} with no children and shouldMerge=false
+     */
+    static Block closureNoMerge(String name) {
+        return new ClosureBlock(name, Map.of(), "", false);
     }
 
     /**
@@ -85,8 +97,10 @@ public abstract class StructuredGradleFile implements GradleFile {
         return new ClosureBlock(
                 name,
                 Stream.of(children)
-                        .collect(Collectors.toMap(Block::name, b -> b, (a, b) -> a, java.util.LinkedHashMap::new)),
-                "");
+                        .collect(Collectors.toMap(
+                                Block::name, b -> new ArrayList<>(List.of(b)), (a, b) -> a, LinkedHashMap::new)),
+                "",
+                true);
     }
 
     @Override

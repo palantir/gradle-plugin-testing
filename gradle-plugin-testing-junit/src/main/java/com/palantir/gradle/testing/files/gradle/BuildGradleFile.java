@@ -45,9 +45,13 @@ public final class BuildGradleFile extends StructuredGradleFile {
     @Override
     List<Block> blocks() {
         return List.of(
-                nested("buildscript", closure("repositories"), closure("dependencies"), closure("plugins")),
+                nested(
+                        "buildscript",
+                        nested("repositories", closureNoMerge("maven")),
+                        closure("dependencies"),
+                        closure("plugins")),
                 closure("plugins"),
-                closure("repositories"),
+                nested("repositories", closureNoMerge("maven")),
                 closure("dependencies"));
     }
 

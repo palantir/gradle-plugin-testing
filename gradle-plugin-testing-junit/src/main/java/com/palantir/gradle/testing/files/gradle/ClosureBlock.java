@@ -16,10 +16,10 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +41,9 @@ import java.util.stream.Collectors;
  * @see Block
  * @see ParsedContent
  */
-public record ClosureBlock(String name, Map<String, Block> children, String unstructuredContent) implements Block {
+public record ClosureBlock(
+        String name, Map<String, List<Block>> children, String unstructuredContent, boolean shouldMerge)
+        implements Block {
 
     @Override
     public Optional<ExtractionResult> extract(String content) {
@@ -71,12 +73,18 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
     public Block parse(String content) {
         if (children.isEmpty()) {
             return new ClosureBlock(
-                    name, children, removeLeadingAndTrailingBlankLines(content).stripIndent());
+                    name, children, removeLeadingAndTrailingBlankLines(content).stripIndent(), shouldMerge);
         }
         // Nested block - parse children
         List<String> childOrder = List.copyOf(children.keySet());
-        ParsedContent.ParseState result = ParsedContent.parseBlocks(content, childOrder, children, true);
-        return new ClosureBlock(name, result.parsedBlocks(), result.remaining().trim());
+        // Convert children map to templates (use first block from each list as template)
+        Map<String, Block> templates = children.entrySet().stream()
+                .filter(e -> !e.getValue().isEmpty())
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)));
+        ParsedContent.ParseState result = ParsedContent.parseBlocks(content, childOrder, templates, true);
+        String parsedUnstructured =
+                removeLeadingAndTrailingBlankLines(result.remaining()).stripIndent();
+        return new ClosureBlock(name, result.parsedBlocks(), parsedUnstructured, shouldMerge);
     }
 
     private static String removeLeadingAndTrailingBlankLines(String textContent) {
@@ -89,7 +97,13 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return unstructuredContent;
         }
         List<String> childOrder = List.copyOf(children.keySet());
-        String renderedBlocks = renderBlocks(childOrder, children);
+        String renderedBlocks = childOrder.stream()
+                .filter(children::containsKey)
+                .flatMap(blockName -> children.get(blockName).stream())
+                .filter(block -> !block.renderContent().isEmpty())
+                .map(block ->
+                        block.name() + " {\n" + block.renderContent().indent(4).stripTrailing() + "\n}")
+                .collect(Collectors.joining("\n"));
         return combineUnstructured(renderedBlocks, unstructuredContent);
     }
 
@@ -104,50 +118,29 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
             return this;
         }
 
-        Map<String, Block> mergedChildren = children.keySet().stream()
-                .map(childName -> {
-                    Optional<Block> existing = Optional.ofNullable(children.get(childName));
-                    Optional<Block> otherChild = Optional.ofNullable(o.children.get(childName));
-
-                    return existing.flatMap(e -> otherChild.map(e::merge))
-                            .or(() -> otherChild)
-                            .or(() -> existing)
-                            .map(block -> Map.entry(childName, block));
-                })
-                .<Map.Entry<String, Block>>mapMulti(Optional::ifPresent)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
-
+        Map<String, List<Block>> mergedChildren = BlockMerger.mergeBlockLists(children, o.children);
         String mergedUnstructured = combineUnstructured(unstructuredContent, o.unstructuredContent);
-        return new ClosureBlock(name, mergedChildren, mergedUnstructured);
+        return new ClosureBlock(name, mergedChildren, mergedUnstructured, shouldMerge);
     }
 
     @Override
     public Optional<Block> getChild(String childName) {
-        return Optional.ofNullable(children.get(childName));
+        List<Block> blockList = children.get(childName);
+        return blockList != null && !blockList.isEmpty() ? Optional.of(blockList.get(0)) : Optional.empty();
     }
 
     @Override
     public Block withChild(String childName, Block child) {
-        Map<String, Block> updatedChildren = new LinkedHashMap<>(children);
-        updatedChildren.put(childName, child);
-        return new ClosureBlock(name, updatedChildren, unstructuredContent);
-    }
-
-    /**
-     * Render blocks to text in the specified order.
-     *
-     * @param blockOrder the order to render blocks
-     * @param blocks the blocks to render
-     * @return rendered text with blocks joined by newlines
-     */
-    private static String renderBlocks(List<String> blockOrder, Map<String, Block> blocks) {
-        return blockOrder.stream()
-                .map(blocks::get)
-                .filter(Objects::nonNull)
-                .filter(block -> !block.renderContent().isEmpty())
-                .map(block ->
-                        block.name() + " {\n" + block.renderContent().indent(4).stripTrailing() + "\n}")
-                .collect(Collectors.joining("\n"));
+        Map<String, List<Block>> updatedChildren = new LinkedHashMap<>(children);
+        List<Block> blockList = updatedChildren.getOrDefault(childName, new ArrayList<>());
+        if (blockList.isEmpty()) {
+            blockList.add(child);
+        } else {
+            blockList = new ArrayList<>(blockList);
+            blockList.set(0, child);
+        }
+        updatedChildren.put(childName, blockList);
+        return new ClosureBlock(name, updatedChildren, unstructuredContent, shouldMerge);
     }
 
     /**

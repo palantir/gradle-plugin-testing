@@ -506,4 +506,108 @@ class BuildGradleFileTest {
         rootProject.buildGradle().buildscript().repositories().assertThat().hasContent("");
         rootProject.buildGradle().plugins().assertThat().hasContent("");
     }
+
+    @Test
+    void maven_blocks_dont_merge_in_repositories(RootProject rootProject) {
+        // Multiple maven blocks should remain separate, not merge
+        rootProject.buildGradle().append("""
+            repositories {
+                maven {
+                    url = uri("https://example.com/repo1")
+                }
+            }
+            """);
+
+        rootProject.buildGradle().append("""
+            repositories {
+                maven {
+                    url = uri("https://example.com/repo2")
+                }
+            }
+            """);
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            repositories {
+                maven {
+                    url = uri("https://example.com/repo1")
+                }
+                maven {
+                    url = uri("https://example.com/repo2")
+                }
+            }
+            """);
+    }
+
+    @Test
+    void maven_blocks_dont_merge_in_buildscript_repositories(RootProject rootProject) {
+        // Multiple maven blocks in buildscript should remain separate
+        rootProject.buildGradle().append("""
+            buildscript {
+                repositories {
+                    maven {
+                        url = uri("https://example.com/repo1")
+                    }
+                }
+            }
+            """);
+
+        rootProject.buildGradle().append("""
+            buildscript {
+                repositories {
+                    maven {
+                        url = uri("https://example.com/repo2")
+                    }
+                }
+            }
+            """);
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    maven {
+                        url = uri("https://example.com/repo1")
+                    }
+                    maven {
+                        url = uri("https://example.com/repo2")
+                    }
+                }
+            }
+            """);
+    }
+
+    @Test
+    void maven_blocks_with_other_repositories_dont_merge(RootProject rootProject) {
+        // Maven blocks should not merge with each other, but other repo content should merge
+        // Note: structured blocks (maven) are rendered before unstructured content
+        rootProject.buildGradle().append("""
+            repositories {
+                mavenCentral()
+                maven {
+                    url = uri("https://example.com/repo1")
+                }
+            }
+            """);
+
+        rootProject.buildGradle().append("""
+            repositories {
+                google()
+                maven {
+                    url = uri("https://example.com/repo2")
+                }
+            }
+            """);
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            repositories {
+                maven {
+                    url = uri("https://example.com/repo1")
+                }
+                maven {
+                    url = uri("https://example.com/repo2")
+                }
+                mavenCentral()
+                google()
+            }
+            """);
+    }
 }

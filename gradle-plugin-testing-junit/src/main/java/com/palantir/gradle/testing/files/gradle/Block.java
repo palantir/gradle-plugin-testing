@@ -101,6 +101,18 @@ sealed interface Block permits ClosureBlock, StatementBlock {
     String name();
 
     /**
+     * Whether this block should merge with other blocks of the same name.
+     * <p>
+     * When {@code false}, multiple blocks with the same name will be kept separate rather than merged.
+     * This is useful for blocks like {@code maven { uri("foo") }} where each occurrence should remain distinct.
+     *
+     * @return {@code true} if this block should merge with others of the same name (default)
+     */
+    default boolean shouldMerge() {
+        return true;
+    }
+
+    /**
      * Extract this block from the given content.
      * <p>
      *
