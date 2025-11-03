@@ -55,12 +55,12 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
     private static Optional<Integer> findMatchingBrace(String content, int openPos) {
         int depth = 1;
         for (int i = openPos + 1; i < content.length(); i++) {
-            if (content.charAt(i) == '{') {
-                depth++;
-            } else if (content.charAt(i) == '}') {
-                depth--;
-                if (depth == 0) {
-                    return Optional.of(i);
+            switch (content.charAt(i)) {
+                case '{' -> depth++;
+                case '}' -> {
+                    if (--depth == 0) {
+                        return Optional.of(i);
+                    }
                 }
             }
         }
@@ -71,7 +71,7 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
     public Block parse(String content) {
         if (children.isEmpty()) {
             return new ClosureBlock(
-                    name, children, normalizeIndentation(content).stripIndent().strip());
+                    name, children, removeLeadingAndTrailingBlankLines(content).stripIndent());
         }
         // Nested block - parse children
         List<String> childOrder = List.copyOf(children.keySet());
@@ -79,36 +79,8 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
         return new ClosureBlock(name, result.parsedBlocks(), result.remaining().trim());
     }
 
-    /**
-     * Strip common leading whitespace from all lines (similar to Java text blocks).
-     * Also removes leading and trailing blank lines.
-     * This ensures content parsed from files doesn't accumulate indentation.
-     */
-    private static String normalizeIndentation(String textContent) {
-        if (textContent.isEmpty()) {
-            return textContent;
-        }
-
-        List<String> lines = textContent.lines().collect(Collectors.toList());
-        if (lines.isEmpty()) {
-            return textContent;
-        }
-
-        // Remove leading blank lines
-        while (!lines.isEmpty() && lines.get(0).isBlank()) {
-            lines.remove(0);
-        }
-
-        // Remove trailing blank lines
-        while (!lines.isEmpty() && lines.get(lines.size() - 1).isBlank()) {
-            lines.remove(lines.size() - 1);
-        }
-
-        if (lines.isEmpty()) {
-            return "";
-        }
-
-        return String.join("\n", lines);
+    private static String removeLeadingAndTrailingBlankLines(String textContent) {
+        return textContent.replaceFirst("^(?:\\s*\\n)+", "").replaceFirst("(?:\\n\\s*)+$", "");
     }
 
     @Override
