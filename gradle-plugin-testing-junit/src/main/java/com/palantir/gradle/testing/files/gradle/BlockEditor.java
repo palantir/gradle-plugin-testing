@@ -16,10 +16,15 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.assertj.core.api.AbstractPathAssert;
+import org.assertj.core.api.Assertions;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -100,6 +105,18 @@ public class BlockEditor implements GradleFile {
     @Override
     public final BlockEditor overwrite(String text) {
         return edit(_existing -> text);
+    }
+
+    @Override
+    public AbstractPathAssert<?> assertThat() {
+        // Write the block content to a temporary location for assertion purposes
+        Path tempPath = root.path().resolveSibling(root.path().getFileName() + ".block-temp");
+        try {
+            Files.writeString(tempPath, text());
+            return Assertions.assertThat(tempPath);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     static String[] concat(String[] base, String... additional) {

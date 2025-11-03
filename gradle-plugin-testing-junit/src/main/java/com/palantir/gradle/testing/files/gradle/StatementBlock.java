@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,10 +50,18 @@ non-sealed class StatementBlock implements Block {
         return name;
     }
 
-    @Override
     public final Pattern pattern() {
         // Match all statements of this type at this level (greedy to capture multiple lines)
         return Pattern.compile("((?:^" + Pattern.quote(keyword) + "\\s+'[^']+'\\s*\n*)+)", Pattern.MULTILINE);
+    }
+
+    @Override
+    public final Optional<ExtractionResult> extract(String content) {
+        Matcher matcher = pattern().matcher(content);
+        if (!matcher.find()) {
+            return Optional.empty();
+        }
+        return Optional.of(new ExtractionResult(matcher.group(1), matcher.start(), matcher.end()));
     }
 
     @Override
@@ -87,11 +96,6 @@ non-sealed class StatementBlock implements Block {
         Set<String> merged = Stream.concat(this.statements.stream(), otherBlock.statements.stream())
                 .collect(Collectors.toSet());
         return new StatementBlock(name, keyword, merged);
-    }
-
-    @Override
-    public final Block edit(Function<String, String> editor) {
-        return parse(editor.apply(renderContent()));
     }
 
     @Override

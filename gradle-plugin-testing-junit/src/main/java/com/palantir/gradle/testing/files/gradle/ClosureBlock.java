@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -43,17 +44,47 @@ import java.util.stream.Collectors;
 public record ClosureBlock(String name, Map<String, Block> children, String unstructuredContent) implements Block {
 
     @Override
-    public Pattern pattern() {
-        return Pattern.compile(
-                "^\\s*" + Pattern.quote(name) + "\\s*\\{([^{}]*(?:\\{[^{}]*\\}[^{}]*)*)\\}",
-                Pattern.MULTILINE | Pattern.DOTALL);
+    public Optional<ExtractionResult> extract(String content) {
+        // Find the start of the block
+        Pattern startPattern = Pattern.compile(
+                "^\\s*" + Pattern.quote(name) + "\\s*\\{",
+                Pattern.MULTILINE);
+        Matcher startMatcher = startPattern.matcher(content);
+
+        if (!startMatcher.find()) {
+            return Optional.empty();
+        }
+
+        int blockStart = startMatcher.start();
+        int openBracePos = startMatcher.end() - 1;
+        int depth = 1;
+        int i = openBracePos + 1;
+
+        // Count braces to find the matching closing brace
+        while (i < content.length() && depth > 0) {
+            char c = content.charAt(i);
+            if (c == '{') {
+                depth++;
+            } else if (c == '}') {
+                depth--;
+            }
+            i++;
+        }
+
+        if (depth != 0) {
+            // Unmatched braces
+            return Optional.empty();
+        }
+
+        // Extract content between braces
+        String blockContent = content.substring(openBracePos + 1, i - 1);
+        return Optional.of(new ExtractionResult(blockContent, blockStart, i));
     }
 
     @Override
     public Block parse(String content) {
         if (children.isEmpty()) {
-            // Simple block - just store normalized content
-            return new ClosureBlock(name, children, normalizeIndentation(content.trim()));
+            return new ClosureBlock(name, children, normalizeIndentation(content));
         }
         // Nested block - parse children
         List<String> childOrder = List.copyOf(children.keySet());
@@ -62,12 +93,53 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
     }
 
     /**
-     * Strip leading whitespace from each line so content is stored without indentation.
+     * Strip common leading whitespace from all lines (similar to Java text blocks).
+     * Also removes leading and trailing blank lines.
+     * This ensures content parsed from files doesn't accumulate indentation.
      */
     private static String normalizeIndentation(String textContent) {
-        return textContent.isEmpty()
-                ? textContent
-                : textContent.lines().map(String::stripLeading).collect(Collectors.joining("\n"));
+        if (textContent.isEmpty()) {
+            return textContent;
+        }
+
+        List<String> lines = textContent.lines().collect(Collectors.toList());
+        if (lines.isEmpty()) {
+            return textContent;
+        }
+
+        // Remove leading blank lines
+        while (!lines.isEmpty() && lines.get(0).isBlank()) {
+            lines.remove(0);
+        }
+
+        // Remove trailing blank lines
+        while (!lines.isEmpty() && lines.get(lines.size() - 1).isBlank()) {
+            lines.remove(lines.size() - 1);
+        }
+
+        if (lines.isEmpty()) {
+            return "";
+        }
+
+        // Find minimum indentation (excluding empty lines)
+        int minIndent = lines.stream()
+                .filter(line -> !line.isBlank())
+                .mapToInt(ClosureBlock::countLeadingSpaces)
+                .min()
+                .orElse(0);
+
+        // Strip that amount from all lines
+        return lines.stream()
+                .map(line -> line.isBlank() ? "" : line.substring(Math.min(minIndent, line.length())))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static int countLeadingSpaces(String line) {
+        int count = 0;
+        while (count < line.length() && Character.isWhitespace(line.charAt(count))) {
+            count++;
+        }
+        return count;
     }
 
     @Override
@@ -106,11 +178,6 @@ public record ClosureBlock(String name, Map<String, Block> children, String unst
 
         String mergedUnstructured = ParsedContent.combineUnstructured(unstructuredContent, o.unstructuredContent);
         return new ClosureBlock(name, mergedChildren, mergedUnstructured);
-    }
-
-    @Override
-    public Block edit(Function<String, String> editor) {
-        return parse(editor.apply(renderContent()));
     }
 
     @Override

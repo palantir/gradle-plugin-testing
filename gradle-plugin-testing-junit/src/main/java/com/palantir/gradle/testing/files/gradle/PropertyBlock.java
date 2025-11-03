@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.files.gradle;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -50,9 +51,17 @@ non-sealed class PropertyBlock implements Block {
     /**
      * Must be overridden by subclasses to define the property's parsing pattern.
      */
-    @Override
     public Pattern pattern() {
         throw new UnsupportedOperationException("Pattern must be overridden in subclass");
+    }
+
+    @Override
+    public final Optional<ExtractionResult> extract(String content) {
+        Matcher matcher = pattern().matcher(content);
+        if (!matcher.find()) {
+            return Optional.empty();
+        }
+        return Optional.of(new ExtractionResult(matcher.group(1), matcher.start(), matcher.end()));
     }
 
     @Override
@@ -73,11 +82,6 @@ non-sealed class PropertyBlock implements Block {
     @Override
     public final Block merge(Block other) {
         return other instanceof PropertyBlock o && o.name.equals(this.name) && !o.value.isEmpty() ? o : this;
-    }
-
-    @Override
-    public final Block edit(Function<String, String> editor) {
-        return parse(editor.apply(renderContent()));
     }
 
     @Override

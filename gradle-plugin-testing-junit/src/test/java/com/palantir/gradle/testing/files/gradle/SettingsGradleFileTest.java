@@ -290,4 +290,94 @@ class SettingsGradleFileTest {
             include 'new-module'
             """);
     }
+
+    @Test
+    void block_editor_text_matches_expected_content() {
+        // Setup a settings.gradle with various blocks
+        settingsGradleFile.pluginManagement().repositories().appendLine("gradlePluginPortal()");
+        settingsGradleFile.pluginManagement().repositories().appendLine("mavenCentral()");
+        settingsGradleFile.pluginManagement().plugins().appendLine("id 'plugin1' version '1.0'");
+        settingsGradleFile.buildscript().repositories().appendLine("google()");
+        settingsGradleFile.buildscript().dependencies().appendLine("classpath 'plugin:2.0'");
+        settingsGradleFile.plugins().appendLine("id 'base'");
+        settingsGradleFile.include("module-a");
+        settingsGradleFile.include("module-b");
+
+        // Verify pluginManagement block text() returns only pluginManagement content
+        settingsGradleFile.pluginManagement().assertThat().hasContent("""
+            repositories {
+                gradlePluginPortal()
+                mavenCentral()
+            }
+            plugins {
+                id 'plugin1' version '1.0'
+            }
+            """);
+
+        // Verify pluginManagement.repositories() text() returns only repositories content
+        settingsGradleFile.pluginManagement().repositories().assertThat().hasContent("""
+            gradlePluginPortal()
+            mavenCentral()
+            """);
+
+        // Verify pluginManagement.plugins() text() returns only plugins content
+        settingsGradleFile.pluginManagement().plugins().assertThat().hasContent("""
+            id 'plugin1' version '1.0'
+            """);
+
+        // Verify buildscript block text() returns only buildscript content
+        settingsGradleFile.buildscript().assertThat().hasContent("""
+            repositories {
+                google()
+            }
+            dependencies {
+                classpath 'plugin:2.0'
+            }
+            """);
+
+        // Verify buildscript.repositories() text() returns only repositories content
+        settingsGradleFile.buildscript().repositories().assertThat().hasContent("""
+            google()
+            """);
+
+        // Verify buildscript.dependencies() text() returns only dependencies content
+        settingsGradleFile.buildscript().dependencies().assertThat().hasContent("""
+            classpath 'plugin:2.0'
+            """);
+
+        // Verify top-level plugins block
+        settingsGradleFile.plugins().assertThat().hasContent("""
+            id 'base'
+            """);
+    }
+
+    @Test
+    void block_editor_text_empty_blocks() {
+        settingsGradleFile.pluginManagement().repositories().assertThat().hasContent("");
+        settingsGradleFile.buildscript().repositories().assertThat().hasContent("");
+        settingsGradleFile.plugins().assertThat().hasContent("");
+    }
+
+    @Test
+    void block_editor_text_nested_plugin_management() {
+        settingsGradleFile.pluginManagement().resolutionStrategy().append("""
+            eachPlugin {
+                useModule('custom:plugin:1.0')
+            }
+            """);
+
+        settingsGradleFile.pluginManagement().resolutionStrategy().assertThat().hasContent("""
+            eachPlugin {
+                useModule('custom:plugin:1.0')
+            }
+            """);
+
+        settingsGradleFile.pluginManagement().assertThat().hasContent("""
+            resolutionStrategy {
+                eachPlugin {
+                    useModule('custom:plugin:1.0')
+                }
+            }
+            """);
+    }
 }

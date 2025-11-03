@@ -495,11 +495,11 @@ class BuildGradleFileTest {
 
         rootProject.buildGradle().append("""
             buildscript {
-                repositories {
-                    gradlePluginPortal()
-                }
                 dependencies {
                     classpath 'plugin:1.0'
+                }
+                repositories {
+                    gradlePluginPortal()
                 }
             }
             """);
@@ -522,6 +522,88 @@ class BuildGradleFileTest {
 
             repositories {
                 mavenCentral()
+            }
+            """);
+    }
+
+    @Test
+    void block_editor_text_matches_expected_content(RootProject rootProject) {
+        rootProject.buildGradle().buildscript().repositories().appendLine("gradlePluginPortal()");
+        rootProject.buildGradle().buildscript().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().buildscript().dependencies().appendLine("classpath 'plugin:1.0'");
+        rootProject.buildGradle().plugins().appendLine("id 'java'");
+        rootProject.buildGradle().repositories().appendLine("mavenCentral()");
+        rootProject.buildGradle().repositories().appendLine("google()");
+        rootProject.buildGradle().dependencies().appendLine("implementation 'com.google.guava:guava:32.0.0-jre'");
+
+        rootProject.buildGradle().buildscript().assertThat().hasContent("""
+            repositories {
+                gradlePluginPortal()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'plugin:1.0'
+            }
+            """);
+
+        rootProject.buildGradle().buildscript().repositories().assertThat().hasContent("""
+            gradlePluginPortal()
+            mavenCentral()
+            """);
+
+        rootProject.buildGradle().buildscript().dependencies().assertThat().hasContent("""
+            classpath 'plugin:1.0'
+            """);
+
+        rootProject.buildGradle().plugins().assertThat().hasContent("""
+            id 'java'
+            """);
+
+        rootProject.buildGradle().repositories().assertThat().hasContent("""
+            mavenCentral()
+            google()
+            """);
+
+        rootProject.buildGradle().dependencies().assertThat().hasContent("""
+            implementation 'com.google.guava:guava:32.0.0-jre'
+            """);
+    }
+
+    @Test
+    void block_editor_text_empty_blocks(RootProject rootProject) {
+        rootProject.buildGradle().repositories().assertThat().hasContent("");
+        rootProject.buildGradle().buildscript().repositories().assertThat().hasContent("");
+        rootProject.buildGradle().plugins().assertThat().hasContent("");
+    }
+
+    @Test
+    void block_editor_text_nested_configurations(RootProject rootProject) {
+        rootProject
+                .buildGradle()
+                .configurations()
+                .all()
+                .resolutionStrategy()
+                .appendLine("force 'com.google.guava:guava:32.0.0-jre'");
+
+        rootProject
+                .buildGradle()
+                .configurations()
+                .all()
+                .resolutionStrategy()
+                .assertThat()
+                .hasContent("force 'com.google.guava:guava:32.0.0-jre'");
+
+        rootProject.buildGradle().configurations().all().assertThat().hasContent("""
+            resolutionStrategy {
+                force 'com.google.guava:guava:32.0.0-jre'
+            }
+            """);
+
+        rootProject.buildGradle().configurations().assertThat().hasContent("""
+            all {
+                resolutionStrategy {
+                    force 'com.google.guava:guava:32.0.0-jre'
+                }
             }
             """);
     }

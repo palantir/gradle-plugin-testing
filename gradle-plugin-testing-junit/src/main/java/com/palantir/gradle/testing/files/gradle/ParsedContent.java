@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,18 +73,19 @@ record ParsedContent(Map<String, Block> blocks, String unstructuredContent) {
     }
 
     /**
-     * Extract a single block from parse state.
+     * Extract a single block from parse state using the block's own extraction logic.
      */
     private static ParseState extractBlock(ParseState state, String blockName, Block template) {
-        Matcher matcher = template.pattern().matcher(state.remaining());
+        Optional<Block.ExtractionResult> result = template.extract(state.remaining());
 
-        if (!matcher.find()) {
+        if (result.isEmpty()) {
             return state;
         }
 
-        state.parsedBlocks().put(blockName, template.parse(matcher.group(1)));
-        String newRemaining = state.remaining().substring(0, matcher.start())
-                + state.remaining().substring(matcher.end());
+        Block.ExtractionResult extraction = result.get();
+        state.parsedBlocks().put(blockName, template.parse(extraction.blockContent()));
+        String newRemaining = state.remaining().substring(0, extraction.startPos())
+                + state.remaining().substring(extraction.endPos());
         return new ParseState(newRemaining, state.parsedBlocks());
     }
 

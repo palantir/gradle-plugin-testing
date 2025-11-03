@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.files.gradle;
 
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 /**
  * A structural unit in a Gradle file that can be parsed, rendered, merged, and edited.
@@ -74,7 +73,9 @@ sealed interface Block permits ClosureBlock, PropertyBlock, StatementBlock {
      * @param editor function that receives current content and returns new content
      * @return a new {@link Block} with the transformed content
      */
-    Block edit(Function<String, String> editor);
+    default Block edit(Function<String, String> editor) {
+        return parse(editor.apply(renderContent()));
+    }
 
     /**
      * Get a child block by name. Only meaningful for blocks with children.
@@ -94,15 +95,27 @@ sealed interface Block permits ClosureBlock, PropertyBlock, StatementBlock {
     Block withChild(String childName, Block child);
 
     /**
-     * The regex pattern used to identify and extract this block from parent content.
-     * @return pattern with capture group 1 containing the block's inner content
-     */
-    Pattern pattern();
-
-    /**
      * The identifier for this block.
      *
      * @return block name (e.g., {@code "plugins"}, {@code "repositories"}, {@code "buildscript"})
      */
     String name();
+
+    /**
+     * Extract this block from the given content.
+     * <p>
+     *
+     * @param content the content to search within
+     * @return extraction result containing the block content and positions, or empty if not found
+     */
+    Optional<ExtractionResult> extract(String content);
+
+    /**
+     * Result of extracting a block from content.
+     *
+     * @param blockContent the content inside the block (between braces, after =, etc.)
+     * @param startPos the start position of the entire block in the original content
+     * @param endPos the end position of the entire block in the original content
+     */
+    record ExtractionResult(String blockContent, int startPos, int endPos) {}
 }
