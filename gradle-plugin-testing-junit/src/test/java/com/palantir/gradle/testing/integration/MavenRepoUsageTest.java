@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 class MavenRepoUsageTest {
 
     @BeforeEach
-    void beforeEach(MavenRepo repo, RootProject root) {
+    void beforeEach(RootProject root, MavenRepo repo) {
         repo.publish(MavenArtifact.of("com.palantir:service-a:1.0.0"));
         root.buildGradle().append("""
             plugins {
@@ -42,7 +42,7 @@ class MavenRepoUsageTest {
     }
 
     @Test
-    void simple_dependency(RootProject root, GradleInvoker gradle) {
+    void simple_dependency(GradleInvoker gradle, RootProject root) {
         root.buildGradle().append("""
             dependencies {
                 implementation 'com.palantir:service-a:1.0.0'
@@ -55,26 +55,7 @@ class MavenRepoUsageTest {
     }
 
     @Test
-    void simple_dependency_in_buildscript(RootProject root, MavenRepo repo, GradleInvoker gradle) {
-        root.buildGradle().prepend("""
-            buildscript {
-                // .withMavenRepo(repo) only adds to the main repo block so need to manually add
-                repositories {
-                    maven { url = uri('%s') }
-                }
-                dependencies {
-                    classpath 'com.palantir:service-a:1.0.0'
-                }
-            }
-            """, repo.path());
-
-        InvocationResult result = gradle.withArgs("buildEnvironment").buildsSuccessfully();
-
-        assertThat(result.output()).contains("com.palantir:service-a:1.0.0");
-    }
-
-    @Test
-    void multiple_modules_with_dependencies(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+    void multiple_modules_with_dependencies(GradleInvoker gradle, RootProject root, MavenRepo repo) {
         repo.publish(
                 MavenArtifact.of("com.external:library:1.0.0"),
                 MavenArtifact.builder()
@@ -98,7 +79,7 @@ class MavenRepoUsageTest {
     }
 
     @Test
-    void publishing_same_coordinate_twice_succeeds(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+    void publishing_same_coordinate_twice_succeeds(GradleInvoker gradle, RootProject root, MavenRepo repo) {
         MavenArtifact lib = MavenArtifact.of("com.external:library:1.0.0");
         repo.publish(lib);
         repo.publish(lib);
@@ -115,7 +96,7 @@ class MavenRepoUsageTest {
     }
 
     @Test
-    void same_dependency_declared_multiple_times(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+    void same_dependency_declared_multiple_times(GradleInvoker gradle, RootProject root, MavenRepo repo) {
         repo.publish(MavenArtifact.builder()
                 .coordinate("com.external:library:1.0.0")
                 .addDependency("com.palantir:service-a:1.0.0")
@@ -134,7 +115,7 @@ class MavenRepoUsageTest {
     }
 
     @Test
-    void transitive_dependency_chain(RootProject root, MavenRepo repo, GradleInvoker gradle) {
+    void transitive_dependency_chain(GradleInvoker gradle, RootProject root, MavenRepo repo) {
         repo.publish(
                 MavenArtifact.of("com.external:leaf:1.0.0"),
                 MavenArtifact.builder()

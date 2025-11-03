@@ -18,30 +18,23 @@ package com.palantir.gradle.testing.maven;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import java.util.List;
-import org.immutables.value.Value;
 
 /**
  * Represents a Maven coordinate ({@code group:artifact:version}).
  */
-@Value.Immutable
-public interface MavenCoordinate {
-    String group();
-
-    String artifact();
-
-    String version();
+public record MavenCoordinate(String group, String artifact, String version) {
+    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    public MavenCoordinate {}
 
     /**
      * Parses a coordinate string in the format {@code group:artifact:version}.
      */
-    static MavenCoordinate of(String coordinate) {
+    public static MavenCoordinate of(String coordinate) {
         List<String> parts = parseCoordinate(coordinate);
-        return ImmutableMavenCoordinate.builder()
-                .group(parts.get(0))
-                .artifact(parts.get(1))
-                .version(parts.get(2))
-                .build();
+        return new MavenCoordinate(parts.get(0), parts.get(1), parts.get(2));
     }
 
     private static List<String> parseCoordinate(String coordinate) {

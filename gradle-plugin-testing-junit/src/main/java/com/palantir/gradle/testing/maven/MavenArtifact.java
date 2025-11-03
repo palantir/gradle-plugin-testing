@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.maven;
 
+import com.palantir.gradle.testing.ImmutablesStyle;
 import java.util.List;
 import org.immutables.value.Value;
 
@@ -24,6 +25,7 @@ import org.immutables.value.Value;
  * Contains a coordinate and optional dependencies.
  */
 @Value.Immutable
+@ImmutablesStyle
 public interface MavenArtifact {
     MavenCoordinate coordinate();
 
