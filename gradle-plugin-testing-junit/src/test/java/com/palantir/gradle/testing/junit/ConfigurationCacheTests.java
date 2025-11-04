@@ -74,9 +74,7 @@ class ConfigurationCacheTests {
             """);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        result.assertThat()
-                .output()
-                .contains("isConfigurationCacheRequested=false");
+        result.assertThat().output().contains("isConfigurationCacheRequested=false");
         result.assertThat().task(":checkConfigurationCache").outcome().succeeded();
     }
 
