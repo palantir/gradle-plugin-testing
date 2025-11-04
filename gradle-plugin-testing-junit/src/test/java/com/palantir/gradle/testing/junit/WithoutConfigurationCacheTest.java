@@ -16,11 +16,8 @@
 
 package com.palantir.gradle.testing.junit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
-import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
@@ -46,9 +43,7 @@ class WithoutConfigurationCacheTest {
             """);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        assertThat(result.output()).contains("isConfigurationCacheRequested=false");
-        assertThat(result.task(":checkConfigurationCache")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
-        });
+        result.assertThat().output().contains("isConfigurationCacheRequested=false");
+        result.assertThat().task(":checkConfigurationCache").outcome().succeeded();
     }
 }

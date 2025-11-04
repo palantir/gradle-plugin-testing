@@ -16,10 +16,12 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.gradle.testkit.runner.GradleRunner;
 
 public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
@@ -28,13 +30,18 @@ public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVers
 
     @Override
     public GradleInvocation withArgs(String... args) {
+        String[] argsWithStacktrace = ImmutableList.builder()
+                .addAll(Arrays.asList(args))
+                .add("--stacktrace")
+                .build()
+                .toArray(String[]::new);
         GradleRunner runner = GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(isJavaDebugAgentLoaded())
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
-                .withArguments(args);
+                .withArguments(argsWithStacktrace);
 
         return new DefaultGradleInvocation(runner);
     }

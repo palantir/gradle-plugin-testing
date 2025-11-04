@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.files;
+package com.palantir.gradle.testing.assertion;
 
-import com.google.errorprone.annotations.RestrictedApi;
-import com.palantir.gradle.testing.RestrictedCreation;
-import java.nio.file.Path;
+import org.assertj.core.api.AbstractStringAssert;
 
-public record BuildDir(Path path) implements Directory {
-    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public BuildDir {}
+public final class BuildOutputAssert extends AbstractStringAssert<BuildOutputAssert> {
+
+    BuildOutputAssert(String actual) {
+        super(actual, BuildOutputAssert.class);
+    }
 }

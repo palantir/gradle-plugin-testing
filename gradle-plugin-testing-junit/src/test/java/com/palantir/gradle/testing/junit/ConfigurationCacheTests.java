@@ -16,12 +16,10 @@
 
 package com.palantir.gradle.testing.junit;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
-import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.execution.UnexpectedConfigurationCacheFailure;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
@@ -50,12 +48,11 @@ class ConfigurationCacheTests {
             """);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        assertThat(result.output())
+        result.assertThat()
+                .output()
                 .contains("isConfigurationCacheRequested=true")
                 .contains("Configuration cache entry stored.");
-        assertThat(result.task(":checkConfigurationCache")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
-        });
+        result.assertThat().task(":checkConfigurationCache").outcome().succeeded();
     }
 
     @Test
@@ -77,10 +74,10 @@ class ConfigurationCacheTests {
             """);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        assertThat(result.output()).contains("isConfigurationCacheRequested=false");
-        assertThat(result.task(":checkConfigurationCache")).hasValueSatisfying(taskResult -> {
-            assertThat(taskResult.outcome()).isEqualTo(TaskOutcome.SUCCESS);
-        });
+        result.assertThat()
+                .output()
+                .contains("isConfigurationCacheRequested=false");
+        result.assertThat().task(":checkConfigurationCache").outcome().succeeded();
     }
 
     @Test
