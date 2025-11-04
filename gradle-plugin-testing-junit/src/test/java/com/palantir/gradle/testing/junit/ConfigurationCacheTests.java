@@ -23,10 +23,10 @@ import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.execution.UnexpectedConfigurationCacheFailure;
-import com.palantir.gradle.testing.execution.UnexpectedInvocationSuccess;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
+import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
@@ -123,7 +123,7 @@ class ConfigurationCacheTests {
         FileUtils.deleteDirectory(
                 rootProject.path().resolve(".gradle/configuration-cache").toFile());
         assertThatThrownBy(() -> invoker.withArgs("deleteConfigCache").buildsWithFailure())
-                .isInstanceOf(UnexpectedInvocationSuccess.class)
+                .isInstanceOf(UnexpectedBuildSuccess.class)
                 .hasMessageContaining("Configuration cache entry stored.");
     }
 

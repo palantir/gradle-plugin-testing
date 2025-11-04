@@ -17,7 +17,7 @@
 package com.palantir.gradle.testing.execution;
 
 /**
- * Base class for {@link UnexpectedInvocationFailure} and {@link UnexpectedInvocationSuccess}.
+ * Base class for {@link UnexpectedConfigurationCacheFailure}.
  */
 public abstract class UnexpectedInvocationResult extends RuntimeException {
     private final InvocationResult invocationResult;

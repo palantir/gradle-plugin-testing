@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.execution;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
+import org.gradle.testkit.runner.UnexpectedBuildFailure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,19 +52,20 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
             InvocationResult configurationCacheResult = secondGradleInvocation.buildsSuccessfully();
             assertConfigCacheReused(configurationCacheResult);
             return result;
-        } catch (UnexpectedInvocationFailure unexpectedBuildFailure) {
+        } catch (UnexpectedBuildFailure unexpectedBuildFailure) {
             if (unexpectedBuildFailure.getMessage().contains("Configuration cache problems found in this build")) {
                 throw new UnexpectedConfigurationCacheFailure(
-                        String.format("""
-                            Configuration cache incompatibility: Build execution failed.
+                        String.format(
+                                """
+                                Configuration cache incompatibility: Build execution failed.
 
-                            This test runs with configuration cache enabled (`gradleTestUtils.configurationCacheEnabled=true`).
-                            Please check the output below for specific configuration cache problems.
+                                This test runs with configuration cache enabled (`gradleTestUtils.configurationCacheEnabled=true`).
+                                Please check the output below for specific configuration cache problems.
 
-                            Output:
-                            %s
-                            """, unexpectedBuildFailure.getResult().output()),
-                        unexpectedBuildFailure.getResult());
+                                Output:
+                                %s
+                                """, unexpectedBuildFailure.getBuildResult().getOutput()),
+                        new InvocationResult(unexpectedBuildFailure.getBuildResult()));
             }
             throw unexpectedBuildFailure;
         }

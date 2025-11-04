@@ -18,8 +18,6 @@ package com.palantir.gradle.testing.execution;
 
 import java.util.Map;
 import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.UnexpectedBuildFailure;
-import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 
 public final class DefaultGradleInvocation implements GradleInvocation {
 
@@ -37,19 +35,12 @@ public final class DefaultGradleInvocation implements GradleInvocation {
 
     @Override
     public InvocationResult buildsSuccessfully() {
-        try {
-            return new InvocationResult(gradleRunner.build());
-        } catch (UnexpectedBuildFailure unexpectedBuildFailure) {
-            throw new UnexpectedInvocationFailure(unexpectedBuildFailure);
-        }
+        return new InvocationResult(gradleRunner.build());
     }
 
     @Override
     public InvocationResult buildsWithFailure() {
-        try {
-            return new InvocationResult(gradleRunner.buildAndFail());
-        } catch (UnexpectedBuildSuccess unexpectedBuildSuccess) {
-            throw new UnexpectedInvocationSuccess(unexpectedBuildSuccess);
-        }
+
+        return new InvocationResult(gradleRunner.buildAndFail());
     }
 }

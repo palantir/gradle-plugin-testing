@@ -22,7 +22,7 @@ public interface GradleInvocation {
 
     GradleInvocation withEnvironment(Map<String, String> environment);
 
-    InvocationResult buildsSuccessfully() throws UnexpectedInvocationFailure;
+    InvocationResult buildsSuccessfully();
 
-    InvocationResult buildsWithFailure() throws UnexpectedInvocationSuccess;
+    InvocationResult buildsWithFailure();
 }
