@@ -38,6 +38,7 @@ public final class ConfigurationCacheInvoker implements GradleInvoker {
 
     @Override
     public GradleInvocation withArgs(String... args) {
+        // not reusing configuration-cache among multiple gradle invocations in a test.
         cleanupConfigurationCache();
 
         String[] withConfigurationCacheEnabled = ImmutableList.<String>builder()

@@ -40,7 +40,6 @@ public final class DefaultGradleInvocation implements GradleInvocation {
 
     @Override
     public InvocationResult buildsWithFailure() {
-
         return new InvocationResult(gradleRunner.buildAndFail());
     }
 }
