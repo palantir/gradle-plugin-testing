@@ -103,6 +103,25 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
+    void confirm_gradlePluginForTesting_is_locked(GradleInvoker gradleInvoker, RootProject rootProject) {
+
+        rootProject.buildGradle().append("""
+            dependencies {
+                gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging'
+            }
+            """);
+
+        rootProject.propertiesFile("versions.props").appendProperty("com.palantir.sls-packaging:*", "7.84.0");
+
+        gradleInvoker.withArgs("writeVersionsLock").buildsSuccessfully();
+        rootProject
+                .file("versions.lock")
+                .assertThat()
+                .content()
+                .containsSubsequence("[Test dependencies]", "com.palantir.sls-packaging:gradle-sls-packaging = 7.84.0");
+    }
+
+    @Test
     void correct_versions_from_extension_are_used_by_junit_library(
             GradleInvoker gradleInvoker, RootProject rootProject) {
 
