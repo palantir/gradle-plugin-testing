@@ -28,6 +28,7 @@ dependencies {
 
     testRuntimeOnly 'com.google.guava:guava'
     gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 }
 
 gradlePlugin {
