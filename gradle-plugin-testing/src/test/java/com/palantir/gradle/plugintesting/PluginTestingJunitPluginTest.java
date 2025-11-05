@@ -19,7 +19,6 @@ package com.palantir.gradle.plugintesting;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,13 +94,12 @@ class PluginTestingJunitPluginTest {
                         println "plugin version: $pluginVersion"
                         ""\");
 
-                    gradle.withArgs().buildsSuccessfully();
+                    gradle.withArgs().buildsSuccessfully().assertThat().output().contains("plugin version: 7.84.0");
                 }
             }
             """);
 
-        InvocationResult result = gradleInvoker.withArgs("test").buildsSuccessfully();
-        result.assertThat().output().contains("pluginVersion: 7.84.0");
+        gradleInvoker.withArgs("test").buildsSuccessfully();
     }
 
     @Test
