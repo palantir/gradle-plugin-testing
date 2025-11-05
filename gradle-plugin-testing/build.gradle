@@ -4,6 +4,15 @@ apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.gradle-plugin-testing'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
+// used for self bootstrapping - remove on next release and bump own version
+configurations {
+    gradlePluginForTesting
+}
+
+tasks.named("pluginUnderTestMetadata", PluginUnderTestMetadata) {
+    it.getPluginClasspath().from(configurations.named("gradlePluginForTesting"))
+}
+
 dependencies {
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
@@ -18,7 +27,7 @@ dependencies {
     testImplementation 'org.spockframework:spock-core'
 
     testRuntimeOnly 'com.google.guava:guava'
-    testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 }
 
 gradlePlugin {
