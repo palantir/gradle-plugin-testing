@@ -18,6 +18,7 @@ package com.palantir.gradle.plugintesting;
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorPronePlugin;
+import com.palantir.gradle.versions.VersionsLockExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -183,6 +184,12 @@ public class PluginTestingPlugin implements Plugin<Project> {
 
         project.getTasks().named("pluginUnderTestMetadata", PluginUnderTestMetadata.class, pluginUnderTestMetadata -> {
             pluginUnderTestMetadata.getPluginClasspath().from(gradlePluginForTestingResolvable);
+        });
+
+        project.getRootProject().getPluginManager().withPlugin("com.palantir.consistent-versions", _plugin -> {
+            project.getExtensions()
+                    .getByType(VersionsLockExtension.class)
+                    .test(scope -> scope.from(gradlePluginForTestingResolvable.getName()));
         });
     }
 }

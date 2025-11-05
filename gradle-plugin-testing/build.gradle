@@ -9,6 +9,8 @@ dependencies {
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
 
+    compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'

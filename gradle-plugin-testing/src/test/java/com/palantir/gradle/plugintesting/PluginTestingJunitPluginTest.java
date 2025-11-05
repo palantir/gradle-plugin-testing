@@ -36,7 +36,7 @@ class PluginTestingJunitPluginTest {
             plugins {
                 id 'com.palantir.gradle-plugin-testing'
                 id 'java-gradle-plugin'
-                id 'com.palantir.consistent-versions' version '3.6.0'
+                id 'com.palantir.consistent-versions'
             }
 
             repositories {
@@ -118,7 +118,7 @@ class PluginTestingJunitPluginTest {
                 .file("versions.lock")
                 .assertThat()
                 .content()
-                .containsSubsequence("[Test dependencies]", "com.palantir.sls-packaging:gradle-sls-packaging = 7.84.0");
+                .containsSubsequence("[Test dependencies]", "com.palantir.sls-packaging:gradle-sls-packaging:7.84.0");
     }
 
     @Test
