@@ -18,6 +18,7 @@ package com.palantir.gradle.plugintesting;
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorPronePlugin;
+import com.palantir.gradle.versions.VersionsLockExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,12 +28,15 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
+import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 
 public class PluginTestingPlugin implements Plugin<Project> {
     /**
@@ -116,6 +120,8 @@ public class PluginTestingPlugin implements Plugin<Project> {
                 }
             });
         });
+
+        addGradlePluginForTestingConfigurations(project);
     }
 
     private static void setupErrorprones(Project project) {
@@ -164,5 +170,26 @@ public class PluginTestingPlugin implements Plugin<Project> {
                 .or(() -> Optional.ofNullable(
                         PluginTestingPlugin.class.getPackage().getImplementationVersion()))
                 .orElseThrow(() -> new RuntimeException("PluginTestingPlugin implementation version not found"));
+    }
+
+    private static void addGradlePluginForTestingConfigurations(Project project) {
+        NamedDomainObjectProvider<DependencyScopeConfiguration> gradlePluginForTesting =
+                project.getConfigurations().dependencyScope("gradlePluginForTesting");
+
+        NamedDomainObjectProvider<ResolvableConfiguration> gradlePluginForTestingResolvable =
+                project.getConfigurations()
+                        .resolvable(
+                                "gradlePluginForTestingResolvable",
+                                resolvable -> resolvable.extendsFrom(gradlePluginForTesting.get()));
+
+        project.getTasks().named("pluginUnderTestMetadata", PluginUnderTestMetadata.class, pluginUnderTestMetadata -> {
+            pluginUnderTestMetadata.getPluginClasspath().from(gradlePluginForTestingResolvable);
+        });
+
+        project.getRootProject().getPluginManager().withPlugin("com.palantir.consistent-versions", _plugin -> {
+            project.getExtensions()
+                    .getByType(VersionsLockExtension.class)
+                    .test(scope -> scope.from(gradlePluginForTestingResolvable.getName()));
+        });
     }
 }
