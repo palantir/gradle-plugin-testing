@@ -56,7 +56,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 testImplementation 'org.junit.jupiter:junit-jupiter'
                 testImplementation 'com.netflix.nebula:nebula-test'
 
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+                implementation 'org.junit.platform:junit-platform-launcher'
             }
             tasks.withType(Test) {
                 useJUnitPlatform()
@@ -196,12 +196,13 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
                 testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
                 testImplementation '${resolve("com.google.guava:guava")}'
+               
             }
         ''')
 
         when:
         gradleVersion = version
-        def result = runTasks('test')
+        def result = runTasks('discoverNebulaTests')
 
         then:
         result.success
@@ -248,7 +249,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
         when:
         gradleVersion = version
-        def result = runTasks('test')
+        def result = runTasks('discoverNebulaTests')
 
         then:
         result.standardOutput.contains('test with version: #configuredVersion > test with version: 7.6.4')

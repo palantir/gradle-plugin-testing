@@ -5,9 +5,14 @@ apply plugin: 'com.palantir.gradle-plugin-testing'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
+    implementation 'org.junit.jupiter:junit-jupiter-api'
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
+
+    implementation 'org.spockframework:spock-core'
+    implementation 'org.junit.jupiter:junit-jupiter-engine'
+    implementation 'org.junit.platform:junit-platform-launcher'
 
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
