@@ -120,18 +120,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
             });
         });
 
-        NamedDomainObjectProvider<DependencyScopeConfiguration> gradlePluginForTesting =
-                project.getConfigurations().dependencyScope("gradlePluginForTesting");
-
-        NamedDomainObjectProvider<ResolvableConfiguration> gradlePluginForTestingResolvable =
-                project.getConfigurations()
-                        .resolvable(
-                                "gradlePluginForTestingResolvable",
-                                resolvable -> resolvable.extendsFrom(gradlePluginForTesting.get()));
-
-        project.getTasks().named("pluginUnderTestMetadata", PluginUnderTestMetadata.class, pluginUnderTestMetadata -> {
-            pluginUnderTestMetadata.getPluginClasspath().from(gradlePluginForTestingResolvable);
-        });
+        addGradlePluginForTestingConfigurations(project);
     }
 
     private static void setupErrorprones(Project project) {
@@ -180,5 +169,20 @@ public class PluginTestingPlugin implements Plugin<Project> {
                 .or(() -> Optional.ofNullable(
                         PluginTestingPlugin.class.getPackage().getImplementationVersion()))
                 .orElseThrow(() -> new RuntimeException("PluginTestingPlugin implementation version not found"));
+    }
+
+    private static void addGradlePluginForTestingConfigurations(Project project) {
+        NamedDomainObjectProvider<DependencyScopeConfiguration> gradlePluginForTesting =
+                project.getConfigurations().dependencyScope("gradlePluginForTesting");
+
+        NamedDomainObjectProvider<ResolvableConfiguration> gradlePluginForTestingResolvable =
+                project.getConfigurations()
+                        .resolvable(
+                                "gradlePluginForTestingResolvable",
+                                resolvable -> resolvable.extendsFrom(gradlePluginForTesting.get()));
+
+        project.getTasks().named("pluginUnderTestMetadata", PluginUnderTestMetadata.class, pluginUnderTestMetadata -> {
+            pluginUnderTestMetadata.getPluginClasspath().from(gradlePluginForTestingResolvable);
+        });
     }
 }
