@@ -91,10 +91,19 @@ jobs:
       - restore_cache: { key: 'gradle-wrapper-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'publish-gradle-cache-v1-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - deploy:
-          command: ./gradlew --parallel --stacktrace --continue --no-configuration-cache publish -Porg.gradle.java.installations.fromEnv=JAVA_11_HOME,JAVA_17_HOME,JAVA_21_HOME,JAVA_HOME
+          command: ./gradlew -d --parallel --stacktrace --continue --no-configuration-cache publish -Porg.gradle.java.installations.fromEnv=JAVA_11_HOME,JAVA_17_HOME,JAVA_21_HOME,JAVA_HOME
       - run:
           command: git status --porcelain
           when: always
+      - run:
+          name: Copy maven metadata files
+          command: |
+            mkdir -p ~/artifacts
+            find . -type f -name "*maven-metadata.xml" | while read -r file; do
+              clean_path="${file#./}"
+              new_name="${clean_path//\//-}"
+              cp "$file" ~/artifacts/"$new_name"
+            done
       - save_cache:
           key: 'publish-gradle-cache-v1-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}'
           paths: [ ~/.gradle/caches ]
