@@ -42,7 +42,7 @@ class ProjectFileFormattingUsageTest {
             tasks.register('%s') {
                 doLast {}
             }
-            """.formatted("myTask"));
+            """, "myTask");
 
         assertThat(rootProject.buildGradle().text()).contains("tasks.register('myTask')");
     }
@@ -68,7 +68,7 @@ class ProjectFileFormattingUsageTest {
             tasks.register('%s') {
                 doLast {}
             }
-            """.formatted("myTask"));
+            """, "myTask");
 
         assertThat(rootProject.buildGradle().text())
                 .contains("plugins { id 'java' }")
@@ -84,7 +84,7 @@ class ProjectFileFormattingUsageTest {
 
     @Test
     void can_format_appendLine_manually(RootProject rootProject) {
-        rootProject.buildGradle().appendLine("version = '%s'".formatted("1.0.0"));
+        rootProject.buildGradle().appendLine("version = '%s'", "1.0.0");
 
         assertThat(rootProject.buildGradle().text()).isEqualTo("version = '1.0.0'\n");
     }
@@ -108,7 +108,7 @@ class ProjectFileFormattingUsageTest {
             tasks.register('%s') {
                 doLast {}
             }
-            """.formatted("myTask"));
+            """, "myTask");
 
         assertThat(rootProject.buildGradle().text()).startsWith("tasks.register('myTask')");
     }
@@ -124,7 +124,7 @@ class ProjectFileFormattingUsageTest {
     @Test
     void can_format_prependLine_manually(RootProject rootProject) {
         rootProject.buildGradle().overwrite("task foo {}");
-        rootProject.buildGradle().prependLine("version = '%s'".formatted("1.0.0"));
+        rootProject.buildGradle().prependLine("version = '%s'", "1.0.0");
 
         assertThat(rootProject.buildGradle().text()).startsWith("version = '1.0.0'\n");
     }

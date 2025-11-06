@@ -17,9 +17,11 @@ package com.palantir.gradle.plugintesting;
 
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
+import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorProneExtension;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorPronePlugin;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -42,6 +44,8 @@ public class PluginTestingPlugin implements Plugin<Project> {
 
     static final List<String> CORE_MAVEN_NAMES =
             List.of("plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit");
+
+    public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting");
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
 
@@ -126,6 +130,11 @@ public class PluginTestingPlugin implements Plugin<Project> {
                     + jarImplementationVersionOrTestVersion(project);
 
             project.getDependencies().add("errorprone", errorProneJarCoordinate);
+
+            project.getExtensions()
+                    .getByType(SuppressibleErrorProneExtension.class)
+                    .getPatchChecks()
+                    .addAll(PATCHABLE_CHECKS);
         });
     }
 

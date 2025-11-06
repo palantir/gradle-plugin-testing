@@ -270,6 +270,67 @@ class GradleTestStringFormattingTest {
             """);
     }
 
+    @Test
+    void autofix_formatted_multiline_strings_in_project_file() {
+        testFix("""
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.files.ProjectFile;
+
+            @GradlePluginTests
+            class TestClass {
+                void test(ProjectFile file) {
+                    file.append(""\"
+                        foo %s
+                    ""\".formatted(3));
+
+                    file.appendLine(""\"
+                        foo %s bar %d
+                    ""\".formatted("hello", 42));
+
+                    file.prepend(String.format(""\"
+                        foo %s bar %d
+                    ""\", "hello", 42));
+
+                    file.prependLine(""\"
+                        test %s
+                    ""\".formatted("value"));
+
+                    file.overwrite(""\"
+                        content %s
+                    ""\".formatted("data"));
+                }
+            }
+            """, """
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.files.ProjectFile;
+
+            @GradlePluginTests
+            class TestClass {
+                void test(ProjectFile file) {
+                    file.append(""\"
+                        foo %s
+                    ""\", 3);
+
+                    file.appendLine(""\"
+                        foo %s bar %d
+                    ""\", "hello", 42);
+
+                    file.prepend(""\"
+                        foo %s bar %d
+                    ""\", "hello", 42);
+
+                    file.prependLine(""\"
+                        test %s
+                    ""\", "value");
+
+                    file.overwrite(""\"
+                        content %s
+                    ""\", "data");
+                }
+            }
+            """);
+    }
+
     private void test(@Language("Java") String javaCode) {
         CompilationTestHelper compilationTestHelper =
                 CompilationTestHelper.newInstance(GradleTestStringFormatting.class, getClass());
