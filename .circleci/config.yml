@@ -129,4 +129,4 @@ workflows:
 
       - publish:
           requires: [ circle-all ]
-#          filters: { tags: { only: /.*/ }, branches: { only: develop } }
+          filters: { tags: { only: /.*/ }, branches: { only: develop } }
