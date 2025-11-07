@@ -56,6 +56,46 @@ class ConfigurationCacheTests {
     }
 
     @Test
+    void configuration_cache_is_stored_for_failed_task(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            plugins { id 'java' }
+
+            tasks.register("failingTask") {
+                doLast {
+                    throw new RuntimeException("Task that fails");
+                }
+            }
+            """);
+
+        InvocationResult result = invoker.withArgs("failingTask").buildsWithFailure();
+        result.assertThat().output().contains("Configuration cache entry stored.");
+        result.assertThat().task(":failingTask").outcome().failed();
+    }
+
+    @Test
+    void configuration_cache_is_not_stored_when_configuration_fails(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            plugins { id 'java' }
+
+            tasks.register('failingTask') {
+                def destination = getProjectDir().getAbsoluteFile().toPath().resolve("destination")
+                inputs.dir(getProjectDir().getAbsoluteFile().toPath().resolve('source'))
+                outputs.dir(destination)
+                doLast {
+                    project.copy {
+                        from 'source'
+                        into destination
+                    }
+                }
+            }
+            """);
+        rootProject.directory("source").createDirectories();
+        assertThatThrownBy(() -> invoker.withArgs("failingTask").buildsWithFailure())
+                .isInstanceOf(UnexpectedConfigurationCacheFailure.class)
+                .hasMessageContaining("Configuration cache entry discarded");
+    }
+
+    @Test
     @DisabledConfigurationCache(reason = "testing method level annotation")
     void configuration_cache_is_disabled(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""

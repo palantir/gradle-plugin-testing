@@ -75,6 +75,8 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
     public InvocationResult buildsWithFailure() {
         InvocationResult result = initialGradleInvocation.buildsWithFailure();
         assertConfigCacheStored(result);
+        InvocationResult configurationCacheResult = secondGradleInvocation.buildsSuccessfully();
+        assertConfigCacheReused(configurationCacheResult);
         return result;
     }
 
