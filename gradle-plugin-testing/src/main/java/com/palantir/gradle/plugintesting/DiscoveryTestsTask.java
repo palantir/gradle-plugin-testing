@@ -18,6 +18,7 @@ package com.palantir.gradle.plugintesting;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -27,13 +28,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
 import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.Launcher;
@@ -47,12 +47,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spockframework.runtime.SpockEngine;
 
-public abstract class DiscoveryTestsTask extends DefaultTask {
+public abstract class DiscoveryTestsTask extends JavaExec {
 
     private static final Logger log = LoggerFactory.getLogger(DiscoveryTestsTask.class);
 
-    @Classpath
-    abstract ConfigurableFileCollection getTestClasspath();
+    @InputFiles
+    public abstract ConfigurableFileCollection getTestClasspath();
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
@@ -69,11 +69,12 @@ public abstract class DiscoveryTestsTask extends DefaultTask {
             .build();
 
     public DiscoveryTestsTask() {
+        setClasspath(getTestClasspath());
         getOutputFile().convention(getProjectLayout().getBuildDirectory().file("nebula-tests.txt"));
     }
 
-    @TaskAction
-    public final void doAction() throws IOException {
+    @Override
+    public final void exec() {
         List<String> testClasses = new ArrayList<>();
         log.info("Retrieved {} {}", getTestClasspath().getFiles(), System.getProperty("java.class.path"));
 
@@ -103,8 +104,13 @@ public abstract class DiscoveryTestsTask extends DefaultTask {
             });
         });*/
 
-        Files.writeString(getOutputFile().get().getAsFile().toPath(), String.join(System.lineSeparator(), testClasses));
-        getLogger().lifecycle("Discovered {} Nebula tests", testClasses.size());
+        try {
+            Files.writeString(
+                    getOutputFile().get().getAsFile().toPath(), String.join(System.lineSeparator(), testClasses));
+            getLogger().lifecycle("Discovered {} Nebula tests", testClasses.size());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private URLClassLoader createClassLoader(Set<File> classpath) {
