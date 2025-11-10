@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.util.Map;
 import org.gradle.testkit.runner.GradleRunner;
 
 public final class GradleInvocation {
@@ -24,11 +23,6 @@ public final class GradleInvocation {
 
     GradleInvocation(GradleRunner gradleRunner) {
         this.gradleRunner = gradleRunner;
-    }
-
-    public GradleInvocation withEnvironment(Map<String, String> environment) {
-        gradleRunner.withEnvironment(environment);
-        return this;
     }
 
     public InvocationResult buildsSuccessfully() {
