@@ -13,6 +13,8 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter-engine'
     implementation 'org.junit.platform:junit-platform-launcher'
 
+    compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -20,6 +22,9 @@ dependencies {
     testImplementation 'org.spockframework:spock-core'
 
     testRuntimeOnly 'com.google.guava:guava'
+    gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+
+    // This needs to remain until all nebula based tests are removed from this project
     testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 }
 
