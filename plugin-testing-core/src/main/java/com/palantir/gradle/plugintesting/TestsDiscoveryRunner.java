@@ -25,11 +25,15 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.PostDiscoveryFilter;
+import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherConfig;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -58,21 +62,56 @@ public class TestsDiscoveryRunner {
                     public FilterResult apply(TestDescriptor testDescriptor) {
                         // Check if the test class extends directly or indirectly from
                         // "nebula.test.IntegrationSpec" or "nebula.test.IntegrationTestKitSpec"
-                        logger.info(String.format(
-                                "for: testDescriptor %s: %s", testDescriptor, testDescriptor.getChildren()));
-                        return FilterResult.excluded("dasdaa");
+                        return testDescriptor
+                                .getSource()
+                                .map(TestsDiscoveryRunner::getTestClassFromSource)
+                                .map(testClass -> {
+                                    // Check if testClass extends IntegrationSpec or IntegrationTestKitSpec
+                                    if (isSubclassOf(testClass, "nebula.test.IntegrationSpec")
+                                            || isSubclassOf(testClass, "nebula.test.IntegrationTestKitSpec")) {
+                                        logger.info(String.format("Included %s", testDescriptor));
+                                        return FilterResult.included(
+                                                String.format("%s Is integration test", testDescriptor));
+                                    } else {
+                                        return FilterResult.excluded(
+                                                String.format("%s Not integration test", testDescriptor));
+                                    }
+                                })
+                                .orElseGet(() -> FilterResult.excluded("Not a class source"));
                     }
                 })
                 .build();
 
         try (LauncherSession launcherSession = LauncherFactory.openSession(LAUNCHER_CONFIG)) {
             Launcher launcher = launcherSession.getLauncher();
-            TestPlan testDescriptor = launcher.discover(discoveryRequest);
-            logger.info(String.format("testDescriptor %s", testDescriptor.getRoots()));
-            testDescriptor
-                    .getRoots()
-                    .forEach(testIdentifier ->
-                            logger.info(String.format("Found %s", testDescriptor.getChildren(testIdentifier))));
+            TestPlan testPlan = launcher.discover(discoveryRequest);
+            long toRun = testPlan.countTestIdentifiers(TestIdentifier::isTest);
+            logger.info(String.format("testPlan %s", toRun));
+            testPlan.getRoots()
+                    .forEach(testIdentifier -> logger.info(String.format(
+                            "Found %s",
+                            testPlan.getRoots().stream()
+                                    .flatMap(t -> testPlan.getDescendants(t).stream())
+                                    .collect(Collectors.toSet()))));
         }
+    }
+
+    static boolean isSubclassOf(Class<?> clazz, String targetClassName) {
+        while (clazz != null && !clazz.equals(Object.class)) {
+            if (clazz.getName().equals(targetClassName)) {
+                return true;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return false;
+    }
+
+    static Class<?> getTestClassFromSource(TestSource testSource) {
+        if (testSource instanceof ClassSource classSource) {
+            return classSource.getJavaClass();
+        } else if (testSource instanceof MethodSource methodSource) {
+            return methodSource.getJavaClass();
+        }
+        return null;
     }
 }
