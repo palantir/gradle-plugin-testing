@@ -129,10 +129,11 @@ public class PluginTestingPlugin implements Plugin<Project> {
             task.setGroup("verification");
             task.setDescription("Discovers all Groovy tests that extend nebula.test.IntegrationTestSpec");
             task.dependsOn(project.getTasks().getByName("testClasses"));
-            // Get the test source set's runtime classpath
+            // Get the test source set
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
             SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-            task.getTestClasspath().from(testSourceSet.getOutput().getClassesDirs());
+            task.getTestClasspath().from(testSourceSet.getRuntimeClasspath());
+            task.getRuntimeClasspath().from(project.getConfigurations().getByName("runtimeClasspath"));
         });
         addGradlePluginForTestingConfigurations(project);
     }

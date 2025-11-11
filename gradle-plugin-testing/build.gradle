@@ -9,9 +9,6 @@ dependencies {
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
-    implementation 'org.spockframework:spock-core'
-    implementation 'org.junit.jupiter:junit-jupiter-engine'
-    implementation 'org.junit.platform:junit-platform-launcher'
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 
