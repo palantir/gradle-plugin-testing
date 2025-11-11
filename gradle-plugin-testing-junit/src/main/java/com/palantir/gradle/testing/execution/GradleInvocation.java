@@ -16,11 +16,7 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.util.Map;
-
 public interface GradleInvocation {
-
-    GradleInvocation withEnvironment(Map<String, String> environment);
 
     InvocationResult buildsSuccessfully();
 

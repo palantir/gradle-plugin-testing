@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.util.Map;
 import org.gradle.testkit.runner.GradleRunner;
 
 public final class DefaultGradleInvocation implements GradleInvocation {
@@ -25,12 +24,6 @@ public final class DefaultGradleInvocation implements GradleInvocation {
 
     public DefaultGradleInvocation(GradleRunner gradleRunner) {
         this.gradleRunner = gradleRunner;
-    }
-
-    @Override
-    public DefaultGradleInvocation withEnvironment(Map<String, String> environment) {
-        gradleRunner.withEnvironment(environment);
-        return this;
     }
 
     @Override

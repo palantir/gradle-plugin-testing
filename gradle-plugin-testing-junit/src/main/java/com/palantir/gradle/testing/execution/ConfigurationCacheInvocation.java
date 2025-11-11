@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.execution;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Map;
 import org.gradle.testkit.runner.UnexpectedBuildFailure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +33,6 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
         this.projectDir = projectDir;
         this.initialGradleInvocation = initialGradleInvocation;
         this.secondGradleInvocation = secondGradleInvocation;
-    }
-
-    @Override
-    public GradleInvocation withEnvironment(Map<String, String> environment) {
-        initialGradleInvocation.withEnvironment(environment);
-        secondGradleInvocation.withEnvironment(environment);
-        return this;
     }
 
     @Override
