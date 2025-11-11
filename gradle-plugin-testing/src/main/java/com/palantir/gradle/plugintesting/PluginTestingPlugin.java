@@ -125,11 +125,12 @@ public class PluginTestingPlugin implements Plugin<Project> {
             });
         });
 
-        project.getTasks().register("discoverNebulaTests", DiscoveryTestsTask.class, task -> {
-            task.setGroup("verification");
-            task.setDescription("Discovers all Groovy tests that extend nebula.test.IntegrationTestSpec");
+        project.getTasks().register("discoverNebulaTestsToMigrate", DiscoveryTestsTask.class, task -> {
+            task.setGroup("junitMigration");
+            task.setDescription(
+                    "Discovers all Groovy tests that can be migrated to the new Junit GradlePluginTests framework");
             task.dependsOn(project.getTasks().getByName("testClasses"));
-            // Get the test source set
+
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
             SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
             task.getTestClasspath().from(testSourceSet.getRuntimeClasspath());

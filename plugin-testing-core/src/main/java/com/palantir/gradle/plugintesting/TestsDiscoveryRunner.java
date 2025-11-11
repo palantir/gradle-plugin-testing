@@ -23,29 +23,29 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.junit.jupiter.engine.JupiterTestEngine;
+import org.junit.platform.engine.FilterResult;
+import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.LauncherSession;
+import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherConfig;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.spockframework.runtime.SpockEngine;
 
-public class RunDiscovery {
-    private static final Logger logger = Logger.getLogger("RunDiscovery");
-    private static final JupiterTestEngine JUPITER_TEST_ENGINE = new JupiterTestEngine();
+public class TestsDiscoveryRunner {
+    private static final Logger logger = Logger.getLogger("TestsDiscoveryRunner");
     private static final SpockEngine SPOCK_ENGINE = new SpockEngine();
 
     private static final LauncherConfig LAUNCHER_CONFIG = LauncherConfig.builder()
             .enableTestEngineAutoRegistration(false)
-            .addTestEngines(JUPITER_TEST_ENGINE, SPOCK_ENGINE)
+            .addTestEngines(SPOCK_ENGINE)
             .build();
 
     public static void main(String[] args) {
-
         String classPath = System.getProperty("java.class.path");
         Set<Path> paths = Arrays.stream(classPath.split(File.pathSeparator))
                 .map(Paths::get)
@@ -53,6 +53,16 @@ public class RunDiscovery {
 
         LauncherDiscoveryRequest discoveryRequest = LauncherDiscoveryRequestBuilder.request()
                 .selectors(DiscoverySelectors.selectClasspathRoots(paths))
+                .filters(new PostDiscoveryFilter() {
+                    @Override
+                    public FilterResult apply(TestDescriptor testDescriptor) {
+                        // Check if the test class extends directly or indirectly from
+                        // "nebula.test.IntegrationSpec" or "nebula.test.IntegrationTestKitSpec"
+                        logger.info(String.format(
+                                "for: testDescriptor %s: %s", testDescriptor, testDescriptor.getChildren()));
+                        return FilterResult.excluded("dasdaa");
+                    }
+                })
                 .build();
 
         try (LauncherSession launcherSession = LauncherFactory.openSession(LAUNCHER_CONFIG)) {

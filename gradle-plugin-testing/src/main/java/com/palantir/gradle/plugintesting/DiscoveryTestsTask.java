@@ -45,6 +45,6 @@ public abstract class DiscoveryTestsTask extends JavaExec {
     public DiscoveryTestsTask() {
         setClasspath(getProject().files(getRuntimeClasspath(), getTestClasspath()));
         getOutputFile().convention(getProjectLayout().getBuildDirectory().file("nebula-tests.txt"));
-        getMainClass().set("com.palantir.gradle.plugintesting.RunDiscovery");
+        getMainClass().set("com.palantir.gradle.plugintesting.TestsDiscoveryRunner");
     }
 }
