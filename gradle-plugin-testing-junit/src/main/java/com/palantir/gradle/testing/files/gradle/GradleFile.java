@@ -22,6 +22,11 @@ import com.palantir.gradle.testing.files.ProjectFile;
 import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.PrintFormat;
 
+/**
+ * Represents a Gradle build file (*.gradle) written in Groovy DSL.
+ * <p>
+ * Note: This API only supports Groovy-based Gradle files, not Kotlin DSL (*.gradle.kts).
+ */
 public interface GradleFile extends ProjectFile<GradleFile> {
 
     /**
