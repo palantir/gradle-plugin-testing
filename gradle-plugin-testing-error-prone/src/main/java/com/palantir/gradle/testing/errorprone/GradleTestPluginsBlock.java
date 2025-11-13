@@ -25,6 +25,7 @@ import com.google.errorprone.fixes.SuggestedFix;
 import com.google.errorprone.matchers.Description;
 import com.google.errorprone.matchers.Matcher;
 import com.google.errorprone.matchers.Matchers;
+import com.google.errorprone.suppliers.Supplier;
 import com.google.errorprone.util.ASTHelpers;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.BlockTree;
@@ -35,6 +36,7 @@ import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.ReturnTree;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,11 +50,12 @@ import java.util.stream.Stream;
     Plugins must be added using .plugins().add() method. Use gradleFile.plugins().add("plugin-id") instead.
     """)
 public final class GradleTestPluginsBlock extends BugChecker implements BugChecker.MethodInvocationTreeMatcher {
-    private static final Matcher<ExpressionTree> STRING_TYPE = Matchers.isSubtypeOf("java.lang.String");
-    private static final Matcher<ExpressionTree> FILE_EDITOR_TYPE =
-            Matchers.isSubtypeOf("com.palantir.gradle.testing.files.ProjectFile.FileEditor");
     private static final Matcher<ExpressionTree> GRADLE_FILE_TYPE =
             Matchers.isSubtypeOf("com.palantir.gradle.testing.files.gradle.GradleFile");
+    private static final Supplier<Type> JAVA_LANG_STRING =
+            VisitorState.memoize(state -> state.getTypeFromString("java.lang.String"));
+    private static final Supplier<Type> FILE_EDITOR_TYPE = VisitorState.memoize(
+            state -> state.getTypeFromString("com.palantir.gradle.testing.files.ProjectFile$FileEditor"));
 
     // Matches three forms of plugin declarations:
     // 1. apply plugin: "plugin-id"
@@ -141,17 +144,20 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
     }
 
     private static boolean isMethodWhichCouldAddPluginsManually(MethodInvocationTree tree, VisitorState state) {
-        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
-                .filter(method -> !method.getParameters().isEmpty())
-                .filter(method -> tree.getArguments().stream()
-                        .findFirst()
-                        .map(firstArg ->
-                                STRING_TYPE.matches(firstArg, state) || FILE_EDITOR_TYPE.matches(firstArg, state))
-                        .orElse(false))
-                .filter(method -> Optional.ofNullable(ASTHelpers.getReceiver(tree))
-                        .map(receiver -> GRADLE_FILE_TYPE.matches(receiver, state))
-                        .orElse(false))
-                .isPresent();
+        Symbol.MethodSymbol method = ASTHelpers.getSymbol(tree);
+        if (method.getParameters().isEmpty()) {
+            return false;
+        }
+
+        Type firstParamType = method.getParameters().get(0).type;
+        if (!ASTHelpers.isSubtype(firstParamType, JAVA_LANG_STRING.get(state), state)
+                && !ASTHelpers.isSubtype(firstParamType, FILE_EDITOR_TYPE.get(state), state)) {
+            return false;
+        }
+
+        return Optional.ofNullable(ASTHelpers.getReceiver(tree))
+                .map(receiver -> GRADLE_FILE_TYPE.matches(receiver, state))
+                .orElse(false);
     }
 
     private Optional<Description> checkForPlugins(ExpressionTree arg, MethodInvocationTree tree, VisitorState state) {
