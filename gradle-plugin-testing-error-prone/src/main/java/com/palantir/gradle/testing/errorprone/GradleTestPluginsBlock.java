@@ -60,70 +60,70 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
     // 3. pluginManagement.apply("plugin-id")
     // Captures the plugin ID in one of three groups depending on which form matched
     private static final Pattern SIMPLE_PLUGIN_DECLARATIONS = Pattern.compile(
-            "apply plugin:"          // literal "apply plugin:"
-                    + "\\s*"         // optional whitespace
-                    + "['\"]"        // opening quote (single or double)
-                    + "([^'\"]+)"    // capture group 1: plugin ID (any chars except quotes)
-                    + "['\"]"        // closing quote
-                    + "|"            // OR
+            "apply plugin:" // literal "apply plugin:"
+                    + "\\s*" // optional whitespace
+                    + "['\"]" // opening quote (single or double)
+                    + "([^'\"]+)" // capture group 1: plugin ID (any chars except quotes)
+                    + "['\"]" // closing quote
+                    + "|" // OR
                     + "plugins\\.apply\\(" // literal "plugins.apply("
-                    + "\\s*"         // optional whitespace
-                    + "['\"]"        // opening quote
-                    + "([^'\"]+)"    // capture group 2: plugin ID
-                    + "['\"]"        // closing quote
-                    + "\\s*"         // optional whitespace
-                    + "\\)"          // closing paren
-                    + "|"            // OR
+                    + "\\s*" // optional whitespace
+                    + "['\"]" // opening quote
+                    + "([^'\"]+)" // capture group 2: plugin ID
+                    + "['\"]" // closing quote
+                    + "\\s*" // optional whitespace
+                    + "\\)" // closing paren
+                    + "|" // OR
                     + "pluginManagement\\.apply\\(" // literal "pluginManagement.apply("
-                    + "\\s*"         // optional whitespace
-                    + "['\"]"        // opening quote
-                    + "([^'\"]+)"    // capture group 3: plugin ID
-                    + "['\"]"        // closing quote
-                    + "\\s*"         // optional whitespace
-                    + "\\)");        // closing paren
+                    + "\\s*" // optional whitespace
+                    + "['\"]" // opening quote
+                    + "([^'\"]+)" // capture group 3: plugin ID
+                    + "['\"]" // closing quote
+                    + "\\s*" // optional whitespace
+                    + "\\)"); // closing paren
 
     // Matches: id "plugin-id" or id "plugin-id" apply false/true
     // Captures: group 1 = plugin ID, group 2 = apply value (if present)
     private static final Pattern PLUGINS_BLOCK_ID = Pattern.compile(
-            "id"              // literal "id"
-                    + "\\s+"  // required whitespace
+            "id" // literal "id"
+                    + "\\s+" // required whitespace
                     + "['\"]" // opening quote
                     + "([^'\"]+)" // capture group 1: plugin ID
                     + "['\"]" // closing quote
-                    + "(?:"   // non-capturing group (optional):
+                    + "(?:" // non-capturing group (optional):
                     + "\\s+apply\\s+" // literal " apply "
-                    + "(false|true)"  // capture group 2: apply value
-                    + ")?");  // end optional group
+                    + "(false|true)" // capture group 2: apply value
+                    + ")?"); // end optional group
 
     // Matches: plugins { ... }
     // Captures everything between the braces
     private static final Pattern PLUGINS_BLOCK = Pattern.compile(
-            "plugins"    // literal "plugins"
+            "plugins" // literal "plugins"
                     + "\\s*" // optional whitespace
-                    + "\\{"  // opening brace
+                    + "\\{" // opening brace
                     + "([^}]*)" // capture group: any chars except }, greedily
-                    + "}",   // closing brace
+                    + "}", // closing brace
             Pattern.DOTALL);
 
     // Matches both single-line and multi-line comments:
     // 1. // ... to end of line
     // 2. /* ... */ across multiple lines
     private static final Pattern COMMENT = Pattern.compile(
-            "//"      // literal "//"
-                    + ".*"  // any chars to end of line
-                    + "|"   // OR
+            "//" // literal "//"
+                    + ".*" // any chars to end of line
+                    + "|" // OR
                     + "(?s)" // DOTALL mode for this alternative
                     + "/\\*" // literal "/*"
-                    + ".*?"  // any chars, non-greedy
+                    + ".*?" // any chars, non-greedy
                     + "\\*/"); // literal "*/"
 
     // Matches: plugins { } (with only whitespace inside)
     private static final Pattern EMPTY_PLUGINS = Pattern.compile(
-            "(?s)"       // DOTALL mode
+            "(?s)" // DOTALL mode
                     + "plugins" // literal "plugins"
-                    + "\\s*"    // optional whitespace
-                    + "\\{"     // opening brace
-                    + "\\s*"    // optional whitespace
+                    + "\\s*" // optional whitespace
+                    + "\\{" // opening brace
+                    + "\\s*" // optional whitespace
                     + "}");
 
     @Override
