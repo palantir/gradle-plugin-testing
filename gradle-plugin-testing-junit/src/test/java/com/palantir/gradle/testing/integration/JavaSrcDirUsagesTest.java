@@ -34,9 +34,8 @@ class JavaSrcDirUsagesTest {
             }
             """);
 
+        rootProject.buildGradle().plugins().add("application");
         rootProject.buildGradle().append("""
-            apply plugin: 'application'
-
             application {
                 mainClass = 'example.Main'
             }
