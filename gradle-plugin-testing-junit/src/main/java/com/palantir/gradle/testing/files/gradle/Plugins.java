@@ -77,6 +77,7 @@ public final class Plugins {
 
         Matcher buildscriptMatcher = BUILDSCRIPT_BLOCK_PATTERN.matcher(textWithoutPluginsBlock);
 
+        // plugins block must go after buildscript and above all else
         if (buildscriptMatcher.find()) {
             int insertPosition = buildscriptMatcher.end();
             String suffix = textWithoutPluginsBlock.substring(insertPosition).replaceFirst("^\n", "");
