@@ -27,7 +27,10 @@ import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
+import com.sun.source.util.TreePath;
+import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import java.util.Optional;
 import one.util.streamex.StreamEx;
 
@@ -51,12 +54,14 @@ public final class GradlePluginTestHelpers {
     }
 
     static Optional<ExpressionTree> findVariableInitializer(Symbol.VarSymbol var, VisitorState state) {
-        return Optional.ofNullable(ASTHelpers.findEnclosingNode(state.getPath(), MethodTree.class))
-                .flatMap(m -> StreamEx.of(m.getBody().getStatements())
-                        .select(VariableTree.class)
-                        .filter(v -> var.equals(ASTHelpers.getSymbol(v)))
-                        .collect(MoreCollectors.toOptional())
-                        .map(VariableTree::getInitializer));
+        JavacProcessingEnvironment javacEnv = JavacProcessingEnvironment.instance(state.context);
+        return StreamEx.ofNullable(Trees.instance(javacEnv).getPath(var))
+                .filter(declPath ->
+                        declPath.getCompilationUnit() == state.getPath().getCompilationUnit())
+                .map(TreePath::getLeaf)
+                .select(VariableTree.class)
+                .map(VariableTree::getInitializer)
+                .findFirst();
     }
 
     static boolean hasFormatMethodOverload(MethodInvocationTree tree, VisitorState state) {
