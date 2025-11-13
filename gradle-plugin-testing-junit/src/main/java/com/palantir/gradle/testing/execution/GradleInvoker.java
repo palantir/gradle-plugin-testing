@@ -33,7 +33,6 @@ public final class GradleInvoker {
         this.rootProjectDir = rootProjectDir;
         this.gradleVersion = gradleVersion;
     }
-
     public GradleInvocation withArgs(String... args) {
         String[] argsWithStacktrace = ImmutableList.builder()
                 .addAll(Arrays.asList(args))
@@ -70,4 +69,4 @@ public final class GradleInvoker {
         // by adding the jvm arg `-Didea.coverage.calculate.hits=true`.
         return Boolean.getBoolean("idea.coverage.calculate.hits");
     }
-    }
+}
