@@ -127,9 +127,67 @@ class PluginsUsagesTest {
             """);
 
         rootProject.buildGradle().assertThat().hasContent("""
-            // blah
             plugins {
                 id 'java'
+            }
+            // blah
+            """);
+    }
+
+    @Test
+    void prepend_after_plugins_block_with_buildscript_keeps_correct_order(RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("java");
+        rootProject.buildGradle().prepend("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            repositories {
+                mavenCentral()
+            }
+            """);
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            plugins {
+                id 'java'
+            }
+            repositories {
+                mavenCentral()
+            }
+            """);
+    }
+
+    @Test
+    void append_after_plugins_block_with_buildscript_keeps_correct_order(RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("java");
+        rootProject.buildGradle().append("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            repositories {
+                mavenCentral()
+            }
+            """);
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            plugins {
+                id 'java'
+            }
+            repositories {
+                mavenCentral()
             }
             """);
     }

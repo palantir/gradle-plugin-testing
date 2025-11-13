@@ -95,6 +95,10 @@ public final class Plugins {
 
         String pluginsBlock = "plugins {\n" + pluginsContent + "\n}\n";
 
+        return repositionPluginsBlockWithContent(textWithoutPluginsBlock, pluginsBlock);
+    }
+
+    private static String repositionPluginsBlockWithContent(String textWithoutPluginsBlock, String pluginsBlock) {
         Matcher buildscriptMatcher = BUILDSCRIPT_BLOCK_PATTERN.matcher(textWithoutPluginsBlock);
 
         // plugins block must go after buildscript and above all else
@@ -122,5 +126,24 @@ public final class Plugins {
                 .filter(line -> !line.isEmpty())
                 .map(Plugin::new)
                 .toList();
+    }
+
+    /**
+     * Repositions the plugins block to the correct location (at top or after buildscript).
+     * If no plugins block exists, returns the text unchanged.
+     */
+    static String repositionPluginsBlock(String text) {
+        List<Plugin> plugins = parse(text);
+        if (plugins.isEmpty()) {
+            return text;
+        }
+
+        String textWithoutPluginsBlock = PLUGINS_BLOCK_PATTERN.matcher(text).replaceFirst("");
+        String pluginsContent =
+                plugins.stream().map(plugin -> "    " + plugin.toDeclaration()).collect(Collectors.joining("\n"));
+
+        String pluginsBlock = "plugins {\n" + pluginsContent + "\n}\n";
+
+        return repositionPluginsBlockWithContent(textWithoutPluginsBlock, pluginsBlock);
     }
 }
