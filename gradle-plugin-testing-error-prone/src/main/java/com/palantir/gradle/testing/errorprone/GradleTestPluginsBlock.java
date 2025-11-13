@@ -128,7 +128,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
-        if (!isMethodThatModifiesBuildGradle(tree, state)
+        if (!isMethodWhichCouldAddPluginsManually(tree, state)
                 || GradlePluginTestHelpers.notGradlePluginTestsLibraryMethod(tree)
                 || GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
@@ -140,7 +140,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                 .orElse(Description.NO_MATCH);
     }
 
-    private static boolean isMethodThatModifiesBuildGradle(MethodInvocationTree tree, VisitorState state) {
+    private static boolean isMethodWhichCouldAddPluginsManually(MethodInvocationTree tree, VisitorState state) {
         return Optional.ofNullable(ASTHelpers.getSymbol(tree))
                 .filter(method -> !method.getParameters().isEmpty())
                 .filter(method -> tree.getArguments().stream()
@@ -184,7 +184,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
     private static boolean isInMethodChain(MethodInvocationTree tree, VisitorState state) {
         // Check if this is being called on a chain of content methods (receiver is a content method invocation)
         if (ASTHelpers.getReceiver(tree) instanceof MethodInvocationTree receiver
-                && isMethodThatModifiesBuildGradle(receiver, state)) {
+                && isMethodWhichCouldAddPluginsManually(receiver, state)) {
             return true;
         }
         // Check if something is being chained off of this call - walk up tree looking for a content MethodInvocation
@@ -194,7 +194,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                 .filter(MethodInvocationTree.class::isInstance)
                 .map(MethodInvocationTree.class::cast)
                 .filter(parentMethod -> ASTHelpers.getReceiver(parentMethod) == tree)
-                .anyMatch(parentMethod -> isMethodThatModifiesBuildGradle(parentMethod, state));
+                .anyMatch(parentMethod -> isMethodWhichCouldAddPluginsManually(parentMethod, state));
     }
 
     private static Optional<String> getStringLiteral(ExpressionTree expr) {
