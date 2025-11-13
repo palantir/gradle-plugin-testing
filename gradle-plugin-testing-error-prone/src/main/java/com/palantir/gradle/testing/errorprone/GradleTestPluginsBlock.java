@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import one.util.streamex.StreamEx;
 
 @AutoService(BugChecker.class)
 @BugPattern(severity = SeverityLevel.ERROR, summary = """
@@ -195,10 +196,9 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
         }
         // Check if something is being chained off of this call - walk up tree looking for a content MethodInvocation
         // using us
-        return Stream.iterate(state.getPath().getParentPath(), Objects::nonNull, TreePath::getParentPath)
+        return StreamEx.iterate(state.getPath().getParentPath(), Objects::nonNull, TreePath::getParentPath)
                 .map(TreePath::getLeaf)
-                .filter(MethodInvocationTree.class::isInstance)
-                .map(MethodInvocationTree.class::cast)
+                .select(MethodInvocationTree.class)
                 .filter(parentMethod -> ASTHelpers.getReceiver(parentMethod) == tree)
                 .anyMatch(parentMethod -> isMethodWhichCouldAddPluginsManually(parentMethod, state));
     }
@@ -228,12 +228,10 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
 
         // For block lambda: text -> { return text + "string"; }
         if (lambda.getBody() instanceof BlockTree block) {
-            return block.getStatements().stream()
-                    .filter(ReturnTree.class::isInstance)
-                    .map(ReturnTree.class::cast)
+            return StreamEx.of(block.getStatements())
+                    .select(ReturnTree.class)
                     .map(ReturnTree::getExpression)
-                    .filter(BinaryTree.class::isInstance)
-                    .map(BinaryTree.class::cast)
+                    .select(BinaryTree.class)
                     .findFirst()
                     .flatMap(GradleTestPluginsBlock::extractStringFromBinaryTree);
         }

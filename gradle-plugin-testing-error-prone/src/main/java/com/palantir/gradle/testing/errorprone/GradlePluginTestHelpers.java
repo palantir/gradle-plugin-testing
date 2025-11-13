@@ -29,7 +29,7 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Symbol;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
+import one.util.streamex.StreamEx;
 
 public final class GradlePluginTestHelpers {
     private static final Matcher<Tree> WITHIN_GRADLE_PLUGIN_TESTS_CLASS = Matchers.enclosingNode(Matchers.allOf(
@@ -52,9 +52,8 @@ public final class GradlePluginTestHelpers {
 
     static Optional<ExpressionTree> findVariableInitializer(Symbol.VarSymbol var, VisitorState state) {
         return Optional.ofNullable(ASTHelpers.findEnclosingNode(state.getPath(), MethodTree.class))
-                .flatMap(m -> m.getBody().getStatements().stream()
-                        .filter(VariableTree.class::isInstance)
-                        .map(VariableTree.class::cast)
+                .flatMap(m -> StreamEx.of(m.getBody().getStatements())
+                        .select(VariableTree.class)
                         .filter(v -> var.equals(ASTHelpers.getSymbol(v)))
                         .collect(MoreCollectors.toOptional())
                         .map(VariableTree::getInitializer));
@@ -78,9 +77,8 @@ public final class GradlePluginTestHelpers {
         String methodName = methodSymbol.getSimpleName().toString();
         Symbol.ClassSymbol classSymbol = methodSymbol.enclClass();
 
-        return StreamSupport.stream(classSymbol.members().getSymbols().spliterator(), false)
-                .filter(Symbol.MethodSymbol.class::isInstance)
-                .map(Symbol.MethodSymbol.class::cast)
+        return StreamEx.of(classSymbol.members().getSymbols().spliterator())
+                .select(Symbol.MethodSymbol.class)
                 .filter(method -> method.getSimpleName().toString().equals(methodName))
                 .filter(method ->
                         ASTHelpers.hasAnnotation(method, "com.google.errorprone.annotations.FormatMethod", state))
