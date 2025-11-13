@@ -31,9 +31,29 @@ import java.util.stream.Stream;
  * @see GradleFile#plugins()
  */
 public final class Plugins {
-    private static final Pattern PLUGINS_BLOCK_PATTERN = Pattern.compile("plugins\\s*\\{([^}]*)}\\n?", Pattern.DOTALL);
-    private static final Pattern BUILDSCRIPT_BLOCK_PATTERN =
-            Pattern.compile("buildscript\\s*\\{(?:[^{}]|\\{[^{}]*})*}", Pattern.DOTALL);
+    // Matches: plugins { ... }
+    // Captures everything between the braces
+    private static final Pattern PLUGINS_BLOCK_PATTERN = Pattern.compile(
+            "plugins" // literal "plugins"
+                    + "\\s*" // optional whitespace
+                    + "\\{" // opening brace
+                    + "([^}]*)" // capture group: any chars except }, greedily
+                    + "}" // closing brace
+                    + "\\n?", // optional newline after
+            Pattern.DOTALL);
+
+    // Matches: buildscript { ... } with ONE level of nested braces allowed
+    private static final Pattern BUILDSCRIPT_BLOCK_PATTERN = Pattern.compile(
+            "buildscript" // literal "buildscript"
+                    + "\\s*" // optional whitespace
+                    + "\\{" // opening brace
+                    + "(?:" // non-capturing group, repeated:
+                    + "[^{}]" //   either: any char that's not a brace
+                    + "|" //   OR
+                    + "\\{[^{}]*}" //   a pair of braces with non-brace content inside
+                    + ")*" // repeat the group zero or more times
+                    + "}", // closing brace
+            Pattern.DOTALL);
 
     private final GradleFile file;
 

@@ -28,8 +28,22 @@ import java.util.regex.Pattern;
  * @see Plugins#add(String)
  */
 record Plugin(String id, Optional<Boolean> apply) {
-    private static final Pattern PLUGIN_PATTERN =
-            Pattern.compile("id\\s+'([^']+)'(?:\\s+apply\\s*\\(?\\s*(true|false)\\s*\\)?)?");
+    // Matches: id 'plugin-name' or id 'plugin-name' apply false
+    // Captures: (1) plugin ID, (2) optional apply value (true/false)
+    private static final Pattern PLUGIN_PATTERN = Pattern.compile(
+            "id" // literal "id"
+                    + "\\s+" // required whitespace
+                    + "'([^']+)'" // capture group 1: plugin ID in single quotes
+                    + "(?:" // non-capturing group for optional apply clause:
+                    + "\\s+" //   whitespace
+                    + "apply" //   literal "apply"
+                    + "\\s*" //   optional whitespace
+                    + "\\(?" //   optional opening paren
+                    + "\\s*" //   optional whitespace
+                    + "(true|false)" //   capture group 2: true or false
+                    + "\\s*" //   optional whitespace
+                    + "\\)?" //   optional closing paren
+                    + ")?"); // end optional group
 
     /**
      * Parses {@code "id 'java'"} or {@code "id 'plugin' apply false"} into a Plugin.
