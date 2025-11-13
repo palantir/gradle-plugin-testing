@@ -40,35 +40,23 @@ public final class GradleInvoker {
                 .add("--stacktrace")
                 .build()
                 .toArray(String[]::new);
-
         return new GradleInvocation(GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
-                .withDebug(shouldRunInTestkitDebugMode())
+                .withDebug(isJavaDebugAgentLoaded())
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
                 .withArguments(argsWithStacktrace));
     }
 
-    private static boolean shouldRunInTestkitDebugMode() {
-        // `withDebug(true)` will run the Gradle daemon inside the same JVM as the test, whereas
-        // `withDebug(false)` will run Gradle in a new daemon.
-        // When running tests from IntelliJ with debug or coverage, they only work when the Gradle daemon
-        // is in the same the JVM as the test, so we must set `withDebug(true)` in these cases.
-        // Beware: There can be differences between these two modes!
-        return isJavaDebugAgentLoaded() || isRunningCoverageInIntelliJ();
-    }
-
     private static boolean isJavaDebugAgentLoaded() {
         // When you run a test with debug in intellij, it passes an arg to the test process like:
         //   -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=127.0.0.1:54342
+        // We can use this to detect whether we should run with Gradle tooling `.withDebug` or not,
+        // `withDebug(true)` will run the Gradle tooling inside the same JVM as the test, meaning
+        // debugging works, whereas `withDebug(false)` will run Gradle in a new daemon. There can be
+        // differences between these two modes!
         return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
-                .anyMatch(arg -> arg.contains("-agentlib:jdwp"));
-    }
-
-    private static boolean isRunningCoverageInIntelliJ() {
-        // When you run a test with coverage in intellij, it sets a system property on the test JVM
-        // by adding the jvm arg `-Didea.coverage.calculate.hits=true`.
-        return Boolean.getBoolean("idea.coverage.calculate.hits");
+                .anyMatch(s -> s.contains("-agentlib:jdwp"));
     }
 }

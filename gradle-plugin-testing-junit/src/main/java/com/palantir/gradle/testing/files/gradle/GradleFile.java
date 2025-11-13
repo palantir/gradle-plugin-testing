@@ -23,6 +23,14 @@ import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.PrintFormat;
 
 public interface GradleFile extends ProjectFile<GradleFile> {
+
+    /**
+     * Returns API for managing the {@code plugins {}} block.
+     */
+    default Plugins plugins() {
+        return new Plugins(this);
+    }
+
     @Override
     @FormatMethod
     default GradleFile overwrite(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
