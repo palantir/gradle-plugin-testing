@@ -35,7 +35,6 @@ import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.ReturnTree;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,19 +51,84 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
     private static final Matcher<ExpressionTree> STRING_TYPE = Matchers.isSubtypeOf("java.lang.String");
     private static final Matcher<ExpressionTree> FILE_EDITOR_TYPE =
             Matchers.isSubtypeOf("com.palantir.gradle.testing.files.ProjectFile.FileEditor");
+    private static final Matcher<ExpressionTree> GRADLE_FILE_TYPE =
+            Matchers.isSubtypeOf("com.palantir.gradle.testing.files.gradle.GradleFile");
 
-    private static final Pattern SIMPLE_PLUGIN_DECLARATIONS = Pattern.compile("apply plugin:\\s*['\"]([^'\"]+)['\"]"
-            + "|plugins\\.apply\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)"
-            + "|pluginManagement\\.apply\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)");
-    private static final Pattern PLUGINS_BLOCK_ID =
-            Pattern.compile("id\\s+['\"]([^'\"]+)['\"](?:\\s+apply\\s+(false|true))?");
-    private static final Pattern PLUGINS_BLOCK = Pattern.compile("plugins\\s*\\{([^}]*)\\}", Pattern.DOTALL);
-    private static final Pattern COMMENT = Pattern.compile("//.*|(?s)/\\*.*?\\*/");
-    private static final Pattern EMPTY_PLUGINS = Pattern.compile("(?s)plugins\\s*\\{\\s*\\}");
+    // Matches three forms of plugin declarations:
+    // 1. apply plugin: "plugin-id"
+    // 2. plugins.apply("plugin-id")
+    // 3. pluginManagement.apply("plugin-id")
+    // Captures the plugin ID in one of three groups depending on which form matched
+    private static final Pattern SIMPLE_PLUGIN_DECLARATIONS = Pattern.compile(
+            "apply plugin:"          // literal "apply plugin:"
+                    + "\\s*"         // optional whitespace
+                    + "['\"]"        // opening quote (single or double)
+                    + "([^'\"]+)"    // capture group 1: plugin ID (any chars except quotes)
+                    + "['\"]"        // closing quote
+                    + "|"            // OR
+                    + "plugins\\.apply\\(" // literal "plugins.apply("
+                    + "\\s*"         // optional whitespace
+                    + "['\"]"        // opening quote
+                    + "([^'\"]+)"    // capture group 2: plugin ID
+                    + "['\"]"        // closing quote
+                    + "\\s*"         // optional whitespace
+                    + "\\)"          // closing paren
+                    + "|"            // OR
+                    + "pluginManagement\\.apply\\(" // literal "pluginManagement.apply("
+                    + "\\s*"         // optional whitespace
+                    + "['\"]"        // opening quote
+                    + "([^'\"]+)"    // capture group 3: plugin ID
+                    + "['\"]"        // closing quote
+                    + "\\s*"         // optional whitespace
+                    + "\\)");        // closing paren
+
+    // Matches: id "plugin-id" or id "plugin-id" apply false/true
+    // Captures: group 1 = plugin ID, group 2 = apply value (if present)
+    private static final Pattern PLUGINS_BLOCK_ID = Pattern.compile(
+            "id"              // literal "id"
+                    + "\\s+"  // required whitespace
+                    + "['\"]" // opening quote
+                    + "([^'\"]+)" // capture group 1: plugin ID
+                    + "['\"]" // closing quote
+                    + "(?:"   // non-capturing group (optional):
+                    + "\\s+apply\\s+" // literal " apply "
+                    + "(false|true)"  // capture group 2: apply value
+                    + ")?");  // end optional group
+
+    // Matches: plugins { ... }
+    // Captures everything between the braces
+    private static final Pattern PLUGINS_BLOCK = Pattern.compile(
+            "plugins"    // literal "plugins"
+                    + "\\s*" // optional whitespace
+                    + "\\{"  // opening brace
+                    + "([^}]*)" // capture group: any chars except }, greedily
+                    + "}",   // closing brace
+            Pattern.DOTALL);
+
+    // Matches both single-line and multi-line comments:
+    // 1. // ... to end of line
+    // 2. /* ... */ across multiple lines
+    private static final Pattern COMMENT = Pattern.compile(
+            "//"      // literal "//"
+                    + ".*"  // any chars to end of line
+                    + "|"   // OR
+                    + "(?s)" // DOTALL mode for this alternative
+                    + "/\\*" // literal "/*"
+                    + ".*?"  // any chars, non-greedy
+                    + "\\*/"); // literal "*/"
+
+    // Matches: plugins { } (with only whitespace inside)
+    private static final Pattern EMPTY_PLUGINS = Pattern.compile(
+            "(?s)"       // DOTALL mode
+                    + "plugins" // literal "plugins"
+                    + "\\s*"    // optional whitespace
+                    + "\\{"     // opening brace
+                    + "\\s*"    // optional whitespace
+                    + "}");
 
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
-        if (!isContentMethod(tree, state)
+        if (!isMethodThatModifiesBuildGradle(tree, state)
                 || GradlePluginTestHelpers.notGradlePluginTestsLibraryMethod(tree)
                 || GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
@@ -76,7 +140,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                 .orElse(Description.NO_MATCH);
     }
 
-    private static boolean isContentMethod(MethodInvocationTree tree, VisitorState state) {
+    private static boolean isMethodThatModifiesBuildGradle(MethodInvocationTree tree, VisitorState state) {
         return Optional.ofNullable(ASTHelpers.getSymbol(tree))
                 .filter(method -> !method.getParameters().isEmpty())
                 .filter(method -> tree.getArguments().stream()
@@ -84,14 +148,10 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                         .map(firstArg ->
                                 STRING_TYPE.matches(firstArg, state) || FILE_EDITOR_TYPE.matches(firstArg, state))
                         .orElse(false))
-                .filter(method -> isProjectFileSubtype(method.enclClass(), state))
+                .filter(method -> Optional.ofNullable(ASTHelpers.getReceiver(tree))
+                        .map(receiver -> GRADLE_FILE_TYPE.matches(receiver, state))
+                        .orElse(false))
                 .isPresent();
-    }
-
-    private static boolean isProjectFileSubtype(Symbol.ClassSymbol classSymbol, VisitorState state) {
-        Type classType = classSymbol.type;
-        Type projectFileType = state.getTypeFromString("com.palantir.gradle.testing.files.ProjectFile");
-        return ASTHelpers.isSubtype(classType, projectFileType, state);
     }
 
     private Optional<Description> checkForPlugins(ExpressionTree arg, MethodInvocationTree tree, VisitorState state) {
@@ -123,7 +183,8 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
 
     private static boolean isInMethodChain(MethodInvocationTree tree, VisitorState state) {
         // Check if this is being called on a chain of content methods (receiver is a content method invocation)
-        if (ASTHelpers.getReceiver(tree) instanceof MethodInvocationTree receiver && isContentMethod(receiver, state)) {
+        if (ASTHelpers.getReceiver(tree) instanceof MethodInvocationTree receiver
+                && isMethodThatModifiesBuildGradle(receiver, state)) {
             return true;
         }
         // Check if something is being chained off of this call - walk up tree looking for a content MethodInvocation
@@ -133,7 +194,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                 .filter(MethodInvocationTree.class::isInstance)
                 .map(MethodInvocationTree.class::cast)
                 .filter(parentMethod -> ASTHelpers.getReceiver(parentMethod) == tree)
-                .anyMatch(parentMethod -> isContentMethod(parentMethod, state));
+                .anyMatch(parentMethod -> isMethodThatModifiesBuildGradle(parentMethod, state));
     }
 
     private static Optional<String> getStringLiteral(ExpressionTree expr) {

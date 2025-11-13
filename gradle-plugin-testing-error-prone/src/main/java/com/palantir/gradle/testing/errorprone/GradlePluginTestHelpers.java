@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.errorprone;
 
+import com.google.common.collect.MoreCollectors;
 import com.google.errorprone.VisitorState;
 import com.google.errorprone.matchers.Matcher;
 import com.google.errorprone.matchers.Matchers;
@@ -55,7 +56,7 @@ public final class GradlePluginTestHelpers {
                         .filter(VariableTree.class::isInstance)
                         .map(VariableTree.class::cast)
                         .filter(v -> var.equals(ASTHelpers.getSymbol(v)))
-                        .findFirst()
+                        .collect(MoreCollectors.toOptional())
                         .map(VariableTree::getInitializer));
     }
 
