@@ -16,7 +16,17 @@
 
 package com.palantir.gradle.plugintesting;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
@@ -34,17 +44,62 @@ public abstract class DiscoveryTestsTask extends JavaExec {
     public abstract ConfigurableFileCollection getTestClasspath();
 
     @InputFiles
+    public abstract ConfigurableFileCollection getTestSourceFiles();
+
+    @InputFiles
     public abstract ConfigurableFileCollection getRuntimeClasspath();
+
+    @OutputFile
+    public abstract RegularFileProperty getDiscoveredTestsFile();
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
     @Inject
-    protected abstract ProjectLayout getProjectLayout();
+    public abstract ProjectLayout getProjectLayout();
 
     public DiscoveryTestsTask() {
         setClasspath(getProject().files(getRuntimeClasspath(), getTestClasspath()));
-        getOutputFile().convention(getProjectLayout().getBuildDirectory().file("nebula-tests.txt"));
-        getMainClass().set("com.palantir.gradle.plugintesting.TestsDiscoveryRunner");
+        getDiscoveredTestsFile()
+                .convention(getProjectLayout().getBuildDirectory().file("discovered-groovy-tests"));
+        getOutputFile().convention(getProjectLayout().getBuildDirectory().file("project-groovy-tests"));
+        getMainClass().set("com.palantir.gradle.plugintesting.GroovyTestClassesDiscoveryRunner");
+        getArgumentProviders().add(this::getArguments);
+
+        doLast(new Action<Task>() {
+            @Override
+            public void execute(Task _task) {
+                try {
+                    Set<String> groovyTestClasses =
+                            Files.readAllLines(getDiscoveredTestsFile()
+                                            .getAsFile()
+                                            .get()
+                                            .toPath())
+                                    .stream()
+                                    .map(testClass -> testClass.replace(".", "/") + ".groovy")
+                                    .collect(Collectors.toSet());
+                    Set<String> testClasses = getTestSourceFiles().getAsFileTree().getFiles().stream()
+                            .map(File::toPath)
+                            .filter(path -> pathMatches(path, groovyTestClasses))
+                            .map(Path::toString)
+                            .collect(Collectors.toSet());
+                    if (testClasses.size() != groovyTestClasses.size()) {
+                        throw new RuntimeException(
+                                "Could not find all test source classes for the discovered test classes");
+                    }
+                    Files.writeString(getOutputFile().getAsFile().get().toPath(), String.join("\n", testClasses));
+                } catch (IOException e) {
+                    throw new UncheckedIOException("failed to compute class files", e);
+                }
+            }
+        });
+    }
+
+    private boolean pathMatches(Path path, Set<String> groovyTestClasses) {
+        return groovyTestClasses.stream().anyMatch(path::endsWith);
+    }
+
+    private List<String> getArguments() {
+        return List.of(getDiscoveredTestsFile().get().getAsFile().toPath().toString());
     }
 }

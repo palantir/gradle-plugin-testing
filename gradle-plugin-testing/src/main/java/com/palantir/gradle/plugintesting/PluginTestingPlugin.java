@@ -135,6 +135,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
             SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
             task.getTestClasspath().from(testSourceSet.getRuntimeClasspath());
             task.getRuntimeClasspath().from(project.getConfigurations().getByName("runtimeClasspath"));
+            task.getTestSourceFiles().from(testSourceSet.getAllSource().getFiles());
         });
         addGradlePluginForTestingConfigurations(project);
     }

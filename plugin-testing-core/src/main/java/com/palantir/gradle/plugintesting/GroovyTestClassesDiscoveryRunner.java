@@ -17,8 +17,12 @@
 package com.palantir.gradle.plugintesting;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -40,8 +44,9 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.spockframework.runtime.SpockEngine;
 
-public class TestsDiscoveryRunner {
-    private static final Logger logger = Logger.getLogger("TestsDiscoveryRunner");
+public class GroovyTestClassesDiscoveryRunner {
+    private static final Logger logger = Logger.getLogger("GroovyTestClassesDiscoveryRunner");
+
     private static final SpockEngine SPOCK_ENGINE = new SpockEngine();
 
     private static final LauncherConfig LAUNCHER_CONFIG = LauncherConfig.builder()
@@ -50,6 +55,12 @@ public class TestsDiscoveryRunner {
             .build();
 
     public static void main(String[] args) {
+        if (args.length != 1) {
+            throw new RuntimeException(String.format(
+                    "Invalid number of arguments, expected 1 argument got %s arguments: %s",
+                    args.length, Arrays.stream(args).toList()));
+        }
+
         String classPath = System.getProperty("java.class.path");
         Set<Path> paths = Arrays.stream(classPath.split(File.pathSeparator))
                 .map(Paths::get)
@@ -64,17 +75,21 @@ public class TestsDiscoveryRunner {
                         // "nebula.test.IntegrationSpec" or "nebula.test.IntegrationTestKitSpec"
                         return testDescriptor
                                 .getSource()
-                                .map(TestsDiscoveryRunner::getTestClassFromSource)
+                                .map(GroovyTestClassesDiscoveryRunner::getTestClassFromSource)
                                 .map(testClass -> {
                                     // Check if testClass extends IntegrationSpec or IntegrationTestKitSpec
-                                    if (isSubclassOf(testClass, "nebula.test.IntegrationSpec")
+                                    if (isSubclassOf(
+                                            testClass, "com.palantir.gradle.plugintesting.ConfigurationCacheSpec")) {
+                                        return FilterResult.excluded(
+                                                String.format("%s shouldn't be migrated yet", testDescriptor));
+                                    } else if (isSubclassOf(testClass, "nebula.test.IntegrationSpec")
                                             || isSubclassOf(testClass, "nebula.test.IntegrationTestKitSpec")) {
                                         logger.info(String.format("Included %s", testDescriptor));
                                         return FilterResult.included(
-                                                String.format("%s Is integration test", testDescriptor));
+                                                String.format("%s can be migrated", testDescriptor));
                                     } else {
                                         return FilterResult.excluded(
-                                                String.format("%s Not integration test", testDescriptor));
+                                                String.format("%s shouldn't be migrated yet", testDescriptor));
                                     }
                                 })
                                 .orElseGet(() -> FilterResult.excluded("Not a class source"));
@@ -85,14 +100,25 @@ public class TestsDiscoveryRunner {
         try (LauncherSession launcherSession = LauncherFactory.openSession(LAUNCHER_CONFIG)) {
             Launcher launcher = launcherSession.getLauncher();
             TestPlan testPlan = launcher.discover(discoveryRequest);
-            long toRun = testPlan.countTestIdentifiers(TestIdentifier::isTest);
-            logger.info(String.format("testPlan %s", toRun));
-            testPlan.getRoots()
-                    .forEach(testIdentifier -> logger.info(String.format(
-                            "Found %s",
-                            testPlan.getRoots().stream()
-                                    .flatMap(t -> testPlan.getDescendants(t).stream())
-                                    .collect(Collectors.toSet()))));
+            Set<String> testClassNames = testPlan.getRoots().stream()
+                    .flatMap(testIdentifier -> testPlan.getChildren(testIdentifier).stream()
+                            .map(TestIdentifier::getSource)
+                            .flatMap(test -> test.stream()
+                                    .map(GroovyTestClassesDiscoveryRunner::getTestClassFromSource)
+                                    .map(clazz -> clazz.getName())))
+                    .collect(Collectors.toSet());
+
+            Path outputPath = Path.of(args[0]);
+            try {
+                Files.writeString(
+                        outputPath,
+                        String.join("\n", testClassNames),
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING,
+                        StandardOpenOption.CREATE);
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Failed to write to file %s", outputPath), e);
+            }
         }
     }
 
