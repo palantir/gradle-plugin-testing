@@ -33,12 +33,14 @@ public final class GradleInvoker {
         this.rootProjectDir = rootProjectDir;
         this.gradleVersion = gradleVersion;
     }
+
     public GradleInvocation withArgs(String... args) {
         String[] argsWithStacktrace = ImmutableList.builder()
                 .addAll(Arrays.asList(args))
                 .add("--stacktrace")
                 .build()
                 .toArray(String[]::new);
+
         return new GradleInvocation(GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(shouldRunInTestkitDebugMode())
