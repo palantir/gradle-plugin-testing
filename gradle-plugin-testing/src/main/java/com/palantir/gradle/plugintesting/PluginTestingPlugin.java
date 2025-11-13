@@ -49,7 +49,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
     static final List<String> CORE_MAVEN_NAMES =
             List.of("plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit");
 
-    public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting");
+    public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting", "GradleTestPluginsBlock");
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
 

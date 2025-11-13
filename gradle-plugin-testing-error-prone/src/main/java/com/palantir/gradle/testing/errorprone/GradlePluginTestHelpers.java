@@ -21,10 +21,14 @@ import com.google.errorprone.matchers.Matcher;
 import com.google.errorprone.matchers.Matchers;
 import com.google.errorprone.util.ASTHelpers;
 import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Symbol;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 public final class GradlePluginTestHelpers {
     private static final Matcher<Tree> WITHIN_GRADLE_PLUGIN_TESTS_CLASS = Matchers.enclosingNode(Matchers.allOf(
@@ -37,12 +41,55 @@ public final class GradlePluginTestHelpers {
         return !WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
     }
 
-    static boolean isGradlePluginTestsLibraryMethod(MethodInvocationTree tree, VisitorState state) {
+    static boolean notGradlePluginTestsLibraryMethod(MethodInvocationTree tree) {
         return Optional.ofNullable(ASTHelpers.getSymbol(tree))
                 .map(Symbol.MethodSymbol::enclClass)
                 .map(classSymbol -> classSymbol.getQualifiedName().toString())
                 .filter(className -> className.startsWith(LIBRARY_PACKAGE))
+                .isEmpty();
+    }
+
+    static Optional<ExpressionTree> findVariableInitializer(Symbol.VarSymbol var, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.findEnclosingNode(state.getPath(), MethodTree.class))
+                .flatMap(m -> m.getBody().getStatements().stream()
+                        .filter(VariableTree.class::isInstance)
+                        .map(VariableTree.class::cast)
+                        .filter(v -> var.equals(ASTHelpers.getSymbol(v)))
+                        .findFirst()
+                        .map(VariableTree::getInitializer));
+    }
+
+    static boolean hasFormatMethodOverload(MethodInvocationTree tree, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
+                .map(methodSymbol -> hasFormatOverloadInClass(methodSymbol, state))
+                .orElse(false);
+    }
+
+    static boolean isFormatMethodInvocation(MethodInvocationTree tree, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
+                .filter(method ->
+                        ASTHelpers.hasAnnotation(method, "com.google.errorprone.annotations.FormatMethod", state))
+                .filter(method -> hasFormatStringParameter(method, state))
                 .isPresent();
+    }
+
+    private static boolean hasFormatOverloadInClass(Symbol.MethodSymbol methodSymbol, VisitorState state) {
+        String methodName = methodSymbol.getSimpleName().toString();
+        Symbol.ClassSymbol classSymbol = methodSymbol.enclClass();
+
+        return StreamSupport.stream(classSymbol.members().getSymbols().spliterator(), false)
+                .filter(Symbol.MethodSymbol.class::isInstance)
+                .map(Symbol.MethodSymbol.class::cast)
+                .filter(method -> method.getSimpleName().toString().equals(methodName))
+                .filter(method ->
+                        ASTHelpers.hasAnnotation(method, "com.google.errorprone.annotations.FormatMethod", state))
+                .anyMatch(method -> hasFormatStringParameter(method, state));
+    }
+
+    private static boolean hasFormatStringParameter(Symbol.MethodSymbol method, VisitorState state) {
+        return method.getParameters().stream()
+                .anyMatch(param ->
+                        ASTHelpers.hasAnnotation(param, "com.google.errorprone.annotations.FormatString", state));
     }
 
     private GradlePluginTestHelpers() {}
