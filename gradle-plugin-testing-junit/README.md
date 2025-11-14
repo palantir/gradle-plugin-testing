@@ -12,11 +12,10 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [Parameter Injection](#parameter-injection)
     - [Multi-Version Testing](#multi-version-testing)
     - [Testing with External Plugins](#testing-with-external-plugins)
-    - [Debugging Tests](#debugging-tests)
 - [File Operations](#file-operations)
     - [Working with Files](#working-with-files)
-    - [Build Files](#build-files)
-    - [Settings Files](#settings-files)
+    - [Build Gradle](#build-gradle)
+    - [Settings Gradle](#settings-gradle)
     - [Plugin Management](#plugin-management)
     - [Gradle Files](#gradle-files)
     - [Java Source Files](#java-source-files)
@@ -173,15 +172,6 @@ void test_with_external_plugin(GradleInvoker gradle, RootProject project) {
 
 When using [com.palantir.consistent-versions](https://github.com/palantir/gradle-consistent-versions), dependencies in `gradlePluginForTesting` are automatically included in the `[Test dependencies]` section of `versions.lock`.
 
-### Debugging Tests
-
-When running tests in debug mode in IntelliJ, the framework automatically detects the debugger and runs Gradle in the same JVM, allowing you to set breakpoints in your plugin code.
-
-To debug:
-1. Set breakpoints in your plugin code
-2. Run your test in debug mode
-3. The test will pause at breakpoints in your plugin
-
 ## File Operations
 
 ### Working with Files
@@ -213,7 +203,7 @@ String content = project.buildGradle().text();
 project.file("versions.lock").createEmpty();
 ```
 
-### Build Files
+### Build Gradle
 
 Configure `build.gradle` for your projects:
 
@@ -244,7 +234,7 @@ void configure_subproject_build(SubProject api) {
 }
 ```
 
-### Settings Files
+### Settings Gradle
 
 Configure `settings.gradle`, the root project name defaults to `root` and can only be changed using the `rootProjectName` method on the settings file.
 
