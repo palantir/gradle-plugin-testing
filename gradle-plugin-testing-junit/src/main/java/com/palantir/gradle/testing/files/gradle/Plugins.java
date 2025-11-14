@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.files.gradle;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,18 +43,7 @@ public final class Plugins {
                     + "\\n?", // optional newline after
             Pattern.DOTALL);
 
-    // Matches: buildscript { ... } with ONE level of nested braces allowed
-    private static final Pattern BUILDSCRIPT_BLOCK_PATTERN = Pattern.compile(
-            "buildscript" // literal "buildscript"
-                    + "\\s*" // optional whitespace
-                    + "\\{" // opening brace
-                    + "(?:" // non-capturing group, repeated:
-                    + "[^{}]" //   either: any char that's not a brace
-                    + "|" //   OR
-                    + "\\{[^{}]*}" //   a pair of braces with non-brace content inside
-                    + ")*" // repeat the group zero or more times
-                    + "}", // closing brace
-            Pattern.DOTALL);
+    private static final Pattern BUILDSCRIPT_PATTERN = Pattern.compile("buildscript\\s*\\{");
 
     private final GradleFile file;
 
@@ -99,13 +89,13 @@ public final class Plugins {
     }
 
     private static String repositionPluginsBlockWithContent(String textWithoutPluginsBlock, String pluginsBlock) {
-        Matcher buildscriptMatcher = BUILDSCRIPT_BLOCK_PATTERN.matcher(textWithoutPluginsBlock);
+        OptionalInt buildscriptEnd = findBuildScriptBlockEnd(textWithoutPluginsBlock);
 
         // plugins block must go after buildscript and above all else
-        if (buildscriptMatcher.find()) {
-            int insertPosition = buildscriptMatcher.end();
-            String suffix = textWithoutPluginsBlock.substring(insertPosition).replaceFirst("^\n", "");
-            return textWithoutPluginsBlock.substring(0, insertPosition) + "\n" + pluginsBlock + suffix;
+        if (buildscriptEnd.isPresent()) {
+            String suffix =
+                    textWithoutPluginsBlock.substring(buildscriptEnd.getAsInt()).replaceFirst("^\n", "");
+            return textWithoutPluginsBlock.substring(0, buildscriptEnd.getAsInt()) + "\n" + pluginsBlock + suffix;
         }
 
         return pluginsBlock + textWithoutPluginsBlock;
@@ -145,5 +135,28 @@ public final class Plugins {
         String pluginsBlock = "plugins {\n" + pluginsContent + "\n}\n";
 
         return repositionPluginsBlockWithContent(textWithoutPluginsBlock, pluginsBlock);
+    }
+
+    private static OptionalInt findBuildScriptBlockEnd(String text) {
+        Matcher matcher = BUILDSCRIPT_PATTERN.matcher(text);
+        if (!matcher.find()) {
+            return OptionalInt.empty();
+        }
+        int openBraceIndex = matcher.end() - 1; // position of '{'
+
+        // Match braces
+        int depth = 1;
+        for (int i = openBraceIndex + 1; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == '{') {
+                depth++;
+            } else if (ch == '}') {
+                depth--;
+            }
+            if (depth == 0) {
+                return OptionalInt.of(i + 1); // Return index after closing '}'
+            }
+        }
+        return OptionalInt.empty();
     }
 }
