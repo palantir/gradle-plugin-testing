@@ -114,7 +114,7 @@ These parameters can be used in the constructor for a test class or in `@Test`, 
 ```java
 @Test
 void multi_project_build(SubProject api, SubProject server) {
-    // Projects "api" and "server" are automatically created and included
+    // Projects "api" and "server" are automatically created and included as sub-projects to the "root" project.
     api.buildGradle().plugins().add("java-library");
 
     server.buildGradle().plugins().add("application");
