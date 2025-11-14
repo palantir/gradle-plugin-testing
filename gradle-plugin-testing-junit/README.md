@@ -1,6 +1,7 @@
 # Testing Gradle Plugins
 
-This guide covers how to write tests for Gradle plugins using the `gradle-plugin-testing` framework. This framework provides a modern, Java-based testing approach with JUnit 5 integration and fluent APIs.
+This guide covers how to write tests for Gradle plugins using the `gradle-plugin-testing` framework. Built on Gradle TestKit, this framework provides a modern, Java-based testing approach with JUnit 5 integration, fluent APIs, and automatic multi-version testing across different
+Gradle releases.
 
 ## Contents
 
