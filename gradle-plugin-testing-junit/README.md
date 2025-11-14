@@ -61,8 +61,6 @@ This plugin automatically generates IntelliJ IDEA language injection configurati
 
 ### Write your first test
 
-You can use `@BeforeEach` for shared setup:
-
 ```java
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.execution.GradleInvoker;
