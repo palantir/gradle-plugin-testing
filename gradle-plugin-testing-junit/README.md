@@ -12,12 +12,12 @@ Gradle releases.
     - [The @GradlePluginTests Annotation](#the-gradleplugintests-annotation)
     - [Parameter Injection](#parameter-injection)
     - [Multi-Version Testing](#multi-version-testing)
-    - [Testing with External Plugins](#testing-with-external-plugins)
 - [File Operations](#file-operations)
     - [Working with Files](#working-with-files)
     - [Build Gradle](#build-gradle)
     - [Settings Gradle](#settings-gradle)
     - [Plugin Management](#plugin-management)
+      - [Testing with External Plugins](#testing-with-external-plugins)
     - [Gradle Files](#gradle-files)
     - [Java Source Files](#java-source-files)
     - [Properties Files](#properties-files)
@@ -149,37 +149,6 @@ gradleTestUtils {
 
 If not specified, tests run against the default version (currently `8.14.3`).
 
-### Testing with External Plugins
-
-To test your plugin alongside external Gradle plugins, use the `gradlePluginForTesting` configuration in your projects `build.gradle`. This makes external plugins available in your test's Gradle runtime:
-
-```gradle
-dependencies {
-    gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging:<version>'
-}
-```
-
-The plugin is then available in your tests:
-
-```java
-@Test
-void test_with_external_plugin(GradleInvoker gradle, RootProject project) {
-    project.buildGradle().plugins().add("com.palantir.sls-asset-distribution");
-
-    gradle.withArgs("tasks").buildsSuccessfully();
-}
-```
-
-**Note:** If you forget to add a plugin to `gradlePluginForTesting`, your test will fail with an error like:
-```
-Plugin [id: 'com.palantir.sls-asset-distribution'] was not found in any of the following sources:
-- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- Gradle TestKit (classpath: ...)
-- Plugin Repositories (plugin dependency must include a version number for this source)
-```
-
-When using [com.palantir.consistent-versions](https://github.com/palantir/gradle-consistent-versions), dependencies in `gradlePluginForTesting` are automatically included in the `[Test dependencies]` section of `versions.lock`.
-
 ## File Operations
 
 ### Working with Files
@@ -279,6 +248,38 @@ void add_plugins(RootProject project) {
 The `plugins()` API ensures correct placement after `buildscript {}` blocks and prevents duplicate plugin entries.
 
 **Important:** Always use the `plugins()` API instead of manually writing plugin blocks in `append()` or `overwrite()` calls.
+
+#### Testing with External Plugins
+
+To test your plugin alongside external Gradle plugins, use the `gradlePluginForTesting` configuration in your projects `build.gradle`. This makes external plugins available in your test's Gradle runtime:
+
+```gradle
+dependencies {
+    gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging:<version>'
+}
+```
+
+The plugin is then available in your tests:
+
+```java
+@Test
+void test_with_external_plugin(GradleInvoker gradle, RootProject project) {
+    project.buildGradle().plugins().add("com.palantir.sls-asset-distribution");
+
+    gradle.withArgs("tasks").buildsSuccessfully();
+}
+```
+
+**Note:** If you forget to add a plugin to `gradlePluginForTesting`, your test will fail with an error like:
+```
+Plugin [id: 'com.palantir.sls-asset-distribution'] was not found in any of the following sources:
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- Gradle TestKit (classpath: ...)
+- Plugin Repositories (plugin dependency must include a version number for this source)
+```
+
+When using [com.palantir.consistent-versions](https://github.com/palantir/gradle-consistent-versions), dependencies in `gradlePluginForTesting` are automatically included in the `[Test dependencies]` section of `versions.lock`.
+
 
 ### Gradle Files
 
