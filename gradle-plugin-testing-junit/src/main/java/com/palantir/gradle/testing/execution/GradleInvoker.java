@@ -21,7 +21,6 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
-import java.util.Arrays;
 import org.gradle.testkit.runner.GradleRunner;
 
 public final class GradleInvoker {
@@ -35,19 +34,16 @@ public final class GradleInvoker {
     }
 
     public GradleInvocation withArgs(String... args) {
-        String[] argsWithStacktrace = ImmutableList.builder()
-                .addAll(Arrays.asList(args))
-                .add("--stacktrace")
-                .build()
-                .toArray(String[]::new);
-
         return new GradleInvocation(GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(shouldRunInTestkitDebugMode())
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
-                .withArguments(argsWithStacktrace));
+                .withArguments(ImmutableList.<String>builder()
+                        .add(args)
+                        .add("--stacktrace")
+                        .build()));
     }
 
     private static boolean shouldRunInTestkitDebugMode() {
