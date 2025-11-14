@@ -245,9 +245,7 @@ void add_plugins(RootProject project) {
 }
 ```
 
-The `plugins()` API ensures correct placement after `buildscript {}` blocks and prevents duplicate plugin entries.
-
-**Important:** Always use the `plugins()` API instead of manually writing plugin blocks in `append()` or `overwrite()` calls.
+**Important:** Always use the `plugins()` API instead of manually writing plugin blocks in `append()` or `overwrite()` calls. The `plugins()` API ensures correct positioning after `buildscript {}` blocks and prevents duplicate plugin entries.
 
 #### Testing with External Plugins
 
