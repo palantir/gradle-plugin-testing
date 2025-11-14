@@ -38,16 +38,21 @@ class ProjectFileFormattingUsageTest {
 
     @Test
     void can_format_append(RootProject rootProject) {
-        rootProject.buildGradle().overwrite("plugins { id 'java' }\n");
+        rootProject.buildGradle().plugins().add("java");
         rootProject.buildGradle().append("""
             tasks.register('%s') {
                 doLast {}
             }
             """, "myTask");
 
-        assertThat(rootProject.buildGradle().text())
-                .contains("plugins { id 'java' }")
-                .contains("tasks.register('myTask')");
+        rootProject.buildGradle().assertThat().hasContent("""
+            plugins {
+                id 'java'
+            }
+            tasks.register('myTask') {
+                doLast {}
+            }
+            """);
     }
 
     @Test

@@ -32,13 +32,14 @@ class PluginTestingJunitPluginTest {
                 .gradlePropertiesFile()
                 .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
 
-        rootProject.buildGradle().append("""
-            plugins {
-                id 'com.palantir.gradle-plugin-testing'
-                id 'java-gradle-plugin'
-                id 'com.palantir.consistent-versions'
-            }
+        rootProject
+                .buildGradle()
+                .plugins()
+                .add("com.palantir.gradle-plugin-testing")
+                .add("java-gradle-plugin")
+                .add("com.palantir.consistent-versions");
 
+        rootProject.buildGradle().append("""
             repositories {
                 mavenCentral()
                 mavenLocal()
@@ -85,11 +86,8 @@ class PluginTestingJunitPluginTest {
                 @Test
                 void testMethod(GradleInvoker gradle, RootProject rootProject) {
 
-                    rootProject.buildGradle().prepend(\"""
-                        plugins {
-                            id 'com.palantir.sls-asset-distribution'
-                        }
-
+                    rootProject.buildGradle().plugins().add("com.palantir.sls-asset-distribution");
+                    rootProject.buildGradle().append(\"""
                         def pluginVersion = plugins.getPlugin('com.palantir.sls-asset-distribution').getClass().package.implementationVersion
                         println "plugin version: $pluginVersion"
                         ""\");
@@ -164,11 +162,7 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildGradle().prepend("""
-            plugins {
-                id 'net.ltgt.errorprone'
-            }
-            """);
+        rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 
         rootProject.buildGradle().append("""
             dependencies {

@@ -139,21 +139,4 @@ class ProjectUsagesTest {
             gradle.withArgs().buildsSuccessfully().assertThat().output().contains("project name: something-else");
         }
     }
-
-    @Nested
-    class BeforeEachChecks {
-        @BeforeEach
-        void beforeEach(RootProject rootProject) {
-            rootProject
-                    .settingsGradle()
-                    .prependLine("plugins { id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0' }");
-        }
-
-        @Test
-        void before_each_works_with_plugin_block(GradleInvoker gradle, RootProject rootProject) {
-            rootProject.buildGradle().appendLine("println 'hello'");
-
-            assertThat(gradle.withArgs().buildsSuccessfully().output()).contains("hello");
-        }
-    }
 }

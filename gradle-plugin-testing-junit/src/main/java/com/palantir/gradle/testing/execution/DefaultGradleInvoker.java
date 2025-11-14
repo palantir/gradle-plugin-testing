@@ -30,18 +30,16 @@ public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVers
 
     @Override
     public GradleInvocation withArgs(String... args) {
-        String[] argsWithStacktrace = ImmutableList.builder()
-                .addAll(Arrays.asList(args))
-                .add("--stacktrace")
-                .build()
-                .toArray(String[]::new);
         GradleRunner runner = GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(shouldRunInTestkitDebugMode())
                 .forwardOutput()
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
-                .withArguments(argsWithStacktrace);
+                .withArguments(ImmutableList.<String>builder()
+                        .addAll(Arrays.asList(args))
+                        .add("--stacktrace")
+                        .build());
 
         return new DefaultGradleInvocation(runner);
     }
