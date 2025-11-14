@@ -587,7 +587,7 @@ The `gradle-plugin-testing` plugin ships with custom Error Prone checks that are
 
 ### Why We Ship Error Prone Checks
 
-These checks serve two critical purposes:
+These checks serve two purposes:
 
 1. **Enforcing Best Practices** - The checks guide developers toward using the framework's structured APIs correctly, preventing common mistakes.
 
