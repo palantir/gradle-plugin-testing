@@ -48,7 +48,7 @@ This automatically adds the testing framework dependencies, configures your test
 
 ### IDE Setup - Syntax Highlighting
 
-To enable syntax highlighting for Gradle DSL code in test strings, add the [gradle-idea-language-injector](https://github.com/palantir/gradle-idea-language-injector) plugin to your `settings.gradle`:
+To enable syntax highlighting in test strings, add the [gradle-idea-language-injector](https://github.com/palantir/gradle-idea-language-injector) plugin to your `settings.gradle`:
 
 ```gradle
 plugins {
