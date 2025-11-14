@@ -27,9 +27,8 @@ class WithoutConfigurationCacheTest {
 
     @Test
     void configuration_cache_is_disabled_by_default(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("java");
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register("checkConfigurationCache") {
                 def buildFeatures = services.get(BuildFeatures)
                 def isRequested = buildFeatures.configurationCache.requested.orElse(false)

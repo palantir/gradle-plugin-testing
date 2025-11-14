@@ -26,9 +26,8 @@ public class ConfigurationCacheFixtureTest {
 
     @Test
     void test_name(GradleInvoker gradleInvoker, RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("java");
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register("checkConfigurationCache") {
                 def buildFeatures = services.get(BuildFeatures)
                 def isRequested = buildFeatures.configurationCache.requested.orElse(false)

@@ -25,16 +25,20 @@ import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.gradle.testkit.runner.UnexpectedBuildSuccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class ConfigurationCacheTests {
 
+    @BeforeEach
+    void setUp(RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("java");
+    }
+
     @Test
     void configuration_cache_is_enabled_by_default(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register("checkConfigurationCache") {
                 def buildFeatures = services.get(BuildFeatures)
                 def isRequested = buildFeatures.configurationCache.requested.orElse(false)
@@ -58,8 +62,6 @@ class ConfigurationCacheTests {
     @Test
     void configuration_cache_is_stored_for_failed_task(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register("failingTask") {
                 doLast {
                     throw new RuntimeException("Task that fails");
@@ -75,8 +77,6 @@ class ConfigurationCacheTests {
     @Test
     void configuration_cache_is_not_stored_when_configuration_fails(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register('failingTask') {
                 def destination = getProjectDir().getAbsoluteFile().toPath().resolve("destination")
                 inputs.dir(getProjectDir().getAbsoluteFile().toPath().resolve('source'))
@@ -99,8 +99,6 @@ class ConfigurationCacheTests {
     @DisabledConfigurationCache(reason = "testing method level annotation")
     void configuration_cache_is_disabled(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register("checkConfigurationCache") {
                 def buildFeatures = services.get(BuildFeatures)
                 def isRequested = buildFeatures.configurationCache.requested.orElse(false)
@@ -121,8 +119,6 @@ class ConfigurationCacheTests {
     @Test
     void fails_configuration_cache_for_external_process(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             def output = ['echo', 'Hello from config time!'].execute().text.trim()
             println "External command output: $output"
             """);
@@ -141,8 +137,6 @@ class ConfigurationCacheTests {
     void fails_when_configuration_cache_cannot_be_loaded(GradleInvoker invoker, RootProject rootProject)
             throws IOException {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
-
             tasks.register("deleteConfigCache", Delete) {
                 delete(layout.projectDirectory.dir(".gradle/configuration-cache"))
             }
@@ -165,7 +159,6 @@ class ConfigurationCacheTests {
     @Test
     void fails_when_configuration_cache_cannot_be_stored(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            plugins { id 'java' }
             class BadConfigCacheTask extends DefaultTask {
                 @Internal
                 Object nonSerializable = new Thread() // Thread is not serializable
