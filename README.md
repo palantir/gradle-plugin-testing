@@ -183,7 +183,7 @@ plugins {
 }
 ```
 
-This plugin automatically generates IntelliJ IDEA language injection configurations, enabling syntax highlighting for string literals.
+This plugin automatically generates IntelliJ IDEA language injection configurations, enabling syntax highlighting for string literals inside IntelliJ.
 
 ### Write your first test
 
