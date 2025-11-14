@@ -148,7 +148,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'ignoreDeprecations automatically set when plugin applied with version: #version'() {
         given:
-        applyTestUtilsPlugin()
+        applyTestUtilsPlugin(version)
 
         when:
         gradleVersion = version
@@ -164,7 +164,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'do not set ignoreDeprecations with version: #version'() {
         given:
-        applyTestUtilsPlugin()
+        applyTestUtilsPlugin(version)
         buildFile << """
             gradleTestUtils {
                 ignoreGradleDeprecations = false
@@ -207,7 +207,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'resolve dependencies with version: #version'() {
         given:
-        applyTestUtilsPlugin()
+        applyTestUtilsPlugin(version)
         specUnderTest.text = specUnderTest.text
             .replace('//INSERT IMPORTS HERE', '''
                 import static com.palantir.gradle.plugintesting.TestDependencyVersions.resolve
@@ -235,7 +235,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'override gradle testing versions with version: #version'() {
         given:
-        applyTestUtilsPlugin()
+        applyTestUtilsPlugin(version)
         buildFile << """
             gradleTestUtils {
                 gradleVersions = ['7.6.4', '8.10.1']
@@ -294,7 +294,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
             apply plugin: 'com.palantir.baseline-exact-dependencies'
         """)
-        applyTestUtilsPlugin()
+        applyTestUtilsPlugin(version)
 
 
         //Setup java source file that uses guava.  Just need this so checkUnusedDependencies doesn't throw an error
@@ -323,15 +323,15 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         version << GradleTestVersions.gradleVersionsForTests
     }
 
-    void applyTestUtilsPlugin() {
+    void applyTestUtilsPlugin(String version) {
         //language=gradle
-        buildFile << '''
+        buildFile << """
             apply plugin: 'com.palantir.gradle-plugin-testing'
 
             gradleTestUtils {
-                gradleVersions = ["8.13.4"]
+                gradleVersions = ["${version}"]
             }
-        '''.stripIndent(true)
+        """.stripIndent(true)
     }
 
     File prependToBuildFile(String content) {

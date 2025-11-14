@@ -21,11 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class GradleTestVersionsTestConfig {
+public class GradleTestVersionsConfigTest {
 
     @Nested
     class Deserialize {
@@ -118,9 +122,13 @@ public class GradleTestVersionsTestConfig {
     class WithMajorVersion {
         @Test
         public void add_new_major_version() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(7, "7.6.4");
+            majorVersions.put(8, "8.10.0");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .putMajorVersions(7, "7.6.4")
-                    .putMajorVersions(8, "8.10.0")
+                    .majorVersions(majorVersions)
+                    .extraVersions(new TreeSet<>())
                     .build();
 
             GradleTestVersionsConfig updated = config.withMajorVersion("9.2.0");
@@ -133,8 +141,12 @@ public class GradleTestVersionsTestConfig {
 
         @Test
         public void replace_existing_major_version() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(8, "8.10.0");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .putMajorVersions(8, "8.10.0")
+                    .majorVersions(majorVersions)
+                    .extraVersions(new TreeSet<>())
                     .build();
 
             GradleTestVersionsConfig updated = config.withMajorVersion("8.14.2");
@@ -148,10 +160,14 @@ public class GradleTestVersionsTestConfig {
     class WithoutMajorVersion {
         @Test
         public void removes_major_version() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(7, "7.6.4");
+            majorVersions.put(8, "8.14.2");
+            majorVersions.put(9, "9.2.0");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .putMajorVersions(7, "7.6.4")
-                    .putMajorVersions(8, "8.14.2")
-                    .putMajorVersions(9, "9.2.0")
+                    .majorVersions(majorVersions)
+                    .extraVersions(new TreeSet<>())
                     .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
@@ -164,12 +180,18 @@ public class GradleTestVersionsTestConfig {
 
         @Test
         public void removes_matching_extra_versions() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(8, "8.14.2");
+            majorVersions.put(9, "9.2.0");
+
+            SortedSet<String> extraVersions = new TreeSet<>();
+            extraVersions.add("8.8");
+            extraVersions.add("8.10");
+            extraVersions.add("9.0");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .putMajorVersions(8, "8.14.2")
-                    .putMajorVersions(9, "9.2.0")
-                    .addExtraVersions("8.8")
-                    .addExtraVersions("8.10")
-                    .addExtraVersions("9.0")
+                    .majorVersions(majorVersions)
+                    .extraVersions(extraVersions)
                     .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
@@ -180,11 +202,17 @@ public class GradleTestVersionsTestConfig {
 
         @Test
         public void keeps_unrelated_extra_versions() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(7, "7.6.4");
+            majorVersions.put(8, "8.14.2");
+
+            SortedSet<String> extraVersions = new TreeSet<>();
+            extraVersions.add("7.5");
+            extraVersions.add("8.8");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .putMajorVersions(7, "7.6.4")
-                    .putMajorVersions(8, "8.14.2")
-                    .addExtraVersions("7.5")
-                    .addExtraVersions("8.8")
+                    .majorVersions(majorVersions)
+                    .extraVersions(extraVersions)
                     .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
@@ -195,8 +223,12 @@ public class GradleTestVersionsTestConfig {
 
         @Test
         public void handles_non_existent_major_versions() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(8, "8.14.2");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .putMajorVersions(8, "8.14.2")
+                    .majorVersions(majorVersions)
+                    .extraVersions(new TreeSet<>())
                     .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(9);
@@ -210,9 +242,16 @@ public class GradleTestVersionsTestConfig {
     class Miscellaneous {
         @Test
         public void testBuilderPattern() {
+            SortedMap<Integer, String> majorVersions = new TreeMap<>();
+            majorVersions.put(8, "8.14.2");
+            majorVersions.put(9, "9.2.0");
+
+            SortedSet<String> extraVersions = new TreeSet<>();
+            extraVersions.add("8.8");
+
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .majorVersions(java.util.Map.of(8, "8.14.2", 9, "9.2.0"))
-                    .extraVersions(java.util.List.of("8.8"))
+                    .majorVersions(majorVersions)
+                    .extraVersions(extraVersions)
                     .build();
 
             assertThat(config.majorVersions()).containsEntry(8, "8.14.2").containsEntry(9, "9.2.0");
@@ -221,14 +260,26 @@ public class GradleTestVersionsTestConfig {
 
         @Test
         public void testEqualsAndHashCode() {
+            SortedMap<Integer, String> majorVersions1 = new TreeMap<>();
+            majorVersions1.put(8, "8.14.2");
+
+            SortedSet<String> extraVersions1 = new TreeSet<>();
+            extraVersions1.add("8.8");
+
             GradleTestVersionsConfig config1 = GradleTestVersionsConfig.builder()
-                    .majorVersions(java.util.Map.of(8, "8.14.2"))
-                    .extraVersions(java.util.List.of("8.8"))
+                    .majorVersions(majorVersions1)
+                    .extraVersions(extraVersions1)
                     .build();
 
+            SortedMap<Integer, String> majorVersions2 = new TreeMap<>();
+            majorVersions2.put(8, "8.14.2");
+
+            SortedSet<String> extraVersions2 = new TreeSet<>();
+            extraVersions2.add("8.8");
+
             GradleTestVersionsConfig config2 = GradleTestVersionsConfig.builder()
-                    .majorVersions(java.util.Map.of(8, "8.14.2"))
-                    .extraVersions(java.util.List.of("8.8"))
+                    .majorVersions(majorVersions2)
+                    .extraVersions(extraVersions2)
                     .build();
 
             assertThat(config1).isEqualTo(config2);

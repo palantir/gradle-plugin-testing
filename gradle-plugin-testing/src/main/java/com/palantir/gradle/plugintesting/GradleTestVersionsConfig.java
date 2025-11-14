@@ -25,9 +25,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import one.util.streamex.EntryStream;
+import one.util.streamex.StreamEx;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -35,10 +38,16 @@ import org.immutables.value.Value;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface GradleTestVersionsConfig {
     @JsonProperty("major-versions")
-    Map<Integer, String> majorVersions();
+    @Value.Default
+    default SortedMap<Integer, String> majorVersions() {
+        return new TreeMap<>();
+    }
 
     @JsonProperty("extra-versions")
-    List<String> extraVersions();
+    @Value.Default
+    default SortedSet<String> extraVersions() {
+        return new TreeSet<>();
+    }
 
     final class Builder extends ImmutableGradleTestVersionsConfig.Builder {}
 
@@ -58,22 +67,24 @@ public interface GradleTestVersionsConfig {
 
     default GradleTestVersionsConfig withMajorVersion(String newMajorVersion) {
         int majorVersion = getMajorVersion(newMajorVersion);
-        return builder()
-                .from(this)
-                .putMajorVersions(majorVersion, newMajorVersion)
-                .build();
+
+        SortedMap<Integer, String> newMajorVersions = new TreeMap<>();
+        newMajorVersions.putAll(this.majorVersions());
+        newMajorVersions.put(majorVersion, newMajorVersion);
+
+        return builder().from(this).majorVersions(newMajorVersions).build();
     }
 
     default GradleTestVersionsConfig withoutMajorVersion(int majorVersion) {
-        Map<Integer, String> newMajorVersions = EntryStream.of(majorVersions())
+        SortedMap<Integer, String> newMajorVersions = EntryStream.of(majorVersions())
                 .filterKeys(maj -> maj != majorVersion)
-                .toMap();
-        List<String> newExtraVersions = extraVersions().stream()
+                .toSortedMap();
+        SortedSet<String> newExtraVersions = StreamEx.of(extraVersions())
                 .filter(version -> {
                     int versionMajor = getMajorVersion(version);
                     return versionMajor != majorVersion;
                 })
-                .toList();
+                .toCollection(TreeSet::new);
         return builder()
                 .from(this)
                 .majorVersions(newMajorVersions)
