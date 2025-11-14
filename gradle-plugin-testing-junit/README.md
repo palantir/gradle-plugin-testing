@@ -23,6 +23,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [YAML Files](#yaml-files)
     - [Arbitrary Files](#arbitrary-files)
     - [Directories](#directories)
+    - [Build Directory](#build-directory)
 - [Executing Gradle Builds](#executing-gradle-builds)
     - [Basic Execution](#basic-execution)
     - [Environment Variables](#environment-variables)
@@ -412,6 +413,37 @@ void create_directories(RootProject project) {
         .createDirectories();
 }
 ```
+
+### Build Directory
+
+Access Gradle's build output directory:
+
+```java
+@Test
+void access_build_output(GradleInvoker gradle, RootProject project) {
+    project.buildGradle().plugins().add("java");
+    project.mainSourceSet().java().writeClass("""
+        package com.example;
+        public class Main {}
+        """);
+
+    gradle.withArgs("build").buildsSuccessfully();
+
+    // Access compiled classes
+    project.buildDir()
+        .file("classes/java/main/com/example/Main.class")
+        .assertThat()
+        .exists();
+
+    // Access JAR files
+    project.buildDir()
+        .file("libs/root.jar")
+        .assertThat()
+        .exists();
+}
+```
+
+**Note:** `buildDir()` returns a `Directory`, so you can use all directory methods like `file()`, `directory()`, etc.
 
 ## Executing Gradle Builds
 
