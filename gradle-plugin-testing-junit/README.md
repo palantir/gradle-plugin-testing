@@ -170,6 +170,14 @@ void test_with_external_plugin(GradleInvoker gradle, RootProject project) {
 }
 ```
 
+**Note:** If you forget to add a plugin to `gradlePluginForTesting`, your test will fail with an error like:
+```
+Plugin [id: 'com.palantir.sls-asset-distribution'] was not found in any of the following sources:
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- Gradle TestKit (classpath: ...)
+- Plugin Repositories (plugin dependency must include a version number for this source)
+```
+
 When using [com.palantir.consistent-versions](https://github.com/palantir/gradle-consistent-versions), dependencies in `gradlePluginForTesting` are automatically included in the `[Test dependencies]` section of `versions.lock`.
 
 ## File Operations
