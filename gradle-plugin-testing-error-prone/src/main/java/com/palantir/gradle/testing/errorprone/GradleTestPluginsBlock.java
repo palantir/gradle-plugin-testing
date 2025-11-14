@@ -133,8 +133,8 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
         if (!isMethodWhichCouldAddPluginsManually(tree, state)
-                || GradlePluginTestHelpers.notGradlePluginTestsLibraryMethod(tree)
-                || GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
+                || !GradlePluginTestHelpers.isGradlePluginTestsLibraryMethod(tree)
+                || !GradlePluginTestHelpers.isWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 

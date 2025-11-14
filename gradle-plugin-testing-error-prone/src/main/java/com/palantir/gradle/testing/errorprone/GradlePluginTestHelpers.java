@@ -39,16 +39,16 @@ public final class GradlePluginTestHelpers {
 
     private static final String LIBRARY_PACKAGE = "com.palantir.gradle.testing.";
 
-    static boolean notWithinGradlePluginTests(Tree tree, VisitorState state) {
-        return !WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
+    static boolean isWithinGradlePluginTests(Tree tree, VisitorState state) {
+        return WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
     }
 
-    static boolean notGradlePluginTestsLibraryMethod(MethodInvocationTree tree) {
+    static boolean isGradlePluginTestsLibraryMethod(MethodInvocationTree tree) {
         return Optional.ofNullable(ASTHelpers.getSymbol(tree))
                 .map(Symbol.MethodSymbol::enclClass)
                 .map(classSymbol -> classSymbol.getQualifiedName().toString())
                 .filter(className -> className.startsWith(LIBRARY_PACKAGE))
-                .isEmpty();
+                .isPresent();
     }
 
     static Optional<ExpressionTree> findVariableInitializer(Symbol.VarSymbol var, VisitorState state) {
