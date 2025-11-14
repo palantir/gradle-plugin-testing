@@ -144,6 +144,10 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                 .orElse(Description.NO_MATCH);
     }
 
+    /// We want to try and catch all methods on `GradleFile` that might edit the file and thus might change the plugins
+    /// block. Rather than just looking at a strict list we look at any method that takes a `String` or `FileEditor`
+    // as
+    /// the first parameter and is called on a `GradleFile` instance.
     private static boolean isMethodWhichCouldAddPluginsManually(MethodInvocationTree tree, VisitorState state) {
         Symbol.MethodSymbol method = ASTHelpers.getSymbol(tree);
         if (method.getParameters().isEmpty()) {
