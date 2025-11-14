@@ -105,10 +105,10 @@ Mark test classes with `@GradlePluginTests` to enable Gradle plugin testing. Thi
 Tests can request these parameters in any order:
 
 - **`GradleInvoker`** - Executes Gradle builds
-- **`RootProject`** - Root project directory and files
-- **`SubProject`** - Named subprojects (name derived from parameter name)
+- **`RootProject`** - Gradle root project that will always be named "root". To use a different project name, call `rootProject.settingsGradle().rootProjectName("custom-name")`
+- **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named "apiService"
 
-Parameters work in `@Test`, `@BeforeEach`, and `@AfterEach` methods.
+These parameters can be used in the constructor for a test class or in `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, or `@AfterAll` methods.
 
 **Example with subprojects:**
 ```java
