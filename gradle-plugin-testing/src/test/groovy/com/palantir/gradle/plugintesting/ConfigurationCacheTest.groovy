@@ -31,11 +31,18 @@ class ConfigurationCacheTest extends ConfigurationCacheSpec {
                 mavenCentral()
                 mavenLocal()
             }
+
+            gradleTestUtils {
+                gradleVersions = ["${version}"]
+            } 
         """.stripIndent(true)
 
         expect:
         def projectVersion = Optional.ofNullable(System.getProperty('projectVersion')).orElseThrow()
         def systemProp = "-P${PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME}=${projectVersion}".toString()
         runTasksWithConfigurationCache("test", systemProp)
+
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
     }
 }

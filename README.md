@@ -125,7 +125,36 @@ class HelloWorldSpec extends IntegrationSpec {
     }
 }
 ```
-The plugin sets default versions to test against, but these can be overridden using the `gradleTestUtils` extension.  e.g.
+
+# Setting Gradle test versions
+
+There are two ways to set which Gradle versions to test against:
+
+### The `gradle/gradle-test-versions.yml` file
+
+By default, all `@GradlePluginsTests` run against the versions specified in `gradle/gradle-test-versions.yml`. Using a yaml file allows excavator to easily roll out minor version bumps, and remove deprecated major versions.
+
+Excavator will continually bump the `major-versions`. Meanwhile, `extra-versions` are kept untouched, and are removed when their respective major version is deprecated.   
+
+To test that your plugin works against a specific Gradle version e.g. 8.8, add it to `extra-versions`. 
+
+```yaml
+major-versions:
+- 8: 8.14.3
+- 9: 9.2.0-rc1
+extra-versions:
+- 8.8
+- 8.14.2
+```
+
+
+### Setting `gradleVersions` in the `gradleTestUtils` extension
+
+> [!WARNING]
+> If you are a Palantir dev, do not set this property! This overrides the config file, and values set here aren't updated by excavator!
+>
+> If you need to test against ext
+
 
 ```groovy
 gradleTestUtils {
@@ -138,3 +167,5 @@ gradleTestUtils {
 The `gradle-plugin-testing` framework provides a modern, Java-based testing approach for Gradle plugins. Built on Gradle TestKit, it features JUnit 5 integration, fluent APIs, and automatic multi-version testing across different Gradle releases.
 
 For detailed information on how to write tests, see the [Testing Guide](docs/testing-guide.md).
+
+

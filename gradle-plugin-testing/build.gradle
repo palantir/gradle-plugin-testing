@@ -5,17 +5,27 @@ apply plugin: 'com.palantir.gradle-plugin-testing'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
     implementation project(':plugin-testing-core')
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
+    implementation 'one.util:streamex'
+
+    annotationProcessor 'org.immutables:value'
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    compileOnlyApi 'org.immutables:value::annotations'
+    compileOnlyApi 'org.immutables:serial'
+
 
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation 'org.spockframework:spock-core'
+    testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 
     testRuntimeOnly 'com.google.guava:guava'
     gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
@@ -54,3 +64,5 @@ tasks.named('test', Test) {
 gradleTestUtils {
     gradleVersions = ['8.14.3']
 }
+
+// apply plugin: GradleVersionsPlugin

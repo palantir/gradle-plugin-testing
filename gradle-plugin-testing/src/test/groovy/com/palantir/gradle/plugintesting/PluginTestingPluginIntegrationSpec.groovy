@@ -17,7 +17,6 @@
 package com.palantir.gradle.plugintesting
 
 import static TestDependencyVersions.resolve
-import com.palantir.gradle.plugintesting.GradleTestVersions
 
 class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
@@ -42,7 +41,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
             apply plugin: 'com.palantir.consistent-versions'
             apply plugin: 'groovy'
-            
+
             repositories {
                 mavenCentral()
                 mavenLocal()
@@ -129,6 +128,24 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         version << GradleTestVersions.gradleVersionsForTests
     }
 
+    def 'fails with helpful error message if gradleVersions not set: #version'() {
+        given: 'No gradle/gradle-test-versions.yml exists, and gradleVersions isnt set in build script'
+        buildFile << '''
+            apply plugin: 'com.palantir.gradle-plugin-testing'
+        '''.stripIndent(true)
+
+        when:
+        gradleVersion = version
+        def result = runTasksWithFailure('test')
+
+        then: 'Helpful error message is raised'
+        result.failure
+        result.standardError.contains("No gradleVersions were set for the PluginTestingExtension. Either set the default versions via gradle/gradle-test-versions.yml, or add overrides via the gradleVersions property")
+
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
+    }
+
     def 'ignoreDeprecations automatically set when plugin applied with version: #version'() {
         given:
         applyTestUtilsPlugin()
@@ -169,9 +186,13 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'works when applied before other plugins with version: #version'() {
         given:
-        prependToBuildFile('''
+        prependToBuildFile("""
             apply plugin: 'com.palantir.gradle-plugin-testing'
-        ''')
+            
+            gradleTestUtils {
+                gradleVersions = ["${version}"]
+            } 
+        """)
 
         when:
         gradleVersion = version
@@ -304,9 +325,13 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     void applyTestUtilsPlugin() {
         //language=gradle
-        buildFile << """
+        buildFile << '''
             apply plugin: 'com.palantir.gradle-plugin-testing'
-        """.stripIndent(true)
+
+            gradleTestUtils {
+                gradleVersions = ["8.13.4"]
+            }
+        '''.stripIndent(true)
     }
 
     File prependToBuildFile(String content) {
