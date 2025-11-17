@@ -128,19 +128,35 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         version << GradleTestVersions.gradleVersionsForTests
     }
 
-    def 'fails with helpful error message if gradleVersions not set: #version'() {
-        given: 'No gradle/gradle-test-versions.yml exists, and gradleVersions isnt set in build script'
-        buildFile << '''
+    def 'use the test driver Gradle version when a version is not set: #version'() {
+        given: 'no gradle/gradle-test-versions.yml exists, and gradleVersions isnt set in build script'
+        buildFile << """
             apply plugin: 'com.palantir.gradle-plugin-testing'
+        """.stripIndent(true)
+
+        // Create a Java test that prints the Gradle version
+        file('src/test/java/com/testing/GradleVersionTest.java') << '''
+            import org.junit.jupiter.api.Test;
+            import org.gradle.util.GradleVersion;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+
+            @GradlePluginTests
+            public class GradleVersionTest {
+                @Test
+                public void testGradleVersion() {
+                    String gradleVersion = GradleVersion.current().getVersion();
+                    System.out.println("Running with Gradle version: " + gradleVersion);
+                }
+            }
         '''.stripIndent(true)
 
         when:
         gradleVersion = version
-        def result = runTasksWithFailure('test')
+        def result = runTasks('test')
 
-        then: 'Helpful error message is raised'
-        result.failure
-        result.standardError.contains("No gradleVersions were set for the PluginTestingExtension. Either set the default versions via gradle/gradle-test-versions.yml, or add overrides via the gradleVersions property")
+        then: 'test runs with the test driver Gradle version'
+        result.success
+        result.standardOutput.contains("Running with Gradle version: ${version}")
 
         where:
         version << GradleTestVersions.gradleVersionsForTests
