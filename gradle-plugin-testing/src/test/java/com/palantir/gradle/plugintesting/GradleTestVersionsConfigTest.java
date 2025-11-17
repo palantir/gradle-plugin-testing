@@ -164,15 +164,13 @@ public class GradleTestVersionsConfigTest {
 
         @Test
         public void handles_non_existent_major_versions() {
-            GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .majorVersion(8, "8.14.2")
-                    .build();
+            GradleTestVersionsConfig config =
+                    GradleTestVersionsConfig.builder().majorVersion(8, "8.14.2").build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(9);
 
-            GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(8, "8.14.2")
-                    .build();
+            GradleTestVersionsConfig expected =
+                    GradleTestVersionsConfig.builder().majorVersion(8, "8.14.2").build();
 
             assertThat(updated).isEqualTo(expected);
         }
