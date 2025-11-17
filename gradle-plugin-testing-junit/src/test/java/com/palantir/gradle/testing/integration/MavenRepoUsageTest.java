@@ -34,11 +34,8 @@ class MavenRepoUsageTest {
     @BeforeEach
     void beforeEach(RootProject root, MavenRepo repo) {
         repo.publish(MavenArtifact.of("com.palantir:service-a:1.0.0"));
-        root.buildGradle().append("""
-            plugins {
-                id 'java-library'
-            }
-            """).withMavenRepo(repo);
+        root.buildGradle().plugins().add("java-library");
+        root.buildGradle().withMavenRepo(repo);
     }
 
     @Test
