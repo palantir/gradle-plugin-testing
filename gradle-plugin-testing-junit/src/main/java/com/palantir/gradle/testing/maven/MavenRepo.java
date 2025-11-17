@@ -55,8 +55,9 @@ public final class MavenRepo {
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public MavenRepo(Path repoDir, GradleVersion gradleVersion) {
-        this.path = repoDir.resolve("repositoryRoot").toAbsolutePath();
-        this.publisher = new MavenRepoPublisher(repoDir.resolve("repositoryPublisherProject"), path, gradleVersion);
+        this.path = repoDir.resolve("localMavenRepository").toAbsolutePath();
+        this.publisher =
+                new MavenRepoPublisher(repoDir.resolve("localMavenRepositoryPublisherProject"), path, gradleVersion);
     }
 
     /**
