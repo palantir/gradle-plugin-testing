@@ -480,7 +480,7 @@ void publish_and_resolve_artifacts(MavenRepo repo, RootProject root, GradleInvok
 }
 ```
 
-The same `MavenRepo` instance is shared across all test methods in a class. Artifacts published in `@BeforeEach` remain available for subsequent tests.
+The `MavenRepo` instance is shared across all test methods in a class. Artifacts published in lifecycle methods (eg. `@BeforeEach`) remain available for subsequent tests.
 
 ## Executing Gradle Builds
 
