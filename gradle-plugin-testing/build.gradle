@@ -41,6 +41,8 @@ gradlePlugin {
 
 tasks.named('test', Test) {
     systemProperty 'projectVersion', project.version
+    // by default the tests should run with configuration cache enabled.
+    systemProperty 'com.palantir.gradle.testing.configuration_cache_enabled', 'true'
 
     // Added as a jar the so in nebula-tests needs to exist in maven local
     dependsOn ':plugin-testing-core:publishToMavenLocal'

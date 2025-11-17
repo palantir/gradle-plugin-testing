@@ -35,6 +35,7 @@ final class GradleVersionsFromJunitParameterTest {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(GradleVersionsFromJunitParameterFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
@@ -51,7 +52,8 @@ final class GradleVersionsFromJunitParameterTest {
         assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
             assertThat(testExecutionResult.getStatus()).isEqualTo(Status.FAILED);
 
-            assertThatTestFailureExceptionMessageContains(testExecutionResult, "GradleVersion: " + gradleVersion);
+            Assertions.assertThatTestFailureExceptionMessageContains(
+                    testExecutionResult, "GradleVersion: " + gradleVersion);
         });
 
         assertThat(Path.of(
@@ -67,13 +69,6 @@ final class GradleVersionsFromJunitParameterTest {
             Event event, String containerDescriptorDisplayName) {
         assertThat(event.getTestDescriptor().getParent()).hasValueSatisfying(desc -> {
             assertThat(desc.getDisplayName()).isEqualTo(containerDescriptorDisplayName);
-        });
-    }
-
-    private static void assertThatTestFailureExceptionMessageContains(
-            TestExecutionResult testExecutionResult, String exceptionFragment) {
-        assertThat(testExecutionResult.getThrowable()).hasValueSatisfying(throwable -> {
-            assertThat(throwable).hasMessageContaining(exceptionFragment);
         });
     }
 }

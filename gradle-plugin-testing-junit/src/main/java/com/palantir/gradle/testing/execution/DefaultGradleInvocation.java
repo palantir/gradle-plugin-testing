@@ -16,17 +16,23 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.nio.file.Path;
+import org.gradle.testkit.runner.GradleRunner;
 
-public interface GradleInvoker {
+public final class DefaultGradleInvocation implements GradleInvocation {
 
-    GradleInvocation withArgs(String... args);
+    private final GradleRunner gradleRunner;
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
-        }
-        return gradleInvoker;
+    public DefaultGradleInvocation(GradleRunner gradleRunner) {
+        this.gradleRunner = gradleRunner;
+    }
+
+    @Override
+    public InvocationResult buildsSuccessfully() {
+        return new InvocationResult(gradleRunner.build());
+    }
+
+    @Override
+    public InvocationResult buildsWithFailure() {
+        return new InvocationResult(gradleRunner.buildAndFail());
     }
 }

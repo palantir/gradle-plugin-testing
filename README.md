@@ -132,3 +132,9 @@ gradleTestUtils {
     gradleVersions = ['7.6.4', '8.8']
 }
 ```
+
+# Gradle Plugin Testing Framework
+
+The `gradle-plugin-testing` framework provides a modern, Java-based testing approach for Gradle plugins. Built on Gradle TestKit, it features JUnit 5 integration, fluent APIs, and automatic multi-version testing across different Gradle releases.
+
+For detailed information on how to write tests, see the [Testing Guide](docs/testing-guide.md).
