@@ -62,7 +62,7 @@ final class MavenRepoPublisher {
                     %s
                 }
                 """.formatted(artifact.dependencies().stream()
-                        .map(dep -> "    api '%s:%s:%s'".formatted(dep.group(), dep.artifact(), dep.version()))
+                        .map(dep -> "    api '%s'".formatted(dep.asString()))
                         .collect(Collectors.joining("\n")));
 
         subproject

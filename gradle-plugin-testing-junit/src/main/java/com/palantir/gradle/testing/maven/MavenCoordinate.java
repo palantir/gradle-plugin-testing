@@ -43,4 +43,8 @@ public record MavenCoordinate(String group, String artifact, String version) {
                 parts.size() == 3, "Coordinate must be in format 'group:artifact:version', got: %s", coordinate);
         return parts;
     }
+
+    public String asString() {
+        return String.format("%s:%s:%s", group, artifact, version);
+    }
 }
