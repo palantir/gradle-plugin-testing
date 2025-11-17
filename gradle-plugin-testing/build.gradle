@@ -17,7 +17,6 @@ dependencies {
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
     compileOnlyApi 'org.immutables:value::annotations'
-    compileOnlyApi 'org.immutables:serial'
 
 
     testImplementation project(':gradle-plugin-testing-junit')
@@ -25,7 +24,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation 'org.spockframework:spock-core'
-    testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 
     testRuntimeOnly 'com.google.guava:guava'
     gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'

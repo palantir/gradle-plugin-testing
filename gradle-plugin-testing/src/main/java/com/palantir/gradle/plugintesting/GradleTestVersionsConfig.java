@@ -18,62 +18,50 @@ package com.palantir.gradle.plugintesting;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import one.util.streamex.EntryStream;
 import one.util.streamex.StreamEx;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@JsonSerialize(as = ImmutableGradleTestVersionsConfig.class)
 @JsonDeserialize(as = ImmutableGradleTestVersionsConfig.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface GradleTestVersionsConfig {
     @JsonProperty("major-versions")
-    @Value.Default
-    default SortedMap<Integer, String> majorVersions() {
-        return new TreeMap<>();
-    }
+    @Value.NaturalOrder
+    SortedMap<Integer, String> majorVersions();
 
     @JsonProperty("extra-versions")
-    @Value.Default
-    default SortedSet<String> extraVersions() {
-        return new TreeSet<>();
-    }
+    @Value.NaturalOrder
+    SortedSet<String> extraVersions();
 
-    final class Builder extends ImmutableGradleTestVersionsConfig.Builder {}
+    final class Builder extends ImmutableGradleTestVersionsConfig.Builder {
+        public Builder majorVersion(int majorVersion, String version) {
+            putMajorVersions(majorVersion, version);
+            return this;
+        }
+
+        public Builder extraVersion(String version) {
+            addExtraVersions(version);
+            return this;
+        }
+    }
 
     static Builder builder() {
         return new Builder();
     }
 
-    static GradleTestVersionsConfig deserialize(Path pathToResource) throws IOException {
-        String content = Files.readString(pathToResource);
-        if (content.trim().isEmpty()) {
-            return builder().build();
-        }
+    GradleTestVersionsConfig withMajorVersions(Map<Integer, ? extends String> entries);
 
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        return objectMapper.readValue(content, new TypeReference<>() {});
-    }
-
-    default GradleTestVersionsConfig withMajorVersion(String newMajorVersion) {
-        int majorVersion = getMajorVersion(newMajorVersion);
-
-        SortedMap<Integer, String> newMajorVersions = new TreeMap<>();
-        newMajorVersions.putAll(this.majorVersions());
-        newMajorVersions.put(majorVersion, newMajorVersion);
-
-        return builder().from(this).majorVersions(newMajorVersions).build();
-    }
+    GradleTestVersionsConfig withExtraVersions(String... elements);
 
     default GradleTestVersionsConfig withoutMajorVersion(int majorVersion) {
         SortedMap<Integer, String> newMajorVersions = EntryStream.of(majorVersions())
@@ -92,7 +80,15 @@ public interface GradleTestVersionsConfig {
                 .build();
     }
 
+    default SortedSet<String> allVersions() {
+        Stream<String> majorVersions = EntryStream.of(this.majorVersions()).values();
+        Stream<String> extraVersions = this.extraVersions().stream();
+        return Stream.concat(majorVersions, extraVersions).collect(Collectors.toCollection(TreeSet::new));
+    }
+
     private static int getMajorVersion(String newMajorVersion) {
-        return Integer.parseInt(newMajorVersion.split("\\.")[0]);
+        int dotIndex = newMajorVersion.indexOf('.');
+        String majorVersionStr = dotIndex == -1 ? newMajorVersion : newMajorVersion.substring(0, dotIndex);
+        return Integer.parseInt(majorVersionStr);
     }
 }
