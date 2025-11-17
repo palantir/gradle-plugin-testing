@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.maven.MavenRepo;
+import java.util.Arrays;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -25,6 +26,16 @@ final class MavenRepoParameterResolver implements TerseParameterResolver {
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         if (parameterContext.getParameter().getType().equals(MavenRepo.class)) {
+            long mavenRepoCount = Arrays.stream(
+                            parameterContext.getDeclaringExecutable().getParameters())
+                    .filter(p -> p.getType().equals(MavenRepo.class))
+                    .count();
+
+            if (mavenRepoCount > 1) {
+                throw new IllegalArgumentException(
+                        "Only one MavenRepo parameter is allowed per test method or lifecycle method");
+            }
+
             return Optional.of(MavenRepoStore.mavenRepo(extensionContext));
         }
 
