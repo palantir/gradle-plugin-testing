@@ -31,34 +31,14 @@ import java.util.stream.Collectors;
 final class MavenRepoPublisher {
     private final RootProject rootProject;
     private final GradleInvoker gradleInvoker;
+    private final Path mavenRepoUrl;
 
     MavenRepoPublisher(Path projectRoot, Path mavenRepoUrl, GradleVersion gradleVersion) {
         this.rootProject = new RootProject(projectRoot);
         this.gradleInvoker = new GradleInvoker(projectRoot, gradleVersion);
+        this.mavenRepoUrl = mavenRepoUrl;
 
         rootProject.settingsGradle().rootProjectName("maven-repo-publisher");
-
-        rootProject.buildGradle().overwrite("""
-            subprojects {
-                apply plugin: 'java-library'
-                apply plugin: 'maven-publish'
-
-                repositories {
-                    maven {
-                        url = '%s'
-                    }
-                    mavenCentral()
-                }
-
-                publishing {
-                    repositories {
-                        maven {
-                            url = '%s'
-                        }
-                    }
-                }
-            }
-            """, mavenRepoUrl, mavenRepoUrl);
     }
 
     void publish(List<MavenArtifact> artifacts) {
@@ -87,20 +67,40 @@ final class MavenRepoPublisher {
 
         subproject
                 .buildGradle()
-                .overwrite("""
-                    group = '%s'
-                    version = '%s'
+                .overwrite(
+                        """
+                        group = '%s'
+                        version = '%s'
 
-                    %s
-                    publishing {
-                        publications {
-                            maven(MavenPublication) {
-                                artifactId = '%s'
-                                from components.java
+                        repositories {
+                            maven {
+                                url = '%s'
+                            }
+                            mavenCentral()
+                        }
+
+                        %s
+                        publishing {
+                            repositories {
+                                maven {
+                                    url = '%s'
+                                }
+                            }
+                            publications {
+                                maven(MavenPublication) {
+                                    artifactId = '%s'
+                                    from components.java
+                                }
                             }
                         }
-                    }
-                    """, coordinate.group(), coordinate.version(), dependenciesBlock, coordinate.artifact());
+                        """,
+                        coordinate.group(),
+                        coordinate.version(),
+                        mavenRepoUrl,
+                        dependenciesBlock,
+                        mavenRepoUrl,
+                        coordinate.artifact());
+        subproject.buildGradle().plugins().add("java-library").add("maven-publish");
     }
 
     private static String subprojectName(MavenCoordinate coordinate) {
