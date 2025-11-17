@@ -59,7 +59,6 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
             List.of("plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit");
 
     public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting", "GradleTestPluginsBlock");
-    public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting");
     public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";

@@ -16,11 +16,19 @@
 
 package com.palantir.gradle.plugintesting;
 
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.util.GradleVersion;
 
 public abstract class PluginTestingExtension {
     public static final String EXTENSION_NAME = "gradleTestUtils";
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     /**
      * Whether to set the ignoreDeprecations system property when running tests.  This is for nebula tests that will
@@ -44,8 +52,9 @@ public abstract class PluginTestingExtension {
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
         getConfigurationCacheEnabled().convention(false);
-        // TODO(#XXX): Should this be the latest gradle 8, or maybe whatever this plugin is compiled against?
-        // or is this the set of "milestone" versions and we dynamically add the version of the consuming project?
-        getGradleVersions().convention(GradleTestVersions.DEFAULT_TEST_GRADLE_VERSIONS);
+
+        Provider<Set<String>> testDriverGradleVersion = getProviderFactory()
+                .provider(() -> Set.of(GradleVersion.current().getVersion()));
+        getGradleVersions().convention(testDriverGradleVersion);
     }
 }
