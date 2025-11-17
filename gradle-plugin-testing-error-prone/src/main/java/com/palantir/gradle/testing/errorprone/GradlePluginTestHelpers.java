@@ -21,10 +21,16 @@ import com.google.errorprone.matchers.Matcher;
 import com.google.errorprone.matchers.Matchers;
 import com.google.errorprone.util.ASTHelpers;
 import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.util.TreePath;
+import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import java.util.Optional;
+import one.util.streamex.StreamEx;
 
 public final class GradlePluginTestHelpers {
     private static final Matcher<Tree> WITHIN_GRADLE_PLUGIN_TESTS_CLASS = Matchers.enclosingNode(Matchers.allOf(
@@ -33,16 +39,59 @@ public final class GradlePluginTestHelpers {
 
     private static final String LIBRARY_PACKAGE = "com.palantir.gradle.testing.";
 
-    static boolean notWithinGradlePluginTests(Tree tree, VisitorState state) {
-        return !WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
+    static boolean isWithinGradlePluginTests(Tree tree, VisitorState state) {
+        return WITHIN_GRADLE_PLUGIN_TESTS_CLASS.matches(tree, state);
     }
 
-    static boolean isGradlePluginTestsLibraryMethod(MethodInvocationTree tree, VisitorState state) {
+    static boolean isGradlePluginTestsLibraryMethod(MethodInvocationTree tree) {
         return Optional.ofNullable(ASTHelpers.getSymbol(tree))
                 .map(Symbol.MethodSymbol::enclClass)
                 .map(classSymbol -> classSymbol.getQualifiedName().toString())
                 .filter(className -> className.startsWith(LIBRARY_PACKAGE))
                 .isPresent();
+    }
+
+    static Optional<ExpressionTree> findVariableInitializer(Symbol.VarSymbol var, VisitorState state) {
+        JavacProcessingEnvironment javacEnv = JavacProcessingEnvironment.instance(state.context);
+        return StreamEx.ofNullable(Trees.instance(javacEnv).getPath(var))
+                .filter(declPath ->
+                        declPath.getCompilationUnit() == state.getPath().getCompilationUnit())
+                .map(TreePath::getLeaf)
+                .select(VariableTree.class)
+                .map(VariableTree::getInitializer)
+                .findFirst();
+    }
+
+    static boolean hasFormatMethodOverload(MethodInvocationTree tree, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
+                .map(methodSymbol -> hasFormatOverloadInClass(methodSymbol, state))
+                .orElse(false);
+    }
+
+    static boolean isFormatMethodInvocation(MethodInvocationTree tree, VisitorState state) {
+        return Optional.ofNullable(ASTHelpers.getSymbol(tree))
+                .filter(method ->
+                        ASTHelpers.hasAnnotation(method, "com.google.errorprone.annotations.FormatMethod", state))
+                .filter(method -> hasFormatStringParameter(method, state))
+                .isPresent();
+    }
+
+    private static boolean hasFormatOverloadInClass(Symbol.MethodSymbol methodSymbol, VisitorState state) {
+        String methodName = methodSymbol.getSimpleName().toString();
+        Symbol.ClassSymbol classSymbol = methodSymbol.enclClass();
+
+        return StreamEx.of(classSymbol.members().getSymbols().spliterator())
+                .select(Symbol.MethodSymbol.class)
+                .filter(method -> method.getSimpleName().toString().equals(methodName))
+                .filter(method ->
+                        ASTHelpers.hasAnnotation(method, "com.google.errorprone.annotations.FormatMethod", state))
+                .anyMatch(method -> hasFormatStringParameter(method, state));
+    }
+
+    private static boolean hasFormatStringParameter(Symbol.MethodSymbol method, VisitorState state) {
+        return method.getParameters().stream()
+                .anyMatch(param ->
+                        ASTHelpers.hasAnnotation(param, "com.google.errorprone.annotations.FormatString", state));
     }
 
     private GradlePluginTestHelpers() {}
