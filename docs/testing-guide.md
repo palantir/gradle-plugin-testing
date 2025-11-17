@@ -467,8 +467,9 @@ void publish_and_resolve_artifacts(MavenRepo repo, RootProject root, GradleInvok
             .build()
     );
 
-    // Configure build to use the repository
     root.buildGradle().plugins().add("java-library");
+    
+    // Configure build to use the repository
     root.buildGradle().withMavenRepo(repo);
     root.buildGradle().append("""
         dependencies {
