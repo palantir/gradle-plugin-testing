@@ -483,8 +483,10 @@ void incompatible_configuration_cache_build(GradleInvoker gradle, RootProject pr
 }
 ```
 
-Or disable for an entire test class:
+Or 
+
 ```java
+// Disable for an entire test class
 @DisabledConfigurationCache(reason="tasks abc, def are incompatible with configuration cache")
 @GradlePluginTests
 class PluginIncompatibleWithConfigCache {
