@@ -16,18 +16,37 @@
 
 package com.palantir.gradle.testing.files;
 
+import com.palantir.gradle.testing.files.arbitrary.ArbitraryDirectory;
 import com.palantir.gradle.testing.files.arbitrary.ArbitraryFile;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import com.palantir.gradle.testing.files.gradle.RegularGradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import com.palantir.gradle.testing.files.yaml.YamlFile;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import org.assertj.core.api.AbstractPathAssert;
+import org.assertj.core.api.Assertions;
 
-public interface FileFactory {
+public interface Directory {
     Path path();
+
+    default Directory createDirectories() {
+        try {
+            Files.createDirectories(path());
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to ensure directory at %s exists".formatted(path()), e);
+        }
+        return this;
+    }
 
     default ArbitraryFile file(String path) {
         return new ArbitraryFile(resolvePath(path));
+    }
+
+    default Directory directory(String path) {
+        return new ArbitraryDirectory(resolvePath(path));
     }
 
     default GradleFile gradleFile(String path) {
@@ -40,6 +59,10 @@ public interface FileFactory {
 
     default PropertiesFile propertiesFile(String path) {
         return new PropertiesFile(resolvePath(path));
+    }
+
+    default AbstractPathAssert<?> assertThat() {
+        return Assertions.assertThat(path());
     }
 
     private Path resolvePath(String path) {

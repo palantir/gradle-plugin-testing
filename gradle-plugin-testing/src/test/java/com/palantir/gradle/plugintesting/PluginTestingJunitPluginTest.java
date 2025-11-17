@@ -32,12 +32,14 @@ class PluginTestingJunitPluginTest {
                 .gradlePropertiesFile()
                 .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
 
-        rootProject.buildGradle().append("""
-            plugins {
-                id 'com.palantir.gradle-plugin-testing'
-                id 'java-gradle-plugin'
-            }
+        rootProject
+                .buildGradle()
+                .plugins()
+                .add("com.palantir.gradle-plugin-testing")
+                .add("java-gradle-plugin")
+                .add("com.palantir.consistent-versions");
 
+        rootProject.buildGradle().append("""
             repositories {
                 mavenCentral()
                 mavenLocal()
@@ -56,6 +58,65 @@ class PluginTestingJunitPluginTest {
                 gradleVersions = ['7.6.5', '8.14.3']
             }
             """);
+
+        rootProject.file("versions.lock").createEmpty();
+    }
+
+    @Test
+    void can_add_external_gradle_plugins_for_testing(GradleInvoker gradleInvoker, RootProject rootProject) {
+
+        rootProject.buildGradle().append("""
+            dependencies {
+                gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging'
+            }
+            """);
+
+        rootProject.propertiesFile("versions.props").appendProperty("com.palantir.sls-packaging:*", "7.84.0");
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.execution.GradleInvoker;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.project.RootProject;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            class TestClass {
+                @Test
+                void testMethod(GradleInvoker gradle, RootProject rootProject) {
+
+                    rootProject.buildGradle().plugins().add("com.palantir.sls-asset-distribution");
+                    rootProject.buildGradle().append(\"""
+                        def pluginVersion = plugins.getPlugin('com.palantir.sls-asset-distribution').getClass().package.implementationVersion
+                        println "plugin version: $pluginVersion"
+                        ""\");
+
+                    gradle.withArgs().buildsSuccessfully().assertThat().output().contains("plugin version: 7.84.0");
+                }
+            }
+            """);
+
+        gradleInvoker.withArgs("test").buildsSuccessfully();
+    }
+
+    @Test
+    void confirm_gradlePluginForTesting_is_locked(GradleInvoker gradleInvoker, RootProject rootProject) {
+
+        rootProject.buildGradle().append("""
+            dependencies {
+                gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging'
+            }
+            """);
+
+        rootProject.propertiesFile("versions.props").appendProperty("com.palantir.sls-packaging:*", "7.84.0");
+
+        gradleInvoker.withArgs("writeVersionsLock").buildsSuccessfully();
+        rootProject
+                .file("versions.lock")
+                .assertThat()
+                .content()
+                .containsSubsequence("[Test dependencies]", "com.palantir.sls-packaging:gradle-sls-packaging:7.84.0");
     }
 
     @Test
@@ -101,11 +162,7 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildGradle().prepend("""
-            plugins {
-                id 'net.ltgt.errorprone'
-            }
-            """);
+        rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 
         rootProject.buildGradle().append("""
             dependencies {

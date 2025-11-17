@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.palantir.gradle.testing.assertion.InvocationResultAssert;
 import java.util.Optional;
 import org.gradle.testkit.runner.BuildResult;
 
@@ -32,5 +33,19 @@ public final class InvocationResult {
 
     public Optional<TaskResult> task(String taskPath) {
         return Optional.ofNullable(buildResult.task(taskPath)).map(TaskResult::new);
+    }
+
+    /**
+     * Returns an assertion object for fluent assertion chaining.
+     * <p>
+     * Usage:
+     * <pre>
+     * invocationResult.assertThat().task(":myTask").outcome().succeeded()
+     *
+     * invocationResult.assertThat().output().contains("BUILD SUCCESSFUL");
+     * </pre>
+     */
+    public InvocationResultAssert assertThat() {
+        return new InvocationResultAssert(this);
     }
 }

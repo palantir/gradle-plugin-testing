@@ -18,7 +18,7 @@ package com.palantir.gradle.testing.project;
 
 import com.google.common.base.Preconditions;
 import com.palantir.gradle.testing.files.BuildDir;
-import com.palantir.gradle.testing.files.FileFactory;
+import com.palantir.gradle.testing.files.Directory;
 import com.palantir.gradle.testing.files.GradleSourceSet;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 import java.io.IOException;
@@ -26,7 +26,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface GradleProject extends FileFactory {
+public interface GradleProject extends Directory {
     @Override
     Path path();
 
