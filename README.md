@@ -221,10 +221,7 @@ class MyPluginTest {
 
 ### The `@GradlePluginTests` Annotation
 
-Mark test classes with `@GradlePluginTests` to enable Gradle plugin testing. This automatically:
-- Creates isolated project directories for each test
-- Runs tests against multiple Gradle versions read from the `PluginTestingExtension` see [Multi-Version Testing](#multi-version-testing)
-- Provides parameter injection for test infrastructure
+Mark test classes with `@GradlePluginTests` to enable Gradle plugin testing.
 
 ### Parameter Injection
 
