@@ -465,9 +465,7 @@ void successful_build(GradleInvoker gradle, RootProject project) {
 
 ### Environment Variables
 
-Setting environment variables directly in tests is highly dangerous. Gradle TestKit's `withEnvironment()` [does not work unless the Gradle invocation is forked](https://github.com/gradle/gradle/blob/bcc7647dcec3e0c24a69afdb88bbeecc999cdfcb/platforms/extensibility/test-kit/src/main/java/org/gradle/testkit/runner/internal/DefaultGradleRunner.java#L327-L331), which means tests will fail when run under debug or with coverage (as these run in-process). This leads to tests that pass in CI but cannot be debugged locally.
-
-Instead, use [`gradle-utils:environment-variables`](https://github.com/palantir/gradle-utils) which provides a testing-friendly way to access environment variables via Gradle properties.
+Use [`gradle-utils:environment-variables`](https://github.com/palantir/gradle-utils) which provides a testing-friendly way to access environment variables via Gradle properties.
 
 In your plugin, use `EnvironmentVariables` to read environment variables:
 
