@@ -97,7 +97,7 @@ Tests can request these parameters in any order:
 
 - **`GradleInvoker`** - Executes Gradle builds
 - **`RootProject`** - Gradle root project that will always be named "root". To use a different project name, call `rootProject.settingsGradle().rootProjectName("custom-name")`
-- **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named "apiService"
+- **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named `apiService`
 
 These parameters can be used in the constructor for a test class or in `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, or `@AfterAll` methods.
 
