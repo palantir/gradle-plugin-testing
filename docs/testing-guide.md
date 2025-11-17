@@ -24,8 +24,10 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [Arbitrary Files](#arbitrary-files)
     - [Directories](#directories)
     - [Build Directory](#build-directory)
+- [Maven Repository Testing](#maven-repository-testing)
 - [Executing Gradle Builds](#executing-gradle-builds)
     - [Basic Execution](#basic-execution)
+    - [Running builds with Configuration Cache enabled](#running-builds-with-configuration-cache-enabled)
     - [Environment Variables](#environment-variables)
 - [Assertions](#assertions)
     - [Fluent Assertion API](#fluent-assertion-api)
@@ -98,6 +100,7 @@ Tests can request these parameters in any order:
 - **`GradleInvoker`** - Executes Gradle builds
 - **`RootProject`** - Gradle root project that will always be named "root". To use a different project name, call `rootProject.settingsGradle().rootProjectName("custom-name")`
 - **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named `apiService`
+- **`MavenRepo`** - Maven repository for publishing test artifacts. See [Maven Repository Testing](#maven-repository-testing)
 
 These parameters can be used in the constructor for a test class or in `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, or `@AfterAll` methods.
 
@@ -443,6 +446,41 @@ void access_build_output(GradleInvoker gradle, RootProject project) {
 ```
 
 **Note:** `buildDir()` returns a `Directory`, so you can use all directory methods like `file()`, `directory()`, etc.
+
+## Maven Repository Testing
+
+Use `MavenRepo` to publish test artifacts to a local Maven repository for testing plugins that resolve external dependencies.
+
+```java
+@Test
+void publish_and_resolve_artifacts(MavenRepo repo, RootProject root, GradleInvoker gradle) {
+    // Publish simple artifacts
+    repo.publish(MavenArtifact.of("com.example:library:1.0.0"));
+
+    // Publish artifacts with dependencies
+    repo.publish(
+        MavenArtifact.of("com.example:base:1.0.0"),
+        MavenArtifact.builder()
+            .coordinate("com.example:advanced:2.0.0")
+            .addDependency("com.example:base:1.0.0")
+            .addDependency("com.google.guava:guava:32.1.0-jre")
+            .build()
+    );
+
+    // Configure build to use the repository
+    root.buildGradle().plugins().add("java-library");
+    root.buildGradle().withMavenRepo(repo);
+    root.buildGradle().append("""
+        dependencies {
+            implementation 'com.example:advanced:2.0.0'
+        }
+        """);
+
+    gradle.withArgs("build").buildsSuccessfully();
+}
+```
+
+The same `MavenRepo` instance is shared across all test methods in a class. Artifacts published in `@BeforeEach` remain available for subsequent tests.
 
 ## Executing Gradle Builds
 
