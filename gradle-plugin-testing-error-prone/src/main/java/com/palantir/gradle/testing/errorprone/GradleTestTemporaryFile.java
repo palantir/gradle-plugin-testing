@@ -56,7 +56,7 @@ public final class GradleTestTemporaryFile extends BugChecker
             return Description.NO_MATCH;
         }
 
-        if (GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
+        if (!GradlePluginTestHelpers.isWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 
@@ -69,7 +69,7 @@ public final class GradleTestTemporaryFile extends BugChecker
             return Description.NO_MATCH;
         }
 
-        if (GradlePluginTestHelpers.notWithinGradlePluginTests(tree, state)) {
+        if (!GradlePluginTestHelpers.isWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 
