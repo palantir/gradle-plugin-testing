@@ -106,26 +106,6 @@ dependencies {
 # Resolution of Gradle versions to test against
 Similarly, tests may hardcode versions of Gradle that they need to stay compatible with. These versions also get stale and PRs start failing for the inverse reason of the above - the code in the plugin or a dependency of it is updated and is no longer compatible with an old version of Gradle. For example, attempting to update jackson libraries from `2.15.0` -> `2.17.0` would fail if a test tried to run on Gradle versiosn < `7.6.4` (when compatibility with jackson `2.17.0` was fixed).
 
-The `GradleTestVersions` class can provide up-to-date versions of Gradle to test against.  
-```groovy
-import nebula.test.IntegrationSpec
-import com.palantir.gradle.plugintesting.GradleTestVersions
-
-class HelloWorldSpec extends IntegrationSpec {
-    def 'runs on version of gradle: #version'() {
-        when:
-        gradleVersion = version
-
-        then:
-        def result = runTasks('someTask')
-        result.success
-
-        where:
-        version << GradleTestVersions.gradleVersionsForTests
-    }
-}
-```
-
 ## Setting Gradle test versions
 
 There are two ways to set which Gradle versions to test against:
@@ -162,6 +142,35 @@ This will merge with the what's set in the config file.
 
 > [!INFO]
 > This is deprecated as the config file is the desired source of truth here.
+
+## Accessing Gradle test versions
+
+### Java tests with `@GradlePluginTests`
+
+Tests annotated with `@GradlePluginTests` automatically run with all the versions specified in the config file. 
+
+### [Deprecated] Groovy tests with spock e.g. `IntegrationSpec`
+
+Access Gradle test versions via the `GradleTestVersions#gradleVersionForTests` method
+
+```groovy
+import nebula.test.IntegrationSpec
+import com.palantir.gradle.plugintesting.GradleTestVersions
+
+class HelloWorldSpec extends IntegrationSpec {
+    def 'runs on version of gradle: #version'() {
+        when:
+        gradleVersion = version
+
+        then:
+        def result = runTasks('someTask')
+        result.success
+
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
+    }
+}
+```
 
 # Gradle Plugin Testing Framework
 

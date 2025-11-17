@@ -162,9 +162,63 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         version << GradleTestVersions.gradleVersionsForTests
     }
 
+    def 'use Gradle versions from both config file and extension'() {
+        given: 'gradle/gradle-test-versions.yml exists, and sets both major and extra versions'
+        file('gradle/gradle-test-versions.yml') << '''
+           major-versions:
+             8: 8.14.2
+           extra-versions:
+           - 7.6
+        '''.stripIndent(true)
+
+        and: 'gradleVersions is set in build script'
+        buildFile << """
+            apply plugin: 'com.palantir.gradle-plugin-testing'
+
+            gradleTestUtils {
+                gradleVersions = ["8.8"]
+            }
+        """.stripIndent(true)
+
+        when: 'running GradlePluginTests'
+        file('src/test/java/com/testing/GradleVersionTest.java') << '''
+            package test;
+
+            import com.palantir.gradle.testing.execution.GradleInvoker;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.project.RootProject;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            public class GradleVersionTest {
+                @Test
+                public void testGradleVersion(GradleInvoker gradle, RootProject rootProject) {
+                    rootProject.buildGradle().append("""
+                        import org.gradle.util.GradleVersion;
+                        println("Running with Gradle version: " + GradleVersion.current().getVersion());
+                    """);
+
+                    String output = gradle.withArgs().buildsSuccessfully().output();
+                    System.out.println(output);
+                }
+            }
+        '''.stripIndent(true)
+        gradleVersion = version
+        def result = runTasks('test')
+
+        then: 'test runs with versions from both config file and extension'
+        result.success
+        result.standardOutput.contains("Running with Gradle version: 8.14.2")
+        result.standardOutput.contains("Running with Gradle version: 8.8")
+        result.standardOutput.contains("Running with Gradle version: 7.6")
+
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
+    }
+
     def 'ignoreDeprecations automatically set when plugin applied with version: #version'() {
         given:
-        applyTestUtilsPlugin(version)
+        applyTestUtilsPlugin()
 
         when:
         gradleVersion = version
@@ -180,7 +234,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'do not set ignoreDeprecations with version: #version'() {
         given:
-        applyTestUtilsPlugin(version)
+        applyTestUtilsPlugin()
         buildFile << """
             gradleTestUtils {
                 ignoreGradleDeprecations = false
@@ -223,7 +277,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'resolve dependencies with version: #version'() {
         given:
-        applyTestUtilsPlugin(version)
+        applyTestUtilsPlugin()
         specUnderTest.text = specUnderTest.text
             .replace('//INSERT IMPORTS HERE', '''
                 import static com.palantir.gradle.plugintesting.TestDependencyVersions.resolve
@@ -251,7 +305,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'override gradle testing versions with version: #version'() {
         given:
-        applyTestUtilsPlugin(version)
+        applyTestUtilsPlugin()
         buildFile << """
             gradleTestUtils {
                 gradleVersions = ['7.6.4', '8.10.1']
@@ -310,7 +364,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
             apply plugin: 'com.palantir.baseline-exact-dependencies'
         """)
-        applyTestUtilsPlugin(version)
+        applyTestUtilsPlugin()
 
 
         //Setup java source file that uses guava.  Just need this so checkUnusedDependencies doesn't throw an error
@@ -339,14 +393,10 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         version << GradleTestVersions.gradleVersionsForTests
     }
 
-    void applyTestUtilsPlugin(String version) {
+    void applyTestUtilsPlugin() {
         //language=gradle
         buildFile << """
             apply plugin: 'com.palantir.gradle-plugin-testing'
-
-            gradleTestUtils {
-                gradleVersions = ["${version}"]
-            }
         """.stripIndent(true)
     }
 

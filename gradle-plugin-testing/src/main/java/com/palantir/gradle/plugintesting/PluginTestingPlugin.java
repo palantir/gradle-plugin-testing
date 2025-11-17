@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.collect.ImmutableSet;
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorProneExtension;
@@ -29,7 +30,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
-import one.util.streamex.StreamEx;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -128,9 +128,21 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             testDependenciesFileAbsolutePath.get());
 
                     // add system property for what versions of gradle should be used in tests
-                    Provider<Set<String>> gradleTestVersions = combineGradleTestVersions(
-                            readGradleTestingVersionsConfigFile(), testUtilsExt.getGradleVersions());
-                    String versions = String.join(",", gradleTestVersions.get());
+                    Set<String> versionsFromConfig =
+                            readGradleTestingVersionsConfigFile().getOrElse(Set.of());
+                    Set<String> versionsFromExtension =
+                            testUtilsExt.getGradleVersions().get();
+                    Set<String> gradleTestVersions = ImmutableSet.<String>builder()
+                            .addAll(versionsFromConfig)
+                            .addAll(versionsFromExtension)
+                            .build();
+                    if (gradleTestVersions.isEmpty()) {
+                        throw new IllegalStateException(
+                                "No gradleVersions were set for the PluginTestingExtension. Either set the default"
+                                        + " versions via gradle/gradle-test-versions.yml, or add overrides via the"
+                                        + " gradleVersions property");
+                    }
+                    String versions = String.join(",", gradleTestVersions);
                     test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
 
                     // add system property for whether to use configuration-cache by default in tests
@@ -225,38 +237,21 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
         });
     }
 
-    private Provider<Set<String>> combineGradleTestVersions(
-            Provider<Set<String>> versionsFromConfigFile, Provider<Set<String>> versionsFromExtension) {
-
-        Provider<Set<String>> configOrEmpty = versionsFromConfigFile.orElse(Set.of());
-        Provider<Set<String>> extensionOrEmpty = versionsFromExtension.orElse(Set.of());
-
-        return configOrEmpty.zip(extensionOrEmpty, (config, extension) -> {
-            Set<String> combined = StreamEx.of(config).append(extension).toSet();
-            if (combined.isEmpty()) {
-                throw new IllegalStateException(
-                        "No gradleVersions were set for the PluginTestingExtension. Either set the default versions via"
-                                + " gradle/gradle-test-versions.yml, or add overrides via the gradleVersions property");
-            }
-            return combined;
-        });
-    }
-
     private Provider<Set<String>> readGradleTestingVersionsConfigFile() {
         // If the config file doesn't exist, the user has to set `gradleVersions {}` in the build script
         RegularFile testVersionsConfigPath =
                 getProjectLayout().getProjectDirectory().file("gradle/gradle-test-versions.yml");
 
-        Provider<String> yamlString =
-                getProviderFactory().fileContents(testVersionsConfigPath).getAsText();
-
-        Provider<GradleTestVersionsConfig> config = yamlString.map(text -> {
-            try {
-                return YAML_MAPPER.readValue(text, new TypeReference<>() {});
-            } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException(e);
-            }
-        });
+        Provider<GradleTestVersionsConfig> config = getProviderFactory()
+                .fileContents(testVersionsConfigPath)
+                .getAsText()
+                .map(text -> {
+                    try {
+                        return YAML_MAPPER.readValue(text, new TypeReference<>() {});
+                    } catch (JsonProcessingException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                });
         return config.map(GradleTestVersionsConfig::allVersions);
     }
 }

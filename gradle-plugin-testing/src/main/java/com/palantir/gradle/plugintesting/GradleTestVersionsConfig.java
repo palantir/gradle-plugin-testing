@@ -20,12 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import java.util.Map;
+import com.google.common.collect.ImmutableSortedSet;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import one.util.streamex.EntryStream;
 import one.util.streamex.StreamEx;
 import org.immutables.value.Value;
@@ -43,35 +41,18 @@ public interface GradleTestVersionsConfig {
     @Value.NaturalOrder
     SortedSet<String> extraVersions();
 
-    final class Builder extends ImmutableGradleTestVersionsConfig.Builder {
-        public Builder majorVersion(int majorVersion, String version) {
-            putMajorVersions(majorVersion, version);
-            return this;
-        }
-
-        public Builder extraVersion(String version) {
-            addExtraVersions(version);
-            return this;
-        }
-    }
+    final class Builder extends ImmutableGradleTestVersionsConfig.Builder {}
 
     static Builder builder() {
         return new Builder();
     }
-
-    GradleTestVersionsConfig withMajorVersions(Map<Integer, ? extends String> entries);
-
-    GradleTestVersionsConfig withExtraVersions(String... elements);
 
     default GradleTestVersionsConfig withoutMajorVersion(int majorVersion) {
         SortedMap<Integer, String> newMajorVersions = EntryStream.of(majorVersions())
                 .filterKeys(maj -> maj != majorVersion)
                 .toSortedMap();
         SortedSet<String> newExtraVersions = StreamEx.of(extraVersions())
-                .filter(version -> {
-                    int versionMajor = getMajorVersion(version);
-                    return versionMajor != majorVersion;
-                })
+                .filter(version -> getMajorVersion(version) != majorVersion)
                 .toCollection(TreeSet::new);
         return builder()
                 .from(this)
@@ -81,9 +62,10 @@ public interface GradleTestVersionsConfig {
     }
 
     default SortedSet<String> allVersions() {
-        Stream<String> majorVersions = EntryStream.of(this.majorVersions()).values();
-        Stream<String> extraVersions = this.extraVersions().stream();
-        return Stream.concat(majorVersions, extraVersions).collect(Collectors.toCollection(TreeSet::new));
+        return ImmutableSortedSet.<String>naturalOrder()
+                .addAll(majorVersions().values())
+                .addAll(extraVersions())
+                .build();
     }
 
     private static int getMajorVersion(String newMajorVersion) {

@@ -17,18 +17,12 @@
 package com.palantir.gradle.plugintesting;
 
 import java.util.Set;
-import javax.inject.Inject;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.util.GradleVersion;
 
 public abstract class PluginTestingExtension {
     public static final String EXTENSION_NAME = "gradleTestUtils";
-
-    @Inject
-    protected abstract ProviderFactory getProviderFactory();
 
     /**
      * Whether to set the ignoreDeprecations system property when running tests.  This is for nebula tests that will
@@ -53,8 +47,7 @@ public abstract class PluginTestingExtension {
         getIgnoreGradleDeprecations().convention(true);
         getConfigurationCacheEnabled().convention(false);
 
-        Provider<Set<String>> testDriverGradleVersion = getProviderFactory()
-                .provider(() -> Set.of(GradleVersion.current().getVersion()));
+        Set<String> testDriverGradleVersion = Set.of(GradleVersion.current().getVersion());
         getGradleVersions().convention(testDriverGradleVersion);
     }
 }

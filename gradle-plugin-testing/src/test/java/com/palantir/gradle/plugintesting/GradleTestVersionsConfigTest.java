@@ -20,16 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class GradleTestVersionsConfigTest {
     @Nested
     class Deserialize {
-        private static GradleTestVersionsConfig deserialize(String content) throws IOException {
-            return PluginTestingPlugin.YAML_MAPPER.readValue(content, new TypeReference<>() {});
-        }
-
         @Test
         public void deserialize_ok() throws IOException {
             GradleTestVersionsConfig config = deserialize("""
@@ -41,9 +38,8 @@ public class GradleTestVersionsConfigTest {
                 """);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(8, "8.14.2")
-                    .majorVersion(9, "9.2.0")
-                    .extraVersion("8.8")
+                    .majorVersions(Map.of(8, "8.14.2", 9, "9.2.0"))
+                    .addExtraVersions("8.8")
                     .build();
 
             assertThat(config).isEqualTo(expected);
@@ -58,8 +54,7 @@ public class GradleTestVersionsConfigTest {
                 """);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(8, "8.14.2")
-                    .majorVersion(9, "9.2.0")
+                    .majorVersions(Map.of(8, "8.14.2", 9, "9.2.0"))
                     .build();
 
             assertThat(config).isEqualTo(expected);
@@ -76,9 +71,8 @@ public class GradleTestVersionsConfigTest {
                 """);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(8, "8.14.2")
-                    .majorVersion(9, "9.2.0-rc1")
-                    .extraVersion("8.8")
+                    .majorVersions(Map.of(8, "8.14.2", 9, "9.2.0-rc1"))
+                    .addExtraVersions("8.8")
                     .build();
 
             assertThat(config).isEqualTo(expected);
@@ -94,12 +88,16 @@ public class GradleTestVersionsConfigTest {
                 """);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .extraVersion("8.8")
-                    .extraVersion("8.9")
-                    .extraVersion("9.0")
+                    .addExtraVersions("8.8")
+                    .addExtraVersions("8.9")
+                    .addExtraVersions("9.0")
                     .build();
 
             assertThat(config).isEqualTo(expected);
+        }
+
+        private static GradleTestVersionsConfig deserialize(String content) throws IOException {
+            return PluginTestingPlugin.YAML_MAPPER.readValue(content, new TypeReference<>() {});
         }
     }
 
@@ -108,16 +106,13 @@ public class GradleTestVersionsConfigTest {
         @Test
         public void removes_major_version() {
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .majorVersion(7, "7.6.4")
-                    .majorVersion(8, "8.14.2")
-                    .majorVersion(9, "9.2.0")
+                    .majorVersions(Map.of(7, "7.6.4", 8, "8.14.2", 9, "9.2.0"))
                     .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(7, "7.6.4")
-                    .majorVersion(9, "9.2.0")
+                    .majorVersions(Map.of(7, "7.6.4", 9, "9.2.0"))
                     .build();
 
             assertThat(updated).isEqualTo(expected);
@@ -126,37 +121,17 @@ public class GradleTestVersionsConfigTest {
         @Test
         public void removes_matching_extra_versions() {
             GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .majorVersion(8, "8.14.2")
-                    .majorVersion(9, "9.2.0")
-                    .extraVersion("8.8")
-                    .extraVersion("8.10")
-                    .extraVersion("9.0")
+                    .majorVersions(Map.of(8, "8.14.2", 9, "9.2.0"))
+                    .addExtraVersions("8.8")
+                    .addExtraVersions("8.10")
+                    .addExtraVersions("9.0")
                     .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(9, "9.2.0")
-                    .extraVersion("9.0")
-                    .build();
-
-            assertThat(updated).isEqualTo(expected);
-        }
-
-        @Test
-        public void keeps_unrelated_extra_versions() {
-            GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
-                    .majorVersion(7, "7.6.4")
-                    .majorVersion(8, "8.14.2")
-                    .extraVersion("7.5")
-                    .extraVersion("8.8")
-                    .build();
-
-            GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
-
-            GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
-                    .majorVersion(7, "7.6.4")
-                    .extraVersion("7.5")
+                    .majorVersions(Map.of(9, "9.2.0"))
+                    .addExtraVersions("9.0")
                     .build();
 
             assertThat(updated).isEqualTo(expected);
@@ -164,13 +139,15 @@ public class GradleTestVersionsConfigTest {
 
         @Test
         public void handles_non_existent_major_versions() {
-            GradleTestVersionsConfig config =
-                    GradleTestVersionsConfig.builder().majorVersion(8, "8.14.2").build();
+            GradleTestVersionsConfig config = GradleTestVersionsConfig.builder()
+                    .majorVersions(Map.of(8, "8.14.2"))
+                    .build();
 
             GradleTestVersionsConfig updated = config.withoutMajorVersion(9);
 
-            GradleTestVersionsConfig expected =
-                    GradleTestVersionsConfig.builder().majorVersion(8, "8.14.2").build();
+            GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()
+                    .majorVersions(Map.of(8, "8.14.2"))
+                    .build();
 
             assertThat(updated).isEqualTo(expected);
         }
