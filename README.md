@@ -223,6 +223,8 @@ class MyPluginTest {
 
 Mark test classes with `@GradlePluginTests` to enable Gradle plugin testing.
 
+Each test gets an isolated project directory under `build/gradle-plugin-testing` for debugging purposes.
+
 ### Parameter Injection
 
 Tests can request these parameters in any order:
