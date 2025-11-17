@@ -16,20 +16,9 @@
 
 package com.palantir.gradle.testing.execution;
 
-import org.gradle.testkit.runner.GradleRunner;
+public interface GradleInvocation {
 
-public final class GradleInvocation {
-    private final GradleRunner gradleRunner;
+    InvocationResult buildsSuccessfully();
 
-    GradleInvocation(GradleRunner gradleRunner) {
-        this.gradleRunner = gradleRunner;
-    }
-
-    public InvocationResult buildsSuccessfully() {
-        return new InvocationResult(gradleRunner.build());
-    }
-
-    public InvocationResult buildsWithFailure() {
-        return new InvocationResult(gradleRunner.buildAndFail());
-    }
+    InvocationResult buildsWithFailure();
 }

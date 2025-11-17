@@ -16,17 +16,23 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.nio.file.Path;
+/**
+ * Base class for {@link UnexpectedConfigurationCacheFailure}.
+ */
+public abstract class UnexpectedInvocationResult extends RuntimeException {
+    private final InvocationResult invocationResult;
 
-public interface GradleInvoker {
+    public UnexpectedInvocationResult(String message, InvocationResult invocationResult) {
+        super(message);
+        this.invocationResult = invocationResult;
+    }
 
-    GradleInvocation withArgs(String... args);
-
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
-        }
-        return gradleInvoker;
+    /**
+     * The result of the build execution.
+     *
+     * @return the result of the build execution
+     */
+    public InvocationResult getResult() {
+        return this.invocationResult;
     }
 }

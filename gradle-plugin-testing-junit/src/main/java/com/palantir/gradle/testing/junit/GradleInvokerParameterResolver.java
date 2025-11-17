@@ -27,9 +27,10 @@ final class GradleInvokerParameterResolver implements TerseParameterResolver {
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
         if (parameterContext.getParameter().getType().equals(GradleInvoker.class)) {
-            return Optional.of(new GradleInvoker(
+            return Optional.of(GradleInvoker.create(
                     RootProjectStore.rootProjectDir(extensionContext),
-                    GradleVersionStore.gradleVersion(extensionContext)));
+                    GradleVersionStore.gradleVersion(extensionContext),
+                    ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)));
         }
 
         return Optional.empty();

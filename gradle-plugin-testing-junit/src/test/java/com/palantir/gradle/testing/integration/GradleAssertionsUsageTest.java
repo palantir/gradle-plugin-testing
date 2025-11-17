@@ -50,9 +50,11 @@ class GradleAssertionsUsageTest {
     void can_check_task_is_up_to_date(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
-                outputs.file('foo.txt')
+                def outputFile = layout.projectDirectory.file('foo.txt')
+                outputs.file(outputFile)
+
                 doLast {
-                    file('foo.txt').text = 'hello'
+                    outputFile.asFile.text = 'hello'
                 }
             }
             """);
@@ -189,9 +191,11 @@ class GradleAssertionsUsageTest {
     void can_check_task_upToDate(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
-                outputs.file('foo.txt')
+                def outputFile = layout.projectDirectory.file('foo.txt')
+                outputs.file(outputFile)
+
                 doLast {
-                    file('foo.txt').text = 'hello'
+                    outputFile.asFile.text = 'hello'
                 }
             }
             """);
@@ -206,9 +210,11 @@ class GradleAssertionsUsageTest {
     void can_check_task_upToDate_via_outcome(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
-                outputs.file('foo.txt')
+                def outputFile = layout.projectDirectory.file('foo.txt')
+                outputs.file(outputFile)
+
                 doLast {
-                    file('foo.txt').text = 'hello'
+                    outputFile.asFile.text = 'hello'
                 }
             }
             """);
@@ -232,9 +238,11 @@ class GradleAssertionsUsageTest {
     void succeeded_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register('foo') {
-                outputs.file('foo.txt')
+                def outputFile = layout.projectDirectory.file('foo.txt')
+                outputs.file(outputFile)
+
                 doLast {
-                    file('foo.txt').text = 'hello'
+                    outputFile.asFile.text = 'hello'
                 }
             }
             """);

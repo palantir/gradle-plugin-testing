@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing.ete;
 
-import java.nio.file.Path;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public interface GradleInvoker {
+import org.junit.platform.engine.TestExecutionResult;
 
-    GradleInvocation withArgs(String... args);
+public final class Assertions {
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
-        }
-        return gradleInvoker;
+    public static void assertThatTestFailureExceptionMessageContains(
+            TestExecutionResult testExecutionResult, String exceptionFragment) {
+        assertThat(testExecutionResult.getThrowable()).hasValueSatisfying(throwable -> {
+            assertThat(throwable).hasMessageContaining(exceptionFragment);
+        });
     }
+
+    private Assertions() {}
 }

@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.plugintesting;
 
-import java.nio.file.Path;
-
-public interface GradleInvoker {
-
-    GradleInvocation withArgs(String... args);
-
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
-        }
-        return gradleInvoker;
-    }
+public record ConfigurationCacheHelper() {
+    static final String CONFIG_CACHE_SYSTEM_PROPERTY = "com.palantir.gradle.testing.configuration_cache_enabled";
 }

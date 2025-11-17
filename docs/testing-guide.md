@@ -463,6 +463,31 @@ void successful_build(GradleInvoker gradle, RootProject project) {
 }
 ```
 
+### Running builds with Configuration Cache enabled
+
+When [`configuration cache is enabled (getConfigurationCacheEnabled() == true)`](../gradle-plugin-testing/src/main/java/com/palantir/gradle/plugintesting/PluginTestingExtension.java), each GradleInvoker invocation will automatically run twice:
+
+1. The first run uses `--configuration-cache` and verifies that the configuration cache is properly stored.
+2. The second run uses `--configuration-cache --dry-run` and verifies that the configuration cache entry is successfully reused.
+
+If configuration cache issues are detected, the build will fail with an [UnexpectedConfigurationCacheFailure](../gradle-plugin-testing-junit/src/main/java/com/palantir/gradle/testing/execution/UnexpectedConfigurationCacheFailure.java).
+
+For tests or test classes that are incompatible with configuration cache, use the `@DisabledConfigurationCache` annotation:
+
+```java
+// Disable configuration cache for a specific test method
+@Test
+@DisabledConfigurationCache(reason="task abc is incompatible with configuration cache")
+void incompatible_configuration_cache_build(GradleInvoker gradle, RootProject project) {
+```
+Or
+```java
+// Disable for an entire test class
+@GradlePluginTests
+@DisabledConfigurationCache(reason="tasks abc, xyz are incompatible with configuration cache")
+class PluginIncompatibleWithConfigCache {
+```
+
 ### Environment Variables
 
 Use [`gradle-utils:environment-variables`](https://github.com/palantir/gradle-utils) which provides a testing-friendly way to access environment variables via Gradle properties.
