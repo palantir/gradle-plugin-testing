@@ -191,4 +191,60 @@ class PluginsUsagesTest {
             }
             """);
     }
+
+    @Test
+    void plugins_block_placed_after_buildscript_with_two_levels_of_nesting(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("""
+            buildscript {
+                repositories {
+                    maven {}
+                }
+            }
+            """);
+
+        rootProject.buildGradle().plugins().add("java");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    maven {}
+                }
+            }
+            plugins {
+                id 'java'
+            }
+            """);
+    }
+
+    @Test
+    void plugins_block_placed_after_buildscript_with_deep_nesting(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("""
+            buildscript {
+                repositories {
+                    maven {
+                        credentials {
+                            username = "user"
+                        }
+                    }
+                }
+            }
+            """);
+
+        rootProject.buildGradle().plugins().add("java");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    maven {
+                        credentials {
+                            username = "user"
+                        }
+                    }
+                }
+            }
+            plugins {
+                id 'java'
+            }
+            """);
+    }
 }
