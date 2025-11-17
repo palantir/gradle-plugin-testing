@@ -479,15 +479,13 @@ For tests or test classes that are incompatible with configuration cache, use th
 @Test
 @DisabledConfigurationCache(reason="task abc is incompatible with configuration cache")
 void incompatible_configuration_cache_build(GradleInvoker gradle, RootProject project) {
-}
 ```
 Or
 ```java
 // Disable for an entire test class
-@DisabledConfigurationCache(reason="tasks abc, xyz are incompatible with configuration cache")
 @GradlePluginTests
+@DisabledConfigurationCache(reason="tasks abc, xyz are incompatible with configuration cache")
 class PluginIncompatibleWithConfigCache {
-}
 ```
 
 ### Environment Variables
