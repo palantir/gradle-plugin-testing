@@ -112,13 +112,6 @@ There are two ways to set which Gradle versions to test against:
 
 ### The `gradle/gradle-test-versions.yml` file
 
-By default, all `@GradlePluginsTests` run against the versions specified in `gradle/gradle-test-versions.yml`. Using a yaml file allows robots to easily roll out minor version bumps, and remove deprecated major versions.
-
-
-Robots will continually bump the `major-versions`. Meanwhile, `extra-versions` are kept untouched, and are removed when their respective major version is deprecated.   
-
-To test that your plugin works against a specific Gradle version e.g. 8.8, add it to `extra-versions`.
-
 ```yaml
 major-versions:
   8: 8.14.3
@@ -127,6 +120,12 @@ extra-versions:
 - 8.8
 - 8.14.2
 ```
+
+By default, all `@GradlePluginsTests` run against the versions specified in `gradle/gradle-test-versions.yml`. Using a yaml file allows robots to easily roll out minor version bumps, and remove deprecated major versions.
+
+Robots will continually bump the `major-versions`. Meanwhile, the robots will keep the `extra-versions` untouched. When the robots deprecate a major version, it will remove the entry from `major-versions`, and all `extra-versions` with that major version.   
+
+To test that your plugin works against a specific Gradle version e.g. 8.8, add it to `extra-versions`.
 
 ### [Deprecated] Setting `gradleVersions` in the `gradleTestUtils` extension
 
