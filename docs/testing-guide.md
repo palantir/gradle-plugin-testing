@@ -280,6 +280,8 @@ When using [com.palantir.consistent-versions](https://github.com/palantir/gradle
 Create custom Gradle files beyond `build.gradle` and `settings.gradle`:
 
 ```java
+import com.palantir.gradle.testing.files.gradle.GradleFile;
+
 @Test
 void create_custom_gradle_files(RootProject project) {
     // Create custom Gradle files
@@ -490,6 +492,8 @@ The `MavenRepo` instance is shared across all test methods in a class. Artifacts
 Use `GradleInvoker` to run builds:
 
 ```java
+import com.palantir.gradle.testing.execution.InvocationResult;
+
 @Test
 void successful_build(GradleInvoker gradle, RootProject project) {
     project.buildGradle().plugins().add("java");
