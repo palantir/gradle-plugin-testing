@@ -163,8 +163,13 @@ All project files inherit from `ProjectFile<T>` with these methods:
 
 All methods support `String.format()` syntax for dynamic values.  The varargs overload provides better IDE support with syntax highlighting and is enforced by the `GradleTestStringFormatting` Error Prone check.
 ```java
+// ✅ CORRECT - Use varargs overload
 String version = "1.0.0";
 project.buildGradle().append("version = '%s'", version);
+
+// ❌ INCORRECT - Will fail with GradleTestStringFormatting error
+project.buildGradle().append("version = '%s'".formatted(version));
+project.buildGradle().append(String.format("version = '%s'", version));
 ```
 
 **Reading file contents:**
@@ -228,6 +233,7 @@ Use the structured `plugins()` API to add plugins:
 **Important:** Always use the `plugins()` API instead of manually writing plugin blocks in `append()` or `overwrite()` calls. The `plugins()` API ensures correct positioning after `buildscript {}` blocks and prevents duplicate plugin entries.
 
 ```java
+// ✅ CORRECT - Use the plugins() API
 @Test
 void add_plugins(RootProject project) {
     // Add plugins individually
@@ -240,6 +246,15 @@ void add_plugins(RootProject project) {
     project.buildGradle()
         .plugins()
         .addWithoutApply("com.palantir.baseline");
+}
+```
+
+```java
+// ❌ INCORRECT - Will fail with GradleTestPluginsBlock error
+void add_plugins(RootProject project) {
+project.buildGradle().append("""
+    apply plugin: 'groovy'
+    """);
 }
 ```
 
@@ -361,6 +376,11 @@ void create_versions_props(RootProject project) {
         .appendProperty("com.google.guava:*", "32.1.0-jre")
         .appendProperty("org.slf4j:*", "2.0.9");
 }
+```
+
+```java
+// ❌ INCORRECT - Don't manually format properties
+project.gradlePropertiesFile().append("key=value\n");
 ```
 
 ### YAML Files
