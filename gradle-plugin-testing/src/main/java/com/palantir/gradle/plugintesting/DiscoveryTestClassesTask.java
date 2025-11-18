@@ -16,9 +16,12 @@
 
 package com.palantir.gradle.plugintesting;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -30,15 +33,20 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class DiscoveryTestsTask extends JavaExec {
+public abstract class DiscoveryTestClassesTask extends JavaExec {
 
-    private static final Logger log = LoggerFactory.getLogger(DiscoveryTestsTask.class);
+    private static final Logger log = LoggerFactory.getLogger(DiscoveryTestClassesTask.class);
 
     @InputFiles
     public abstract ConfigurableFileCollection getTestClasspath();
@@ -50,38 +58,54 @@ public abstract class DiscoveryTestsTask extends JavaExec {
     public abstract ConfigurableFileCollection getRuntimeClasspath();
 
     @OutputFile
-    public abstract RegularFileProperty getDiscoveredTestsFile();
-
-    @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
     @Inject
     public abstract ProjectLayout getProjectLayout();
 
-    public DiscoveryTestsTask() {
+    @Inject
+    public abstract ProviderFactory getProviderFactory();
+
+    @Input
+    public abstract Property<File> getParentPath();
+
+    @Input
+    @Option(option = "testClassType", description = "Sets the testClassType to either java or groovy")
+    public abstract Property<String> getTestClassType();
+
+    public DiscoveryTestClassesTask() {
         setClasspath(getProject().files(getRuntimeClasspath(), getTestClasspath()));
-        getDiscoveredTestsFile()
-                .convention(getProjectLayout().getBuildDirectory().file("discovered-groovy-tests"));
-        getOutputFile().convention(getProjectLayout().getBuildDirectory().file("project-groovy-tests"));
-        getMainClass().set("com.palantir.gradle.plugintesting.GroovyTestClassesDiscoveryRunner");
+        getOutputFile()
+                .convention(getProviderFactory()
+                        .zip(
+                                getTestClassType(),
+                                getProjectLayout().getBuildDirectory(),
+                                (type, buildDir) -> buildDir.file(String.format("project-%s-tests", type))));
+        getMainClass().set("com.palantir.gradle.plugintesting.DiscoverTestsMain");
         getArgumentProviders().add(this::getArguments);
+
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        setStandardOutput(buffer.getOutputStream());
 
         doLast(new Action<Task>() {
             @Override
             public void execute(Task _task) {
-                try {
-                    Set<String> groovyTestClasses =
-                            Files.readAllLines(getDiscoveredTestsFile()
-                                            .getAsFile()
-                                            .get()
-                                            .toPath())
-                                    .stream()
-                                    .map(testClass -> testClass.replace(".", "/") + ".groovy")
-                                    .collect(Collectors.toSet());
+                try (BufferedReader input =
+                        new BufferedReader(new InputStreamReader(buffer.getInputStream(), StandardCharsets.UTF_8))) {
+                    List<String> lines = input.lines().toList();
+                    Set<String> groovyTestClasses = lines.stream()
+                            .map(line -> line.replace('.', '/') + "."
+                                    + getTestClassType().get())
+                            .collect(Collectors.toSet());
+
                     Set<String> testClasses = getTestSourceFiles().getAsFileTree().getFiles().stream()
                             .map(File::toPath)
                             .filter(path -> pathMatches(path, groovyTestClasses))
-                            .map(Path::toString)
+                            .map(path -> getParentPath()
+                                    .get()
+                                    .toPath()
+                                    .relativize(path)
+                                    .toString())
                             .collect(Collectors.toSet());
                     if (testClasses.size() != groovyTestClasses.size()) {
                         throw new RuntimeException(
@@ -95,11 +119,18 @@ public abstract class DiscoveryTestsTask extends JavaExec {
         });
     }
 
-    private boolean pathMatches(Path path, Set<String> groovyTestClasses) {
-        return groovyTestClasses.stream().anyMatch(path::endsWith);
+    private List<String> getArguments() {
+        String classType = getTestClassType().get();
+        if (classType.equals("java")) {
+            return List.of("gradlePluginTestClasses");
+        } else if (classType.equals("groovy")) {
+            return List.of("groovyTestClassesToMigrate");
+        }
+        throw new IllegalArgumentException(String.format("Unexpected argumentType %s", classType));
     }
 
-    private List<String> getArguments() {
-        return List.of(getDiscoveredTestsFile().get().getAsFile().toPath().toString());
+    private boolean pathMatches(Path path, Set<String> groovyTestClasses) {
+        log.info("path matches {} {}", path, groovyTestClasses);
+        return groovyTestClasses.stream().anyMatch(path::endsWith);
     }
 }

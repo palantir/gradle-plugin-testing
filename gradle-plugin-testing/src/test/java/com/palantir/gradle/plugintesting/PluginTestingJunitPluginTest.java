@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class PluginTestingJunitPluginTest {
+
     @BeforeEach
     void beforeEach(RootProject rootProject) {
         rootProject
@@ -204,5 +205,45 @@ class PluginTestingJunitPluginTest {
             """);
 
         assertThat(gradle.withArgs("test").buildsWithFailure().output()).contains("[GradleTestTemporaryFile]");
+    }
+
+    @Test
+    void groovy_tests_to_migrate_are_discovered(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import java.nio.file.Files;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            class GradlePluginTestClass {
+                @Test
+                void test() throws Exception {
+                    Files.createTempDirectory("prefix");
+                }
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import org.junit.jupiter.api.Test;
+
+            class JunitTest {
+                @Test
+                void my_junit_test() {
+                }
+            }
+            """);
+
+        gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
+        rootProject
+                .buildDir()
+                .file("project-java-tests")
+                .assertThat()
+                .content()
+                .isEqualTo("src/test/java/test/GradlePluginTestClass.java");
     }
 }

@@ -19,7 +19,7 @@ develocity {
         termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
         termsOfUseAgree = "yes"
         publishing {
-            onlyIf {System.getenv("CI") != null}
+            onlyIf { System.getenv("CI") != null }
         }
     }
 }
@@ -30,3 +30,5 @@ include 'configuration-cache-spec'
 include 'gradle-plugin-testing-error-prone'
 include 'gradle-plugin-testing-junit'
 
+
+include 'discover-tests-cli'

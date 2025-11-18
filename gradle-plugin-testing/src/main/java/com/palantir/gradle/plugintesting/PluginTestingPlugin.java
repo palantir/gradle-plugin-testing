@@ -46,8 +46,8 @@ public class PluginTestingPlugin implements Plugin<Project> {
      */
     static final String PLUGIN_VERSION_PROPERTY_NAME = "pluginTestingPluginVersion";
 
-    static final List<String> CORE_MAVEN_NAMES =
-            List.of("plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit");
+    static final List<String> CORE_MAVEN_NAMES = List.of(
+            "plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit", "discover-tests-cli");
 
     public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting");
 
@@ -125,10 +125,15 @@ public class PluginTestingPlugin implements Plugin<Project> {
             });
         });
 
-        project.getTasks().register("discoverNebulaTestsToMigrate", DiscoveryTestsTask.class, task -> {
-            task.setGroup("junitMigration");
-            task.setDescription(
-                    "Discovers all Groovy tests that can be migrated to the new Junit GradlePluginTests framework");
+        project.getTasks().register("discoverGradlePluginTests", DiscoveryTestClassesTask.class, task -> {
+            task.getTestClassType().set("java");
+        });
+
+        project.getTasks().register("discoverGroovyTestClassesToMigrate", DiscoveryTestClassesTask.class, task -> {
+            task.getTestClassType().set("groovy");
+        });
+
+        project.getTasks().withType(DiscoveryTestClassesTask.class, task -> {
             task.dependsOn(project.getTasks().getByName("testClasses"));
 
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
@@ -136,7 +141,9 @@ public class PluginTestingPlugin implements Plugin<Project> {
             task.getTestClasspath().from(testSourceSet.getRuntimeClasspath());
             task.getRuntimeClasspath().from(project.getConfigurations().getByName("runtimeClasspath"));
             task.getTestSourceFiles().from(testSourceSet.getAllSource().getFiles());
+            task.getParentPath().set(project.getRootProject().getProjectDir());
         });
+
         addGradlePluginForTestingConfigurations(project);
     }
 
