@@ -32,8 +32,8 @@ public abstract class PluginTestingExtension {
 
     /**
      * Gradle versions to test against.
-     * @deprecated Use gradle/gradle-test-versions.yml to set Gradle versions to test against. This property will be
-     * removed as part of rolling out gradle/gradle-test-versions.yml.
+     * @deprecated Use {@code gradle/gradle-test-versions.yml} to set Gradle versions to test against. This property will be
+     * removed as part of rolling out {@code gradle/gradle-test-versions.yml}.
      */
     @Deprecated
     public abstract SetProperty<String> getGradleVersions();
