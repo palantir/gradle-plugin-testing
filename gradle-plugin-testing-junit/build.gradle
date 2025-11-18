@@ -23,6 +23,9 @@ dependencies {
     implementation 'commons-io:commons-io'
     implementation 'com.google.guava:guava'
 
+    compileOnly 'org.immutables:value'
+    annotationProcessor 'org.immutables:value'
+
     testImplementation 'org.junit.platform:junit-platform-testkit'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 

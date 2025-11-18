@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
 import com.palantir.gradle.testing.files.ProjectFile;
+import com.palantir.gradle.testing.maven.MavenRepo;
 import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.PrintFormat;
 
@@ -106,5 +107,13 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     private GradleFile ensurePluginsBlockPosition() {
         edit(Plugins::repositionPluginsBlock);
         return this;
+    }
+
+    default GradleFile withMavenRepo(MavenRepo repo) {
+        return append("""
+            repositories {
+                maven { url = uri('%s') }
+            }
+            """, repo.path());
     }
 }
