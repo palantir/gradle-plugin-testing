@@ -161,9 +161,10 @@ All project files inherit from `ProjectFile<T>` with these methods:
 - **`createEmpty()`** - Create an empty file
 - **`assertThat()`** - AssertJ path assertions
 
-All methods support `String.format()` syntax:
+All methods support `String.format()` syntax for dynamic values.  The varargs overload provides better IDE support with syntax highlighting and is enforced by the `GradleTestStringFormatting` Error Prone check.
 ```java
-project.buildGradle().append("version = '%s'", "1.0.0");
+String version = "1.0.0";
+project.buildGradle().append("version = '%s'", version);
 ```
 
 **Reading file contents:**
@@ -224,6 +225,7 @@ void configure_settings(RootProject project) {
 ### Plugin Management
 
 Use the structured `plugins()` API to add plugins:
+**Important:** Always use the `plugins()` API instead of manually writing plugin blocks in `append()` or `overwrite()` calls. The `plugins()` API ensures correct positioning after `buildscript {}` blocks and prevents duplicate plugin entries.
 
 ```java
 @Test
@@ -240,8 +242,6 @@ void add_plugins(RootProject project) {
         .addWithoutApply("com.palantir.baseline");
 }
 ```
-
-**Important:** Always use the `plugins()` API instead of manually writing plugin blocks in `append()` or `overwrite()` calls. The `plugins()` API ensures correct positioning after `buildscript {}` blocks and prevents duplicate plugin entries.
 
 #### Testing with External Plugins
 
@@ -296,7 +296,7 @@ void create_custom_gradle_files(RootProject project) {
 
 ### Java Source Files
 
-Write and manipulate Java source:
+Write and manipulate Java source.  The `writeClass()` method from `JavaSrcDir` (accessed via `project.mainSourceSet().java()` or `project.sourceSet("name").java()`) automatically parses the Java source code to extract the package and class name, then creates the file at the correct path.
 
 ```java
 @Test
@@ -343,7 +343,7 @@ void create_java_class(RootProject project) {
 
 ### Properties Files
 
-Manage `gradle.properties` and other properties files:
+Manage `gradle.properties` and other properties files.  Use `appendProperty(key, value)` for properties files, not `append()`
 
 ```java
 @Test
