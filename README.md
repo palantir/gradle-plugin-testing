@@ -52,6 +52,7 @@ or in some "Versions" class that has a listing of all the dependencies the test 
 final class TestPluginVersions {
     static final String CONJURE_JAVA = "com.palantir.conjure.java:conjure-java:5.7.1";
     static final String CONJURE = "com.palantir.conjure:conjure:4.10.1";
+}
 ```
 
 Once these tests are written, the versions of the plugins are often not updated, even when the project under test keeps its dependencies of those plugins up-to-date.  This can cause tests to fail when the plugin is updated not because the plugin is bad, but because there is an incompatibility in the old versions of plugins used in the integration tests.  This can often happen with Gradle version bumps.
@@ -109,8 +110,15 @@ Similarly, tests may hardcode versions of Gradle that they need to stay compatib
 ## Setting Gradle test versions
 
 There are two ways to set which Gradle versions to test against:
+* setting the versions in the `gradle/gradle-test-versions.yml` file
+* setting `gradleVersions` in the the `gradleTestUtils` extension (this is deprecated)
+  When using `@GradlePluginTests`, the versions of Gradle used will be the union of the versions above.
+
+If you haven't set either, tests will fall back to using the Gradle version of the test driver.
 
 ### The `gradle/gradle-test-versions.yml` file
+
+An example file:
 
 ```yaml
 major-versions:
@@ -120,29 +128,23 @@ extra-versions:
 - 8.8
 - 8.14.2
 ```
+The motivation for having a separate config file is to more easily allow an automated process of bumping the versions of Gradle we test against, whilst also allowing users to pick out specific versions to test against.
+Concretely, an automated process would bump versions in the `major-versions` blob, whilst leaving `extra-versions` alone.
+When support for a Gradle major version is phased out, it can be just removed from this file in one fell swoop.
 
-By default, all `@GradlePluginsTests` run against the versions specified in `gradle/gradle-test-versions.yml`. Using a yaml file allows robots to easily roll out minor version bumps, and remove deprecated major versions.
-
-Robots will continually bump the `major-versions`. Meanwhile, the robots will keep the `extra-versions` untouched. When the robots deprecate a major version, it will remove the entry from `major-versions`, and all `extra-versions` with that major version.   
-
-To test that your plugin works against a specific Gradle version e.g. 8.8, add it to `extra-versions`.
+> [!NOTE]
+> This file is global, and affects every project that is using this plugin.
 
 ### [Deprecated] Setting `gradleVersions` in the `gradleTestUtils` extension
-
-You can set Gradle versions to test by setting `gradleVersions` property on the `gradleTestUtils` extension.
-
+You can set Gradle versions to test by setting `gradleVersions` property on the `gradleTestUtils` extension. For example, to test against Gradle versions `7.6.4` and `8.8`, you would do:
 ```groovy
 gradleTestUtils {
-    gradleVersions = ['7.6.4', '8.8']
+  gradleVersions = ['7.6.4', '8.8']
 }
 ```
 
-This will merge with the what's set in the config file.
-
-> [!INFO]
-> This is deprecated as the config file is the desired source of truth here.
-
-## Accessing Gradle test versions
+> [!WARNING]
+> This is deprecated because it's merges together the intent of a user wanting a _specific_ version and also the intent of testing against the latest versions of Gradle. How does an automated process know if the user wanted to test this specific version which also happens to be the latest version?## Accessing Gradle test versions
 
 ### Java tests with `@GradlePluginTests`
 

@@ -16,10 +16,8 @@
 
 package com.palantir.gradle.plugintesting;
 
-import java.util.Set;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.util.GradleVersion;
 
 public abstract class PluginTestingExtension {
     public static final String EXTENSION_NAME = "gradleTestUtils";
@@ -46,8 +44,5 @@ public abstract class PluginTestingExtension {
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
         getConfigurationCacheEnabled().convention(false);
-
-        Set<String> testDriverGradleVersion = Set.of(GradleVersion.current().getVersion());
-        getGradleVersions().convention(testDriverGradleVersion);
     }
 }

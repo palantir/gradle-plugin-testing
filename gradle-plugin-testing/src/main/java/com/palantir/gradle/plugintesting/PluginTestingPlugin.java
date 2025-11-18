@@ -48,6 +48,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
+import org.gradle.util.GradleVersion;
 
 public abstract class PluginTestingPlugin implements Plugin<Project> {
     /**
@@ -137,10 +138,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             .addAll(versionsFromExtension)
                             .build();
                     if (gradleTestVersions.isEmpty()) {
-                        throw new IllegalStateException(
-                                "No gradleVersions were set for the PluginTestingExtension. Either set the default"
-                                        + " versions via gradle/gradle-test-versions.yml, or add overrides via the"
-                                        + " gradleVersions property");
+                        gradleTestVersions = Set.of(GradleVersion.current().getVersion());
                     }
                     String versions = String.join(",", gradleTestVersions);
                     test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
@@ -238,7 +236,6 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
     }
 
     private Provider<Set<String>> readGradleTestingVersionsConfigFile() {
-        // If the config file doesn't exist, the user has to set `gradleVersions {}` in the build script
         RegularFile testVersionsConfigPath =
                 getProjectLayout().getProjectDirectory().file("gradle/gradle-test-versions.yml");
 
@@ -249,7 +246,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                     try {
                         return YAML_MAPPER.readValue(text, new TypeReference<>() {});
                     } catch (JsonProcessingException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new IllegalArgumentException("Failed to parse gradle/gradle-test-versions.yml", e);
                     }
                 });
         return config.map(GradleTestVersionsConfig::allVersions);

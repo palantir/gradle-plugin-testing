@@ -256,13 +256,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'works when applied before other plugins with version: #version'() {
         given:
-        prependToBuildFile("""
-            apply plugin: 'com.palantir.gradle-plugin-testing'
-            
-            gradleTestUtils {
-                gradleVersions = ["${version}"]
-            } 
-        """)
+        applyTestUtilsPlugin()
 
         when:
         gradleVersion = version
