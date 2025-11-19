@@ -39,6 +39,8 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PluginTestingPlugin implements Plugin<Project> {
     /**
@@ -52,6 +54,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
     public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting");
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
+    private static final Logger log = LoggerFactory.getLogger(PluginTestingPlugin.class);
 
     private static String coreMavenCoordinates(String name) {
         return MAVEN_GROUP + ":" + name;
@@ -138,10 +141,21 @@ public class PluginTestingPlugin implements Plugin<Project> {
 
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
             SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-            task.getTestClasspath().from(testSourceSet.getRuntimeClasspath());
-            task.getRuntimeClasspath().from(project.getConfigurations().getByName("runtimeClasspath"));
-            task.getTestSourceFiles().from(testSourceSet.getAllSource().getFiles());
+            task.getTestClasspath().setFrom(testSourceSet.getRuntimeClasspath());
+            task.getRuntimeClasspath().setFrom(project.getConfigurations().getByName("runtimeClasspath"));
+            task.getTestSourceFiles().setFrom(testSourceSet.getAllSource());
             task.getParentPath().set(project.getRootProject().getProjectDir());
+            task.doFirst(new Action<Task>() {
+                @Override
+                public void execute(Task task1) {
+                    log.info(
+                            "SourceFiles are {} {}",
+                            testSourceSet.getAllSource().getFiles(),
+                            ((DiscoveryTestClassesTask) task1)
+                                    .getTestSourceFiles()
+                                    .getFiles());
+                }
+            });
         });
 
         addGradlePluginForTestingConfigurations(project);

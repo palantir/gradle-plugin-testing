@@ -30,6 +30,8 @@ public abstract class TestClassesFilesDiscoverer extends Discoverer {
     public Set<String> call() throws Exception {
         TestPlan testPlan = getTestPlan();
         return testPlan.getRoots().stream()
+                .peek(testIdentifier -> System.out.println(
+                        String.format("testIdentifier: %s %s", testIdentifier, testPlan.getChildren(testIdentifier))))
                 .flatMap(testIdentifier -> testPlan.getChildren(testIdentifier).stream()
                         .map(TestIdentifier::getSource)
                         .flatMap(test -> test.stream()
@@ -39,11 +41,17 @@ public abstract class TestClassesFilesDiscoverer extends Discoverer {
     }
 
     static Class<?> getTestClassFromSource(TestSource testSource) {
+        System.out.println(String.format(
+                "Returning class type %s and is: %s\n",
+                testSource.getClass(), (testSource instanceof ClassSource) ? "true" : "false"));
         if (testSource instanceof ClassSource classSource) {
+            System.out.println(String.format("JavaClass is %s", classSource.getJavaClass()));
             return classSource.getJavaClass();
         } else if (testSource instanceof MethodSource methodSource) {
+            System.out.println(String.format("Methods is %s", methodSource.getJavaClass()));
             return methodSource.getJavaClass();
         }
+        System.out.println(String.format("Returning null %s", testSource));
         return null;
     }
 }

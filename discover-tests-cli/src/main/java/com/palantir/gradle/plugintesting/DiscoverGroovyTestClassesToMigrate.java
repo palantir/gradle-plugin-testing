@@ -40,15 +40,16 @@ public final class DiscoverGroovyTestClassesToMigrate extends TestClassesFilesDi
                 // "nebula.test.IntegrationSpec" or "nebula.test.IntegrationTestKitSpec"
                 return testDescriptor
                         .getSource()
-                        .map(DiscoverGroovyTestClassesToMigrate::getTestClassFromSource)
-                        .map(testClass -> {
+                        .map(testSource -> {
+                            Class<?> testClass = getTestClassFromSource(testSource);
+                            logger.info(String.format("Trying for %s", testClass));
                             // Check if testClass extends IntegrationSpec or IntegrationTestKitSpec
                             if (isSubclassOf(testClass, "com.palantir.gradle.plugintesting.ConfigurationCacheSpec")) {
                                 return FilterResult.excluded(
                                         String.format("%s shouldn't be migrated yet", testDescriptor));
                             } else if (isSubclassOf(testClass, "nebula.test.IntegrationSpec")
                                     || isSubclassOf(testClass, "nebula.test.IntegrationTestKitSpec")) {
-                                logger.info(String.format("Included %s", testDescriptor));
+                                logger.info(String.format("Including %s", testDescriptor));
                                 return FilterResult.included(String.format("%s can be migrated", testDescriptor));
                             } else {
                                 return FilterResult.excluded(

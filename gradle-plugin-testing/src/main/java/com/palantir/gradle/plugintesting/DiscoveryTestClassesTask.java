@@ -16,12 +16,9 @@
 
 package com.palantir.gradle.plugintesting;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -40,7 +37,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +56,9 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
+    @OutputFile
+    public abstract RegularFileProperty getDiscoveredTestsFile();
+
     @Inject
     public abstract ProjectLayout getProjectLayout();
 
@@ -75,6 +74,12 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
 
     public DiscoveryTestClassesTask() {
         setClasspath(getProject().files(getRuntimeClasspath(), getTestClasspath()));
+        getDiscoveredTestsFile()
+                .convention(getProviderFactory()
+                        .zip(
+                                getTestClassType(),
+                                getProjectLayout().getBuildDirectory(),
+                                (type, buildDir) -> buildDir.file(String.format("discovered-%s-tests", type))));
         getOutputFile()
                 .convention(getProviderFactory()
                         .zip(
@@ -84,19 +89,26 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
         getMainClass().set("com.palantir.gradle.plugintesting.DiscoverTestsMain");
         getArgumentProviders().add(this::getArguments);
 
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        setStandardOutput(buffer.getOutputStream());
-
+        doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                log.info("SourceFiles are {}", getTestSourceFiles().getFiles());
+            }
+        });
         doLast(new Action<Task>() {
             @Override
             public void execute(Task _task) {
-                try (BufferedReader input =
-                        new BufferedReader(new InputStreamReader(buffer.getInputStream(), StandardCharsets.UTF_8))) {
-                    List<String> lines = input.lines().toList();
+                try {
+                    List<String> lines = Files.readAllLines(
+                            getDiscoveredTestsFile().getAsFile().get().toPath());
                     Set<String> groovyTestClasses = lines.stream()
                             .map(line -> line.replace('.', '/') + "."
                                     + getTestClassType().get())
                             .collect(Collectors.toSet());
+                    log.info(
+                            "groovyTestClasses {} {}",
+                            groovyTestClasses,
+                            getTestSourceFiles().getFiles());
 
                     Set<String> testClasses = getTestSourceFiles().getAsFileTree().getFiles().stream()
                             .map(File::toPath)
@@ -107,6 +119,7 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
                                     .relativize(path)
                                     .toString())
                             .collect(Collectors.toSet());
+                    log.info("testClasses {}", testClasses);
                     if (testClasses.size() != groovyTestClasses.size()) {
                         throw new RuntimeException(
                                 "Could not find all test source classes for the discovered test classes");
@@ -122,9 +135,13 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
     private List<String> getArguments() {
         String classType = getTestClassType().get();
         if (classType.equals("java")) {
-            return List.of("gradlePluginTestClasses");
+            return List.of(
+                    "gradlePluginTestClasses",
+                    getDiscoveredTestsFile().getAsFile().get().getPath());
         } else if (classType.equals("groovy")) {
-            return List.of("groovyTestClassesToMigrate");
+            return List.of(
+                    "groovyTestClassesToMigrate",
+                    getDiscoveredTestsFile().getAsFile().get().getPath());
         }
         throw new IllegalArgumentException(String.format("Unexpected argumentType %s", classType));
     }

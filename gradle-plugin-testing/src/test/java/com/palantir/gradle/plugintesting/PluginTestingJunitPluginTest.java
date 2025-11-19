@@ -19,8 +19,11 @@ package com.palantir.gradle.plugintesting;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.files.Directory;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
+import java.io.IOException;
+import java.nio.file.Files;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +38,7 @@ class PluginTestingJunitPluginTest {
 
         rootProject.buildGradle().append("""
             plugins {
+                id 'groovy'
                 id 'com.palantir.gradle-plugin-testing'
                 id 'java-gradle-plugin'
                 id 'com.palantir.consistent-versions'
@@ -48,6 +52,8 @@ class PluginTestingJunitPluginTest {
             dependencies {
                 testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.13.4'
                 testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.14.0'
+
+                testImplementation 'com.netflix.nebula:nebula-test'
             }
 
             tasks.withType(Test).configureEach {
@@ -208,7 +214,7 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
-    void groovy_tests_to_migrate_are_discovered(GradleInvoker gradle, RootProject rootProject) {
+    void groovy_tests_to_migrate_are_discovered(GradleInvoker gradle, RootProject rootProject) throws IOException {
         rootProject.testSourceSet().java().writeClass("""
             package test;
 
@@ -238,12 +244,39 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
+        Directory groovyDir =
+                rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
+        Files.writeString(groovyDir.file("MyIntegrationSpec.groovy").path(), """
+            package test;
+
+            import nebula.test.IntegrationSpec
+            import java.nio.file.Files;
+
+            class MyIntegrationSpec extends IntegrationSpec {
+
+                def '#gradleVersion: my test'() {
+                    Files.createTempDirectory("prefix" + gradleVersion);
+
+                    where:
+                    gradleVersion << [1, 2]
+                }
+            }
+            """);
+
+        gradle.withArgs("discoverGradlePluginTests").buildsSuccessfully();
         rootProject
                 .buildDir()
                 .file("project-java-tests")
                 .assertThat()
                 .content()
                 .isEqualTo("src/test/java/test/GradlePluginTestClass.java");
+
+        gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
+        rootProject
+                .buildDir()
+                .file("project-groovy-tests")
+                .assertThat()
+                .content()
+                .isEqualTo("src/test/groovy/test/MyIntegrationSpec.groovy");
     }
 }

@@ -16,6 +16,11 @@
 
 package com.palantir.gradle.plugintesting;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -50,10 +55,11 @@ public final class DiscoverTestsMain {
     private static final Logger log = Logger.getLogger("DiscoverTestsMain");
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            throw new IllegalArgumentException("Expected one argument: " + Arrays.toString(Type.values()));
+        if (args.length != 2) {
+            throw new IllegalArgumentException("Expected 2 arguments: " + Arrays.toString(Type.values()));
         }
-        printOutputs(
+        writeOutput(
+                Path.of(args[1]),
                 switch (Type.fromLabel(args[0])) {
                     case GRADLE_PLUGIN_TEST_CLASSES -> new DiscoverGradlePluginTestingTestClasses().call();
                     case GROOVY_TEST_CLASSES_TO_MIGRATE -> new DiscoverGroovyTestClassesToMigrate().call();
@@ -61,8 +67,17 @@ public final class DiscoverTestsMain {
         System.exit(0);
     }
 
-    private static void printOutputs(Set<String> classes) {
-        classes.forEach(System.out::println);
-        System.out.flush();
+    private static void writeOutput(Path output, Set<String> classes) {
+        try {
+            log.info(String.format("returned classes %s", classes));
+            Files.writeString(
+                    output,
+                    String.join("\n", classes),
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Failed to write the output to file %s", output), e);
+        }
     }
 }
