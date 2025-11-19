@@ -36,14 +36,15 @@ class PluginTestingJunitPluginTest {
                 .gradlePropertiesFile()
                 .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
 
-        rootProject.buildGradle().append("""
-            plugins {
-                id 'groovy'
-                id 'com.palantir.gradle-plugin-testing'
-                id 'java-gradle-plugin'
-                id 'com.palantir.consistent-versions'
-            }
+        rootProject
+                .buildGradle()
+                .plugins()
+                .add("groovy")
+                .add("com.palantir.gradle-plugin-testing")
+                .add("java-gradle-plugin")
+                .add("com.palantir.consistent-versions");
 
+        rootProject.buildGradle().append("""
             repositories {
                 mavenCentral()
                 mavenLocal()
@@ -92,11 +93,8 @@ class PluginTestingJunitPluginTest {
                 @Test
                 void testMethod(GradleInvoker gradle, RootProject rootProject) {
 
-                    rootProject.buildGradle().prepend(\"""
-                        plugins {
-                            id 'com.palantir.sls-asset-distribution'
-                        }
-
+                    rootProject.buildGradle().plugins().add("com.palantir.sls-asset-distribution");
+                    rootProject.buildGradle().append(\"""
                         def pluginVersion = plugins.getPlugin('com.palantir.sls-asset-distribution').getClass().package.implementationVersion
                         println "plugin version: $pluginVersion"
                         ""\");
@@ -171,11 +169,7 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
-        rootProject.buildGradle().prepend("""
-            plugins {
-                id 'net.ltgt.errorprone'
-            }
-            """);
+        rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 
         rootProject.buildGradle().append("""
             dependencies {
@@ -214,7 +208,7 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
-    void groovy_tests_to_migrate_are_discovered(GradleInvoker gradle, RootProject rootProject) throws IOException {
+    void gradlePluginTests_are_discovered(GradleInvoker gradle, RootProject rootProject) throws IOException {
         rootProject.testSourceSet().java().writeClass("""
             package test;
 
@@ -244,21 +238,20 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        Directory groovyDir =
-                rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
-        Files.writeString(groovyDir.file("MyIntegrationSpec.groovy").path(), """
+        rootProject.testSourceSet().java().writeClass("""
             package test;
 
-            import nebula.test.IntegrationSpec
+            import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
             import java.nio.file.Files;
+            import org.junit.jupiter.api.Test;
 
-            class MyIntegrationSpec extends IntegrationSpec {
-
-                def '#gradleVersion: my test'() {
-                    Files.createTempDirectory("prefix" + gradleVersion);
-
-                    where:
-                    gradleVersion << [1, 2]
+            @DisabledConfigurationCache
+            @GradlePluginTests
+            class TestsWithDisableConfigurationCache {
+                @Test
+                void test() throws Exception {
+                    Files.createTempDirectory("prefix");
                 }
             }
             """);
@@ -270,6 +263,43 @@ class PluginTestingJunitPluginTest {
                 .assertThat()
                 .content()
                 .isEqualTo("src/test/java/test/GradlePluginTestClass.java");
+    }
+
+    @Test
+    void groovy_tests_ready_for_migration_are_discovered(GradleInvoker gradle, RootProject rootProject)
+            throws IOException {
+        Directory groovyDir =
+                rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
+        Files.writeString(groovyDir.file("MyIntegrationSpec.groovy").path(), """
+            package test;
+
+            import nebula.test.IntegrationSpec
+            import java.nio.file.Files;
+
+            class MyIntegrationSpec extends IntegrationSpec {
+
+                def '#param: my test'() {
+                    Files.createTempDirectory("prefix" + gradleVersion);
+
+                    where:
+                    param << [1, 2]
+                }
+            }
+            """);
+
+        Files.writeString(groovyDir.file("OtherIntegrationSpec.groovy").path(), """
+            package test;
+
+            import spock.lang.Specification
+            import java.nio.file.Files;
+
+            class OtherIntegrationSpec extends Specification {
+
+                def 'test that should be ignored'() {
+                    Files.createTempDirectory("prefix" + gradleVersion);
+                }
+            }
+            """);
 
         gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
         rootProject

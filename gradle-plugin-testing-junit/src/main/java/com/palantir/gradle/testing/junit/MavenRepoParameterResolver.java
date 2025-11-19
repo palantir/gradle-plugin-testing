@@ -16,21 +16,27 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.maven.MavenRepo;
+import java.util.Arrays;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
 
-final class GradleInvokerParameterResolver implements TerseParameterResolver {
+final class MavenRepoParameterResolver implements TerseParameterResolver {
     @Override
-    public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-            throws ParameterResolutionException {
-        if (parameterContext.getParameter().getType().equals(GradleInvoker.class)) {
-            return Optional.of(GradleInvoker.create(
-                    RootProjectStore.rootProjectDir(extensionContext),
-                    GradleVersionStore.gradleVersion(extensionContext),
-                    ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)));
+    public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        if (parameterContext.getParameter().getType().equals(MavenRepo.class)) {
+            long mavenRepoCount = Arrays.stream(
+                            parameterContext.getDeclaringExecutable().getParameters())
+                    .filter(p -> p.getType().equals(MavenRepo.class))
+                    .count();
+
+            if (mavenRepoCount > 1) {
+                throw new IllegalArgumentException(
+                        "Only one MavenRepo parameter is allowed per test method or lifecycle method");
+            }
+
+            return Optional.of(MavenRepoStore.mavenRepo(extensionContext));
         }
 
         return Optional.empty();

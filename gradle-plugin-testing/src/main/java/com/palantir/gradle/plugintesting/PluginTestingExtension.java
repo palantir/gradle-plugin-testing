@@ -30,13 +30,19 @@ public abstract class PluginTestingExtension {
 
     /**
      * Gradle versions to test against.
+     * @deprecated Use {@code gradle/gradle-test-versions.yml} to set Gradle versions to test against. This property
+     * will be removed as part of rolling out {@code gradle/gradle-test-versions.yml}.
      */
+    @Deprecated
     public abstract SetProperty<String> getGradleVersions();
+
+    /**
+     * Whether the configuration cache is enabled for tests.
+     */
+    public abstract Property<Boolean> getConfigurationCacheEnabled();
 
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
-        // TODO(#XXX): Should this be the latest gradle 8, or maybe whatever this plugin is compiled against?
-        // or is this the set of "milestone" versions and we dynamically add the version of the consuming project?
-        getGradleVersions().convention(GradleTestVersions.DEFAULT_TEST_GRADLE_VERSIONS);
+        getConfigurationCacheEnabled().convention(false);
     }
 }

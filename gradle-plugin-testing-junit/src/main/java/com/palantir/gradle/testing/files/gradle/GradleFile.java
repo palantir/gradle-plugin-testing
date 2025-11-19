@@ -19,10 +19,24 @@ package com.palantir.gradle.testing.files.gradle;
 import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
 import com.palantir.gradle.testing.files.ProjectFile;
+import com.palantir.gradle.testing.maven.MavenRepo;
 import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.PrintFormat;
 
+/**
+ * Represents a Gradle build file (*.gradle) written in Groovy DSL.
+ * <p>
+ * Note: This API only supports Groovy-based Gradle files, not Kotlin DSL (*.gradle.kts).
+ */
 public interface GradleFile extends ProjectFile<GradleFile> {
+
+    /**
+     * Returns API for managing the {@code plugins {}} block.
+     */
+    default Plugins plugins() {
+        return new Plugins(this);
+    }
+
     @Override
     @FormatMethod
     default GradleFile overwrite(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
@@ -37,44 +51,69 @@ public interface GradleFile extends ProjectFile<GradleFile> {
     @Override
     @FormatMethod
     default GradleFile append(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
-        return ProjectFile.super.append(text, args);
+        ProjectFile.super.append(text, args);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     default GradleFile append(@Language("Gradle") String text) {
-        return ProjectFile.super.append(text);
+        ProjectFile.super.append(text);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     @FormatMethod
     default GradleFile appendLine(@Language("Gradle") @PrintFormat @FormatString String line, Object... args) {
-        return ProjectFile.super.appendLine(line, args);
+        ProjectFile.super.appendLine(line, args);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     default GradleFile appendLine(@Language("Gradle") String line) {
-        return ProjectFile.super.appendLine(line);
+        ProjectFile.super.appendLine(line);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     @FormatMethod
     default GradleFile prepend(@Language("Gradle") @PrintFormat @FormatString String text, Object... args) {
-        return ProjectFile.super.prepend(text, args);
+        ProjectFile.super.prepend(text, args);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     default GradleFile prepend(@Language("Gradle") String text) {
-        return ProjectFile.super.prepend(text);
+        ProjectFile.super.prepend(text);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     @FormatMethod
     default GradleFile prependLine(@Language("Gradle") @PrintFormat @FormatString String line, Object... args) {
-        return ProjectFile.super.prependLine(line, args);
+        ProjectFile.super.prependLine(line, args);
+        return ensurePluginsBlockPosition();
     }
 
     @Override
     default GradleFile prependLine(@Language("Gradle") String line) {
-        return ProjectFile.super.prependLine(line);
+        ProjectFile.super.prependLine(line);
+        return ensurePluginsBlockPosition();
+    }
+
+    /**
+     * Ensures the plugins block is positioned correctly (at top or after buildscript).
+     * This is called automatically after append/prepend operations to maintain proper ordering.
+     */
+    private GradleFile ensurePluginsBlockPosition() {
+        edit(Plugins::repositionPluginsBlock);
+        return this;
+    }
+
+    default GradleFile withMavenRepo(MavenRepo repo) {
+        return append("""
+            repositories {
+                maven { url = uri('%s') }
+            }
+            """, repo.path());
     }
 }

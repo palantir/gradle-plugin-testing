@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing;
 
-import java.nio.file.Path;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.immutables.value.Value;
 
-public interface GradleInvoker {
-
-    GradleInvocation withArgs(String... args);
-
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
-        }
-        return gradleInvoker;
-    }
-}
+@Target({ElementType.PACKAGE, ElementType.TYPE})
+@Retention(RetentionPolicy.SOURCE)
+@Value.Style(
+        visibility = Value.Style.ImplementationVisibility.PACKAGE,
+        overshadowImplementation = true,
+        jdkOnly = true,
+        get = {"get*", "is*"})
+public @interface ImmutablesStyle {}

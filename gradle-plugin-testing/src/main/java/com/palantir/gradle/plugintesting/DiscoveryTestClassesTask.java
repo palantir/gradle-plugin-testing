@@ -114,8 +114,10 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
                                     .toString())
                             .collect(Collectors.toSet());
                     if (testClasses.size() != groovyTestClasses.size()) {
-                        throw new RuntimeException(
-                                "Could not find all test source classes for the discovered test classes");
+                        throw new RuntimeException(String.format(
+                                "Could not find all test source classes for the discovered test classes. Received %s,"
+                                        + " but got only %s",
+                                groovyTestClasses, testClasses));
                     }
                     Files.writeString(getOutputFile().getAsFile().get().toPath(), String.join("\n", testClasses));
                 } catch (IOException e) {

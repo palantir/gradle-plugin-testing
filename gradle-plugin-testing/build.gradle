@@ -8,10 +8,18 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter-api'
     implementation project(':plugin-testing-core')
     implementation project(':discover-tests-cli')
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
+    implementation 'one.util:streamex'
+    implementation 'com.google.guava:guava'
+
+    annotationProcessor 'org.immutables:value'
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    compileOnlyApi 'org.immutables:value::annotations'
+
 
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
@@ -43,6 +51,8 @@ gradlePlugin {
 
 tasks.named('test', Test) {
     systemProperty 'projectVersion', project.version
+    // by default the tests should run with configuration cache enabled.
+    systemProperty 'com.palantir.gradle.testing.configuration_cache_enabled', 'true'
 
     // Added as a jar the so in nebula-tests needs to exist in maven local
     dependsOn ':discover-tests-cli:publishToMavenLocal'

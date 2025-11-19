@@ -17,7 +17,6 @@
 package com.palantir.gradle.plugintesting
 
 import static TestDependencyVersions.resolve
-import com.palantir.gradle.plugintesting.GradleTestVersions
 
 class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
@@ -42,7 +41,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
             apply plugin: 'com.palantir.consistent-versions'
             apply plugin: 'groovy'
-            
+
             repositories {
                 mavenCentral()
                 mavenLocal()
@@ -129,6 +128,94 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         version << GradleTestVersions.gradleVersionsForTests
     }
 
+    def 'use the test driver Gradle version when a version is not set: #version'() {
+        given: 'no gradle/gradle-test-versions.yml exists, and gradleVersions isnt set in build script'
+        buildFile << """
+            apply plugin: 'com.palantir.gradle-plugin-testing'
+        """.stripIndent(true)
+
+        // Create a Java test that prints the Gradle version
+        file('src/test/java/com/testing/GradleVersionTest.java') << '''
+            import org.junit.jupiter.api.Test;
+            import org.gradle.util.GradleVersion;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+
+            @GradlePluginTests
+            public class GradleVersionTest {
+                @Test
+                public void testGradleVersion() {
+                    String gradleVersion = GradleVersion.current().getVersion();
+                    System.out.println("Running with Gradle version: " + gradleVersion);
+                }
+            }
+        '''.stripIndent(true)
+
+        when:
+        gradleVersion = version
+        def result = runTasks('test')
+
+        then: 'test runs with the test driver Gradle version'
+        result.success
+        result.standardOutput.contains("Running with Gradle version: ${version}")
+
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
+    }
+
+    def 'use Gradle versions from both config file and extension'() {
+        given: 'gradle/gradle-test-versions.yml exists, and sets both major and extra versions'
+        file('gradle/gradle-test-versions.yml') << '''
+           major-versions:
+             8: 8.14.2
+           extra-versions:
+           - 7.6
+        '''.stripIndent(true)
+
+        and: 'gradleVersions is set in build script'
+        buildFile << """
+            apply plugin: 'com.palantir.gradle-plugin-testing'
+
+            gradleTestUtils {
+                gradleVersions = ["8.8"]
+            }
+        """.stripIndent(true)
+
+        when: 'running GradlePluginTests'
+        file('src/test/java/com/testing/GradleVersionTest.java') << '''
+            package test;
+
+            import com.palantir.gradle.testing.execution.GradleInvoker;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.project.RootProject;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            public class GradleVersionTest {
+                @Test
+                public void testGradleVersion(GradleInvoker gradle, RootProject rootProject) {
+                    rootProject.buildGradle().append("""
+                        import org.gradle.util.GradleVersion;
+                        println("Running with Gradle version: " + GradleVersion.current().getVersion());
+                    """);
+
+                    String output = gradle.withArgs().buildsSuccessfully().output();
+                    System.out.println(output);
+                }
+            }
+        '''.stripIndent(true)
+        gradleVersion = version
+        def result = runTasks('test')
+
+        then: 'test runs with versions from both config file and extension'
+        result.success
+        result.standardOutput.contains("Running with Gradle version: 8.14.2")
+        result.standardOutput.contains("Running with Gradle version: 8.8")
+        result.standardOutput.contains("Running with Gradle version: 7.6")
+
+        where:
+        version << GradleTestVersions.gradleVersionsForTests
+    }
+
     def 'ignoreDeprecations automatically set when plugin applied with version: #version'() {
         given:
         applyTestUtilsPlugin()
@@ -169,9 +256,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
     def 'works when applied before other plugins with version: #version'() {
         given:
-        prependToBuildFile('''
-            apply plugin: 'com.palantir.gradle-plugin-testing'
-        ''')
+        applyTestUtilsPlugin()
 
         when:
         gradleVersion = version

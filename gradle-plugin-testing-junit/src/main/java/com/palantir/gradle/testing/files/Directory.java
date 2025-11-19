@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.assertj.core.api.AbstractPathAssert;
+import org.assertj.core.api.Assertions;
 
 public interface Directory {
     Path path();
@@ -57,6 +59,10 @@ public interface Directory {
 
     default PropertiesFile propertiesFile(String path) {
         return new PropertiesFile(resolvePath(path));
+    }
+
+    default AbstractPathAssert<?> assertThat() {
+        return Assertions.assertThat(path());
     }
 
     private Path resolvePath(String path) {

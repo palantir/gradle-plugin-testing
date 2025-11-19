@@ -52,6 +52,7 @@ or in some "Versions" class that has a listing of all the dependencies the test 
 final class TestPluginVersions {
     static final String CONJURE_JAVA = "com.palantir.conjure.java:conjure-java:5.7.1";
     static final String CONJURE = "com.palantir.conjure:conjure:4.10.1";
+}
 ```
 
 Once these tests are written, the versions of the plugins are often not updated, even when the project under test keeps its dependencies of those plugins up-to-date.  This can cause tests to fail when the plugin is updated not because the plugin is bad, but because there is an incompatibility in the old versions of plugins used in the integration tests.  This can often happen with Gradle version bumps.
@@ -106,7 +107,53 @@ dependencies {
 # Resolution of Gradle versions to test against
 Similarly, tests may hardcode versions of Gradle that they need to stay compatible with. These versions also get stale and PRs start failing for the inverse reason of the above - the code in the plugin or a dependency of it is updated and is no longer compatible with an old version of Gradle. For example, attempting to update jackson libraries from `2.15.0` -> `2.17.0` would fail if a test tried to run on Gradle versiosn < `7.6.4` (when compatibility with jackson `2.17.0` was fixed).
 
-The `GradleTestVersions` class can provide up-to-date versions of Gradle to test against.  
+## Setting Gradle test versions
+
+There are two ways to set which Gradle versions to test against:
+* setting the versions in the `gradle/gradle-test-versions.yml` file
+* setting `gradleVersions` in the the `gradleTestUtils` extension (this is deprecated)
+  When using `@GradlePluginTests`, the versions of Gradle used will be the union of the versions above.
+
+If you haven't set either, tests will fall back to using the Gradle version of the test driver.
+
+### The `gradle/gradle-test-versions.yml` file
+
+An example file:
+
+```yaml
+major-versions:
+  8: 8.14.3
+  9: 9.2.0-rc1
+extra-versions:
+- 8.8
+- 8.14.2
+```
+The motivation for having a separate config file is to more easily allow an automated process of bumping the versions of Gradle we test against, whilst also allowing users to pick out specific versions to test against.
+Concretely, an automated process would bump versions in the `major-versions` blob, whilst leaving `extra-versions` alone.
+When support for a Gradle major version is phased out, it can be just removed from this file in one fell swoop.
+
+> [!NOTE]
+> This file is global, and affects every project that is using this plugin.
+
+### [Deprecated] Setting `gradleVersions` in the `gradleTestUtils` extension
+You can set Gradle versions to test by setting `gradleVersions` property on the `gradleTestUtils` extension. For example, to test against Gradle versions `7.6.4` and `8.8`, you would do:
+```groovy
+gradleTestUtils {
+  gradleVersions = ['7.6.4', '8.8']
+}
+```
+
+> [!WARNING]
+> This is deprecated because it's merges together the intent of a user wanting a _specific_ version and also the intent of testing against the latest versions of Gradle. How does an automated process know if the user wanted to test this specific version which also happens to be the latest version?## Accessing Gradle test versions
+
+### Java tests with `@GradlePluginTests`
+
+Tests annotated with `@GradlePluginTests` automatically run with all the versions specified in the config file. 
+
+### [Deprecated] Groovy tests with spock e.g. `IntegrationSpec`
+
+Access Gradle test versions via the `GradleTestVersions#gradleVersionForTests` method
+
 ```groovy
 import nebula.test.IntegrationSpec
 import com.palantir.gradle.plugintesting.GradleTestVersions
@@ -125,10 +172,9 @@ class HelloWorldSpec extends IntegrationSpec {
     }
 }
 ```
-The plugin sets default versions to test against, but these can be overridden using the `gradleTestUtils` extension.  e.g.
 
-```groovy
-gradleTestUtils {
-    gradleVersions = ['7.6.4', '8.8']
-}
-```
+# Gradle Plugin Testing Framework
+
+The `gradle-plugin-testing` framework provides a modern, Java-based testing approach for Gradle plugins. Built on Gradle TestKit, it features JUnit 5 integration, fluent APIs, and automatic multi-version testing across different Gradle releases.
+
+For detailed information on how to write tests, see the [Testing Guide](docs/testing-guide.md).
