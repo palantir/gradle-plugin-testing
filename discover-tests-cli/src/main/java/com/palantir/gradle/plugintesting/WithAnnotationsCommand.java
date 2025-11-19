@@ -30,9 +30,6 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
     @Option(names = "--include", split = ",", description = "List of testClasses with annotations to include")
     private List<String> includedAnnotations;
 
-    @Option(names = "--exclude", split = ",", description = "List of testClasses with annotations to exclude")
-    private List<String> excludedAnnotations;
-
     @Override
     Filter<?> getFilter() {
         return new PostDiscoveryFilter() {
@@ -42,12 +39,9 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
                         .getSource()
                         .map(TestClassesDiscoverer::getTestClassFromSource)
                         .map(testClass -> {
-                            if (hasAnyClassAnnotations(testClass, excludedAnnotations)) {
-                                return FilterResult.excluded(
-                                        String.format("%s has an allowlisted annotation", testDescriptor));
-                            } else if (hasAnyClassAnnotations(testClass, includedAnnotations)) {
+                            if (hasAnyClassAnnotations(testClass, includedAnnotations)) {
                                 return FilterResult.included(
-                                        String.format("%s has an excluded annotation", testDescriptor));
+                                        String.format("%s has an allowlisted annotation", testDescriptor));
                             }
                             return FilterResult.excluded(
                                     String.format("%s does not have an allowlisted annotation", testDescriptor));

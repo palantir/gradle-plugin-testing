@@ -49,7 +49,7 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
 
     abstract Filter<?> getFilter();
 
-    final TestPlan getTestPlan() {
+    final Set<String> getDiscoveredClassNames() {
         String classPath = System.getProperty("java.class.path");
         LauncherDiscoveryRequest discoveryRequest = LauncherDiscoveryRequestBuilder.request()
                 .selectors(DiscoverySelectors.selectClasspathRoots(Arrays.stream(classPath.split(File.pathSeparator))
@@ -64,22 +64,20 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
                 .build();
         try (LauncherSession launcherSession = LauncherFactory.openSession(launcherConfig)) {
             Launcher launcher = launcherSession.getLauncher();
-            return launcher.discover(discoveryRequest);
+            TestPlan testPlan = launcher.discover(discoveryRequest);
+            return testPlan.getRoots().stream()
+                    .flatMap(testIdentifier -> testPlan.getChildren(testIdentifier).stream()
+                            .map(TestIdentifier::getSource)
+                            .flatMap(test -> test.stream()
+                                    .map(TestClassesDiscoverer::getTestClassFromSource)
+                                    .map(clazz -> clazz.getName())))
+                    .collect(Collectors.toSet());
         }
     }
 
     @Override
     public final Integer call() throws Exception {
-        TestPlan testPlan = getTestPlan();
-        writeOutput(
-                testClassesCommand.getDiscoverTestsCommand().getOutputPath(),
-                testPlan.getRoots().stream()
-                        .flatMap(testIdentifier -> testPlan.getChildren(testIdentifier).stream()
-                                .map(TestIdentifier::getSource)
-                                .flatMap(test -> test.stream()
-                                        .map(TestClassesDiscoverer::getTestClassFromSource)
-                                        .map(clazz -> clazz.getName())))
-                        .collect(Collectors.toSet()));
+        writeOutput(testClassesCommand.getDiscoverTestsCommand().getOutputPath(), getDiscoveredClassNames());
         return 0;
     }
 
@@ -89,7 +87,7 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
         } else if (testSource instanceof MethodSource methodSource) {
             return methodSource.getJavaClass();
         }
-        return null;
+        throw new IllegalStateException(String.format("Unexpected testSource type %s", testSource));
     }
 
     private static void writeOutput(Path output, Set<String> classes) {

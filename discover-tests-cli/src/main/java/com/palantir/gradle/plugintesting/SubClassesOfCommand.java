@@ -44,13 +44,13 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
                         .map(testClass -> {
                             if (isSubclassOfAny(testClass, excludeSubClasses)) {
                                 return FilterResult.excluded(
-                                        String.format("%s is subclassing an ignored class", testDescriptor));
+                                        String.format("%s subclasses an excluded class", testDescriptor));
                             } else if (isSubclassOfAny(testClass, subClasses)) {
                                 return FilterResult.included(
                                         String.format("%s subclasses an allowlisted class", testDescriptor));
                             } else {
                                 return FilterResult.excluded(
-                                        String.format("%s doesn't subclass an allowlisted class", testDescriptor));
+                                        String.format("%s does not subclass an allowlisted class", testDescriptor));
                             }
                         })
                         .orElseGet(() -> FilterResult.excluded("Not a class source"));

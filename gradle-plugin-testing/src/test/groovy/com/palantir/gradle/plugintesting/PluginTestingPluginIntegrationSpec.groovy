@@ -55,7 +55,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 testImplementation 'org.junit.jupiter:junit-jupiter'
                 testImplementation 'com.netflix.nebula:nebula-test'
 
-                implementation 'org.junit.platform:junit-platform-launcher'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             tasks.withType(Test) {
                 useJUnitPlatform()
@@ -281,7 +281,6 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 testImplementation '${resolve("org.junit.jupiter:junit-jupiter")}'
                 testImplementation '${resolve("com.netflix.nebula:nebula-test")}'
                 testImplementation '${resolve("com.google.guava:guava")}'
-               
             }
         ''')
 
