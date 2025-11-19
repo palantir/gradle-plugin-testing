@@ -18,11 +18,13 @@ com.diffplug.spotless:spotless-plugin-gradle:6.6.0 (1 constraints: c51120f5)
 
 com.fasterxml.jackson.core:jackson-annotations:2.20 (4 constraints: 444484b1)
 
-com.fasterxml.jackson.core:jackson-core:2.20.0 (4 constraints: 8056ceff)
+com.fasterxml.jackson.core:jackson-core:2.20.0 (5 constraints: 496efbc3)
 
-com.fasterxml.jackson.core:jackson-databind:2.20.0 (3 constraints: fd43a120)
+com.fasterxml.jackson.core:jackson-databind:2.20.0 (5 constraints: fb603b8f)
 
 com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0 (2 constraints: 8c36d494)
+
+com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.0 (1 constraints: 3605333b)
 
 com.fasterxml.jackson.datatype:jackson-datatype-guava:2.20.0 (2 constraints: 8c36d494)
 
@@ -102,7 +104,7 @@ net.bytebuddy:byte-buddy:1.15.11 (1 constraints: 7f0bc9ea)
 
 net.ltgt.gradle:gradle-errorprone-plugin:4.3.0 (2 constraints: ba2e2b18)
 
-one.util:streamex:0.8.4 (2 constraints: c1380a76)
+one.util:streamex:0.8.4 (3 constraints: ce3df6ab)
 
 org.apache.commons:commons-lang3:3.19.0 (5 constraints: fe43c5fc)
 
@@ -199,6 +201,8 @@ org.slf4j:slf4j-api:1.7.36 (4 constraints: fb433bc6)
 org.spockframework:spock-core:2.3-groovy-3.0 (2 constraints: 922109a6)
 
 org.spockframework:spock-junit4:2.3-groovy-3.0 (1 constraints: 7a1000b0)
+
+org.yaml:snakeyaml:2.4 (1 constraints: 3e178d10)
 
 
 

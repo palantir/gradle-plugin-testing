@@ -6,10 +6,18 @@ apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
     implementation project(':plugin-testing-core')
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
+    implementation 'one.util:streamex'
+    implementation 'com.google.guava:guava'
+
+    annotationProcessor 'org.immutables:value'
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    compileOnlyApi 'org.immutables:value::annotations'
+
 
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'

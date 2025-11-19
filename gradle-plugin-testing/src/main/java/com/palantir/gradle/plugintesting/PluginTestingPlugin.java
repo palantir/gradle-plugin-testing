@@ -15,6 +15,11 @@
  */
 package com.palantir.gradle.plugintesting;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.collect.ImmutableSet;
 import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorProneExtension;
@@ -24,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -32,15 +38,19 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
+import org.gradle.util.GradleVersion;
 
-public class PluginTestingPlugin implements Plugin<Project> {
+public abstract class PluginTestingPlugin implements Plugin<Project> {
     /**
      * Used in tests to pick up the current version of this plugin.
      */
@@ -50,8 +60,15 @@ public class PluginTestingPlugin implements Plugin<Project> {
             List.of("plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit");
 
     public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting", "GradleTestPluginsBlock");
+    public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
+
+    @Inject
+    protected abstract ProjectLayout getProjectLayout();
 
     private static String coreMavenCoordinates(String name) {
         return MAVEN_GROUP + ":" + name;
@@ -71,7 +88,7 @@ public class PluginTestingPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("for-rollout:TaskDependsOn")
-    private static void doApply(Project project) {
+    private void doApply(Project project) {
         PluginTestingExtension testUtilsExt = project.getExtensions().getByType(PluginTestingExtension.class);
 
         setupErrorprones(project);
@@ -112,8 +129,18 @@ public class PluginTestingPlugin implements Plugin<Project> {
                             testDependenciesFileAbsolutePath.get());
 
                     // add system property for what versions of gradle should be used in tests
-                    String versions =
-                            String.join(",", testUtilsExt.getGradleVersions().get());
+                    Set<String> versionsFromConfig =
+                            readGradleTestingVersionsConfigFile().getOrElse(Set.of());
+                    Set<String> versionsFromExtension =
+                            testUtilsExt.getGradleVersions().get();
+                    Set<String> gradleTestVersions = ImmutableSet.<String>builder()
+                            .addAll(versionsFromConfig)
+                            .addAll(versionsFromExtension)
+                            .build();
+                    if (gradleTestVersions.isEmpty()) {
+                        gradleTestVersions = Set.of(GradleVersion.current().getVersion());
+                    }
+                    String versions = String.join(",", gradleTestVersions);
                     test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
 
                     // add system property for whether to use configuration-cache by default in tests
@@ -206,5 +233,22 @@ public class PluginTestingPlugin implements Plugin<Project> {
                     .getByType(VersionsLockExtension.class)
                     .test(scope -> scope.from(gradlePluginForTestingResolvable.getName()));
         });
+    }
+
+    private Provider<Set<String>> readGradleTestingVersionsConfigFile() {
+        RegularFile testVersionsConfigPath =
+                getProjectLayout().getProjectDirectory().file("gradle/gradle-test-versions.yml");
+
+        Provider<GradleTestVersionsConfig> config = getProviderFactory()
+                .fileContents(testVersionsConfigPath)
+                .getAsText()
+                .map(text -> {
+                    try {
+                        return YAML_MAPPER.readValue(text, new TypeReference<>() {});
+                    } catch (JsonProcessingException e) {
+                        throw new IllegalArgumentException("Failed to parse gradle/gradle-test-versions.yml", e);
+                    }
+                });
+        return config.map(GradleTestVersionsConfig::allVersions);
     }
 }
