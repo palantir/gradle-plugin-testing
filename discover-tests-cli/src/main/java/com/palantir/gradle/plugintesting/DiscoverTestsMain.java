@@ -21,9 +21,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(
-        name = "discover",
-        subcommands = {TestClassesCommand.class})
+@Command(name = "discover", subcommands = TestClassesCommand.class)
 public final class DiscoverTestsMain {
 
     @Option(names = "--output", description = "Output")

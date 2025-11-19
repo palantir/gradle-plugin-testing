@@ -89,7 +89,6 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
         } else if (testSource instanceof MethodSource methodSource) {
             return methodSource.getJavaClass();
         }
-        System.err.printf("Could not get the Java Source Class for TestSource %s%n", testSource.toString());
         return null;
     }
 

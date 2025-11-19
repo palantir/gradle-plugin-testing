@@ -12,7 +12,6 @@ org.immutables:* = 2.10.1
 org.junit.jupiter:* = 5.13.4
 org.jetbrains:annotations = 26.0.2
 info.picocli:* = 4.7.7
-com.palantir.safe-logging:* = 3.9.0
 one.util:streamex = 0.8.4
 
 # test dependencies

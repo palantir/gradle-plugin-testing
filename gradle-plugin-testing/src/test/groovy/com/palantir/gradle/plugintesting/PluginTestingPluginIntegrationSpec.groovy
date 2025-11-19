@@ -287,7 +287,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
         when:
         gradleVersion = version
-        def result = runTasks('discoverNebulaTests')
+        def result = runTasks('test')
 
         then:
         result.success
@@ -334,7 +334,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
 
         when:
         gradleVersion = version
-        def result = runTasks('discoverNebulaTests')
+        def result = runTasks('test')
 
         then:
         result.standardOutput.contains('test with version: #configuredVersion > test with version: 7.6.4')
