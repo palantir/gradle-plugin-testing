@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.plugintesting;
 
-import com.palantir.gradle.plugintesting.DiscoverTestsMain.TestClasses;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -46,7 +45,7 @@ import picocli.CommandLine.ParentCommand;
 public abstract class TestClassesDiscoverer implements Callable<Integer> {
 
     @ParentCommand
-    private TestClasses testClassesCommand;
+    private TestClassesCommand testClassesCommand;
 
     abstract Filter<?> getFilter();
 

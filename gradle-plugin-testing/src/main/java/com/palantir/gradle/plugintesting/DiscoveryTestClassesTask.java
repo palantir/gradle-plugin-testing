@@ -38,7 +38,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.options.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,6 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
     public abstract ListProperty<String> getExtraArguments();
 
     @Input
-    @Option(option = "testClassType", description = "Sets the testClassType to either java or groovy")
     public abstract Property<String> getTestClassType();
 
     public DiscoveryTestClassesTask() {
@@ -98,31 +96,35 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
             @Override
             public void execute(Task _task) {
                 try {
-                    List<String> lines = Files.readAllLines(
-                            getDiscoveredTestsFile().getAsFile().get().toPath());
-                    Set<String> groovyTestClasses = lines.stream()
-                            .map(line -> line.replace('.', '/') + "."
-                                    + getTestClassType().get())
-                            .collect(Collectors.toSet());
-                    Set<String> testClasses = getTestSourceFiles().getAsFileTree().getFiles().stream()
+                    Path parentPath = getParentPath().get().toPath();
+                    Set<String> discoveredTestClassesPaths =
+                            Files.readAllLines(getDiscoveredTestsFile()
+                                            .getAsFile()
+                                            .get()
+                                            .toPath())
+                                    .stream()
+                                    .map(this::toFilePath)
+                                    .collect(Collectors.toSet());
+                    Set<String> discoveredTestFiles = getTestSourceFiles().getAsFileTree().getFiles().stream()
                             .map(File::toPath)
-                            .filter(path -> pathMatches(path, groovyTestClasses))
-                            .map(path -> getParentPath()
-                                    .get()
-                                    .toPath()
-                                    .relativize(path)
-                                    .toString())
+                            .filter(path -> pathMatches(path, discoveredTestClassesPaths))
+                            .map(path -> parentPath.relativize(path).toString())
                             .collect(Collectors.toSet());
-                    if (testClasses.size() != groovyTestClasses.size()) {
+                    if (discoveredTestFiles.size() != discoveredTestClassesPaths.size()) {
                         throw new RuntimeException(String.format(
-                                "Could not find all test source classes for the discovered test classes. Received %s,"
-                                        + " but got only %s",
-                                groovyTestClasses, testClasses));
+                                "Could not find all test source classes for the discovered test classes. Discovered"
+                                        + " tests: %s, but only mapped the following classes in the repo: %s",
+                                discoveredTestClassesPaths, discoveredTestFiles));
                     }
-                    Files.writeString(getOutputFile().getAsFile().get().toPath(), String.join("\n", testClasses));
+                    Files.writeString(
+                            getOutputFile().getAsFile().get().toPath(), String.join("\n", discoveredTestFiles));
                 } catch (IOException e) {
                     throw new UncheckedIOException("failed to compute class files", e);
                 }
+            }
+
+            private String toFilePath(String line) {
+                return line.replace('.', '/') + "." + getTestClassType().get();
             }
         });
     }
@@ -149,8 +151,7 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
         throw new RuntimeException(String.format("Invalid classType %s", classType));
     }
 
-    private boolean pathMatches(Path path, Set<String> groovyTestClasses) {
-        log.info("path matches {} {}", path, groovyTestClasses);
-        return groovyTestClasses.stream().anyMatch(path::endsWith);
+    private boolean pathMatches(Path path, Set<String> testClasses) {
+        return testClasses.stream().anyMatch(path::endsWith);
     }
 }
