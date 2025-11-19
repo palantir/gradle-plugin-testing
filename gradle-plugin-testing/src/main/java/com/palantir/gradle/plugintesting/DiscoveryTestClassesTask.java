@@ -24,12 +24,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
@@ -69,6 +71,9 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
     public abstract Property<File> getParentPath();
 
     @Input
+    public abstract ListProperty<String> getExtraArguments();
+
+    @Input
     @Option(option = "testClassType", description = "Sets the testClassType to either java or groovy")
     public abstract Property<String> getTestClassType();
 
@@ -89,12 +94,6 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
         getMainClass().set("com.palantir.gradle.plugintesting.DiscoverTestsMain");
         getArgumentProviders().add(this::getArguments);
 
-        doFirst(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                log.info("SourceFiles are {}", getTestSourceFiles().getFiles());
-            }
-        });
         doLast(new Action<Task>() {
             @Override
             public void execute(Task _task) {
@@ -105,11 +104,6 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
                             .map(line -> line.replace('.', '/') + "."
                                     + getTestClassType().get())
                             .collect(Collectors.toSet());
-                    log.info(
-                            "groovyTestClasses {} {}",
-                            groovyTestClasses,
-                            getTestSourceFiles().getFiles());
-
                     Set<String> testClasses = getTestSourceFiles().getAsFileTree().getFiles().stream()
                             .map(File::toPath)
                             .filter(path -> pathMatches(path, groovyTestClasses))
@@ -119,7 +113,6 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
                                     .relativize(path)
                                     .toString())
                             .collect(Collectors.toSet());
-                    log.info("testClasses {}", testClasses);
                     if (testClasses.size() != groovyTestClasses.size()) {
                         throw new RuntimeException(
                                 "Could not find all test source classes for the discovered test classes");
@@ -133,17 +126,25 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
     }
 
     private List<String> getArguments() {
+        return Stream.concat(
+                        Stream.of(
+                                "--output",
+                                getDiscoveredTestsFile().getAsFile().get().getPath(),
+                                "testClasses",
+                                "--test-engine",
+                                getTestEngine()),
+                        getExtraArguments().get().stream())
+                .toList();
+    }
+
+    private String getTestEngine() {
         String classType = getTestClassType().get();
         if (classType.equals("java")) {
-            return List.of(
-                    "gradlePluginTestClasses",
-                    getDiscoveredTestsFile().getAsFile().get().getPath());
+            return "junit-jupiter";
         } else if (classType.equals("groovy")) {
-            return List.of(
-                    "groovyTestClassesToMigrate",
-                    getDiscoveredTestsFile().getAsFile().get().getPath());
+            return "spock";
         }
-        throw new IllegalArgumentException(String.format("Unexpected argumentType %s", classType));
+        throw new RuntimeException(String.format("Invalid classType %s", classType));
     }
 
     private boolean pathMatches(Path path, Set<String> groovyTestClasses) {

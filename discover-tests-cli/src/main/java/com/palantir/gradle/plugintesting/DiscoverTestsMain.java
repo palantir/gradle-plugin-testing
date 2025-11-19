@@ -16,68 +16,179 @@
 
 package com.palantir.gradle.plugintesting;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
+import com.palantir.gradle.plugintesting.DiscoverTestsMain.TestClasses;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Set;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
+import org.junit.jupiter.engine.JupiterTestEngine;
+import org.junit.platform.engine.Filter;
+import org.junit.platform.engine.FilterResult;
+import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestEngine;
+import org.junit.platform.launcher.PostDiscoveryFilter;
+import org.spockframework.runtime.SpockEngine;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.ParentCommand;
 
-public final class DiscoverTestsMain {
+@Command(
+        name = "discover",
+        subcommands = {TestClasses.class})
+public final class DiscoverTestsMain implements Callable<Integer> {
 
-    public enum Type {
-        GROOVY_TEST_CLASSES_TO_MIGRATE("groovyTestClassesToMigrate"),
-        GRADLE_PLUGIN_TEST_CLASSES("gradlePluginTestClasses");
+    private static final Logger logger = Logger.getLogger("DiscoverTestsMain");
 
-        private final String label;
+    @Option(names = "--output", description = "Output")
+    private String output;
 
-        Type(String label) {
-            this.label = label;
+    Path getOutputPath() {
+        return Path.of(output);
+    }
+
+    @Command(
+            name = "testClasses",
+            subcommands = {SubClassesOf.class, WithAnnotations.class})
+    public static final class TestClasses implements Callable<Integer> {
+
+        @ParentCommand
+        private DiscoverTestsMain discoverTestsCommand;
+
+        @Option(names = "--test-engine", description = "Test engine - spock or junit-jupiter")
+        private String testEngine;
+
+        DiscoverTestsMain getDiscoverTestsCommand() {
+            return discoverTestsCommand;
+        }
+
+        TestEngine getTestEngine() {
+            if (testEngine.equals("junit-jupiter")) {
+                return new JupiterTestEngine();
+            } else if (testEngine.equals("spock")) {
+                return new SpockEngine();
+            }
+            throw new IllegalArgumentException(String.format(
+                    "testEngine should be either `junit-jupiter` or `spock`, %s is not a supported test engine",
+                    testEngine));
         }
 
         @Override
-        public String toString() {
-            return label;
-        }
-
-        public static Type fromLabel(String label) {
-            for (Type e : values()) {
-                if (e.label.equals(label)) {
-                    return e;
-                }
-            }
-            throw new RuntimeException(String.format("Cannot convert %s to a Type", label));
+        public Integer call() throws Exception {
+            return 0;
         }
     }
 
-    private static final Logger log = Logger.getLogger("DiscoverTestsMain");
+    @Command(name = "subClassesOf", description = "Test classes options")
+    public static final class SubClassesOf extends TestClassesDiscoverer {
+
+        @Option(names = "--include", split = ",", description = "List of subClasses to include")
+        private List<String> subClasses;
+
+        @Option(names = "--exclude", split = ",", description = "List of subClasses to exclude")
+        private List<String> excludeSubClasses;
+
+        @Override
+        Filter<?> getFilter() {
+            return new PostDiscoveryFilter() {
+                @Override
+                public FilterResult apply(TestDescriptor testDescriptor) {
+                    // Check if the test class extends directly or indirectly from
+                    // "nebula.test.IntegrationSpec" or "nebula.test.IntegrationTestKitSpec"
+                    return testDescriptor
+                            .getSource()
+                            .map(TestClassesDiscoverer::getTestClassFromSource)
+                            .map(testClass -> {
+                                logger.info(String.format("Trying for %s", testClass));
+                                if (isSubclassOfAny(testClass, excludeSubClasses)) {
+                                    return FilterResult.excluded(
+                                            String.format("%s is subclassing an ignored class", testDescriptor));
+                                } else if (isSubclassOfAny(testClass, subClasses)) {
+                                    logger.info(String.format("Including %s", testDescriptor));
+                                    return FilterResult.included(
+                                            String.format("%s subclasses an allowlisted class", testDescriptor));
+                                } else {
+                                    return FilterResult.excluded(
+                                            String.format("%s doesn't subclass an allowlisted class", testDescriptor));
+                                }
+                            })
+                            .orElseGet(() -> FilterResult.excluded("Not a class source"));
+                }
+            };
+        }
+
+        static boolean isSubclassOfAny(Class<?> originalClass, List<String> targetClassNames) {
+            return targetClassNames.stream().anyMatch(targetClassName -> isSubclassOf(originalClass, targetClassName));
+        }
+
+        static boolean isSubclassOf(Class<?> originalClass, String targetClassName) {
+            Class<?> clazz = originalClass;
+            while (clazz != null && !clazz.equals(Object.class)) {
+                if (clazz.getName().equals(targetClassName)) {
+                    return true;
+                }
+                clazz = clazz.getSuperclass();
+            }
+            return false;
+        }
+    }
+
+    @Command(name = "withAnnotations", description = "Test classes options")
+    public static final class WithAnnotations extends TestClassesDiscoverer {
+
+        @Option(names = "--include", split = ",", description = "List of testClasses with annotations to include")
+        private List<String> includedAnnotations;
+
+        @Option(names = "--exclude", split = ",", description = "List of testClasses with annotations to exclude")
+        private List<String> excludedAnnotations;
+
+        @Override
+        Filter<?> getFilter() {
+            return new PostDiscoveryFilter() {
+                @Override
+                public FilterResult apply(TestDescriptor testDescriptor) {
+                    return testDescriptor
+                            .getSource()
+                            .map(TestClassesDiscoverer::getTestClassFromSource)
+                            .map(testClass -> {
+                                if (hasAnyClassAnnotations(testClass, excludedAnnotations)) {
+                                    return FilterResult.excluded(
+                                            String.format("%s has an allowlisted annotation", testDescriptor));
+                                } else if (hasAnyClassAnnotations(testClass, includedAnnotations)) {
+                                    return FilterResult.included(
+                                            String.format("%s has an excluded annotation", testDescriptor));
+                                }
+                                return FilterResult.excluded(
+                                        String.format("%s does not have an allowlisted annotation", testDescriptor));
+                            })
+                            .orElseGet(() -> FilterResult.excluded("Not a class source"));
+                }
+            };
+        }
+
+        private static boolean hasAnyClassAnnotations(Class<?> clazz, List<String> annotations) {
+            return annotations.stream().anyMatch(annotation -> hasClassAnnotation(clazz, annotation));
+        }
+
+        private static boolean hasClassAnnotation(Class<?> clazz, String annotationName) {
+            try {
+                Class<? extends java.lang.annotation.Annotation> annotationClass =
+                        (Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName);
+                return clazz.isAnnotationPresent(annotationClass);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException(
+                        String.format("Failed to check if the class %s has annotation %s", clazz, annotationName));
+            }
+        }
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        return 0;
+    }
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            throw new IllegalArgumentException("Expected 2 arguments: " + Arrays.toString(Type.values()));
-        }
-        writeOutput(
-                Path.of(args[1]),
-                switch (Type.fromLabel(args[0])) {
-                    case GRADLE_PLUGIN_TEST_CLASSES -> new DiscoverGradlePluginTestingTestClasses().call();
-                    case GROOVY_TEST_CLASSES_TO_MIGRATE -> new DiscoverGroovyTestClassesToMigrate().call();
-                });
-        System.exit(0);
-    }
-
-    private static void writeOutput(Path output, Set<String> classes) {
-        try {
-            log.info(String.format("returned classes %s", classes));
-            Files.writeString(
-                    output,
-                    String.join("\n", classes),
-                    StandardOpenOption.TRUNCATE_EXISTING,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.CREATE);
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to write the output to file %s", output), e);
-        }
+        int exitCode = new CommandLine(new DiscoverTestsMain()).execute(args);
+        System.exit(exitCode);
     }
 }

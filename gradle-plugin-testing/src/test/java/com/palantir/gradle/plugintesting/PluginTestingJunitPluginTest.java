@@ -263,7 +263,7 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        gradle.withArgs("discoverGradlePluginTests").buildsSuccessfully();
+        gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
         rootProject
                 .buildDir()
                 .file("project-java-tests")

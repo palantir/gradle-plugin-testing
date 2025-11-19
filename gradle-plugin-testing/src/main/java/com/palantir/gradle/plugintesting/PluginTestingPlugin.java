@@ -130,10 +130,24 @@ public class PluginTestingPlugin implements Plugin<Project> {
 
         project.getTasks().register("discoverGradlePluginTests", DiscoveryTestClassesTask.class, task -> {
             task.getTestClassType().set("java");
+            task.getExtraArguments()
+                    .addAll(List.of(
+                            "withAnnotations",
+                            "--include",
+                            "com.palantir.gradle.testing.junit.GradlePluginTests",
+                            "--exclude",
+                            "com.palantir.gradle.testing.junit.DisabledConfigurationCache"));
         });
 
         project.getTasks().register("discoverGroovyTestClassesToMigrate", DiscoveryTestClassesTask.class, task -> {
             task.getTestClassType().set("groovy");
+            task.getExtraArguments()
+                    .addAll(List.of(
+                            "subClassesOf",
+                            "--include",
+                            "nebula.test.IntegrationSpec,nebula.test.IntegrationTestKitSpec",
+                            "--exclude",
+                            "com.palantir.gradle.plugintesting.ConfigurationCacheSpec"));
         });
 
         project.getTasks().withType(DiscoveryTestClassesTask.class, task -> {
@@ -145,17 +159,6 @@ public class PluginTestingPlugin implements Plugin<Project> {
             task.getRuntimeClasspath().setFrom(project.getConfigurations().getByName("runtimeClasspath"));
             task.getTestSourceFiles().setFrom(testSourceSet.getAllSource());
             task.getParentPath().set(project.getRootProject().getProjectDir());
-            task.doFirst(new Action<Task>() {
-                @Override
-                public void execute(Task task1) {
-                    log.info(
-                            "SourceFiles are {} {}",
-                            testSourceSet.getAllSource().getFiles(),
-                            ((DiscoveryTestClassesTask) task1)
-                                    .getTestSourceFiles()
-                                    .getFiles());
-                }
-            });
         });
 
         addGradlePluginForTestingConfigurations(project);
