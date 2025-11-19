@@ -242,24 +242,6 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        rootProject.testSourceSet().java().writeClass("""
-            package test;
-
-            import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import java.nio.file.Files;
-            import org.junit.jupiter.api.Test;
-
-            @DisabledConfigurationCache
-            @GradlePluginTests
-            class TestsWithDisableConfigurationCache {
-                @Test
-                void test() throws Exception {
-                    Files.createTempDirectory("prefix");
-                }
-            }
-            """);
-
         gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
         rootProject
                 .buildDir()
