@@ -18,12 +18,16 @@ package com.palantir.gradle.plugintesting;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.files.Directory;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -270,36 +274,47 @@ class PluginTestingJunitPluginTest {
             throws IOException {
         Directory groovyDir =
                 rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
-        Files.writeString(groovyDir.file("MyIntegrationSpec.groovy").path(), """
-            package test;
 
-            import nebula.test.IntegrationSpec
-            import java.nio.file.Files;
+        Map<String, String> testNameToClass = Map.of(
+                // included because it extends IntegrationSpec
+                "NebulaIntegrationTest",
+                "nebula.test.IntegrationSpec",
+                // included because it extends IntegrationSpec
+                "NebulaIntegrationTestKitSpec",
+                "nebula.test.IntegrationTestKitSpec",
+                // ignored because it extends ConfigurationCacheSpec
+                "IgnoredConfigurationCacheTest",
+                "com.palantir.gradle.plugintesting.ConfigurationCacheSpec",
+                // ignored because it doesn't extend an allowlisted class
+                "IgnoredSpecification",
+                "spock.lang.Specification");
+        testNameToClass.forEach((testName, importClass) -> {
+            try {
+                List<String> parts = Splitter.on('.').splitToList(importClass);
 
-            class MyIntegrationSpec extends IntegrationSpec {
+                String classToExtend = parts.get(parts.size() - 1);
+                Files.writeString(
+                        groovyDir.file(String.format("%s.groovy", testName)).path(),
+                        String.format("""
+                            package test;
 
-                def '#param: my test'() {
-                    Files.createTempDirectory("prefix" + gradleVersion);
+                            import %s
+                            import java.nio.file.Files;
 
-                    where:
-                    param << [1, 2]
-                }
+                            class %s extends %s {
+
+                                def '#param: my test'() {
+                                    Files.createTempDirectory("prefix" + gradleVersion);
+
+                                    where:
+                                    param << [1, 2]
+                                }
+                            }
+                            """, importClass, testName, classToExtend));
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Failed to write file %s", testName), e);
             }
-            """);
-
-        Files.writeString(groovyDir.file("OtherIntegrationSpec.groovy").path(), """
-            package test;
-
-            import spock.lang.Specification
-            import java.nio.file.Files;
-
-            class OtherIntegrationSpec extends Specification {
-
-                def 'test that should be ignored'() {
-                    Files.createTempDirectory("prefix" + gradleVersion);
-                }
-            }
-            """);
+        });
 
         gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
         rootProject
@@ -307,6 +322,8 @@ class PluginTestingJunitPluginTest {
                 .file("project-groovy-tests")
                 .assertThat()
                 .content()
-                .isEqualTo("src/test/groovy/test/MyIntegrationSpec.groovy");
+                .hasLineCount(2)
+                .contains("src/test/groovy/test/NebulaIntegrationTest.groovy")
+                .contains("src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
     }
 }

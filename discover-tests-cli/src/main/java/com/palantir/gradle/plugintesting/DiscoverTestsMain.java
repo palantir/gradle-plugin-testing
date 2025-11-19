@@ -20,7 +20,6 @@ import com.palantir.gradle.plugintesting.DiscoverTestsMain.TestClasses;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.logging.Logger;
 import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.engine.Filter;
 import org.junit.platform.engine.FilterResult;
@@ -37,8 +36,6 @@ import picocli.CommandLine.ParentCommand;
         name = "discover",
         subcommands = {TestClasses.class})
 public final class DiscoverTestsMain implements Callable<Integer> {
-
-    private static final Logger logger = Logger.getLogger("DiscoverTestsMain");
 
     @Option(names = "--output", description = "Output")
     private String output;
@@ -93,18 +90,14 @@ public final class DiscoverTestsMain implements Callable<Integer> {
             return new PostDiscoveryFilter() {
                 @Override
                 public FilterResult apply(TestDescriptor testDescriptor) {
-                    // Check if the test class extends directly or indirectly from
-                    // "nebula.test.IntegrationSpec" or "nebula.test.IntegrationTestKitSpec"
                     return testDescriptor
                             .getSource()
                             .map(TestClassesDiscoverer::getTestClassFromSource)
                             .map(testClass -> {
-                                logger.info(String.format("Trying for %s", testClass));
                                 if (isSubclassOfAny(testClass, excludeSubClasses)) {
                                     return FilterResult.excluded(
                                             String.format("%s is subclassing an ignored class", testDescriptor));
                                 } else if (isSubclassOfAny(testClass, subClasses)) {
-                                    logger.info(String.format("Including %s", testDescriptor));
                                     return FilterResult.included(
                                             String.format("%s subclasses an allowlisted class", testDescriptor));
                                 } else {

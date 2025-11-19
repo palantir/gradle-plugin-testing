@@ -15,11 +15,3 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
-
-
-task runTestClasses(type: JavaExec) {
-    mainClass = 'com.palantir.gradle.plugintesting.DiscoverTestsMain'
-    classpath = sourceSets.main.runtimeClasspath
-    args = [
-    ]
-}
