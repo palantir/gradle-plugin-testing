@@ -17,7 +17,6 @@
 package com.palantir.gradle.plugintesting;
 
 import java.nio.file.Path;
-import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -25,18 +24,13 @@ import picocli.CommandLine.Option;
 @Command(
         name = "discover",
         subcommands = {TestClassesCommand.class})
-public final class DiscoverTestsMain implements Callable<Integer> {
+public final class DiscoverTestsMain {
 
     @Option(names = "--output", description = "Output")
     private String output;
 
     Path getOutputPath() {
         return Path.of(output);
-    }
-
-    @Override
-    public Integer call() throws Exception {
-        return 0;
     }
 
     public static void main(String[] args) throws Exception {

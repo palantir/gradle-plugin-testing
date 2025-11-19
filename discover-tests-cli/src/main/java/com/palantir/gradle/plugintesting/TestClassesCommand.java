@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.plugintesting;
 
-import java.util.concurrent.Callable;
 import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.engine.TestEngine;
 import org.spockframework.runtime.SpockEngine;
@@ -27,7 +26,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(
         name = "testClasses",
         subcommands = {SubClassesOfCommand.class, WithAnnotationsCommand.class})
-public final class TestClassesCommand implements Callable<Integer> {
+public final class TestClassesCommand {
 
     @ParentCommand
     private DiscoverTestsMain discoverTestsCommand;
@@ -48,10 +47,5 @@ public final class TestClassesCommand implements Callable<Integer> {
         throw new IllegalArgumentException(String.format(
                 "testEngine should be either `junit-jupiter` or `spock`, %s is not a supported test engine",
                 testEngine));
-    }
-
-    @Override
-    public Integer call() throws Exception {
-        return 0;
     }
 }
