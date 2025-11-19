@@ -245,7 +245,8 @@ class PluginTestingJunitPluginTest {
         gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
         rootProject
                 .buildDir()
-                .file("project-java-tests")
+                .directory("tests-discovery")
+                .file("java-test-classes-paths")
                 .assertThat()
                 .content()
                 .isEqualTo("src/test/java/test/GradlePluginTestClass.java");
@@ -301,7 +302,8 @@ class PluginTestingJunitPluginTest {
         gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
         rootProject
                 .buildDir()
-                .file("project-groovy-tests")
+                .directory("tests-discovery")
+                .file("groovy-test-classes-paths")
                 .assertThat()
                 .content()
                 .hasLineCount(2)

@@ -82,13 +82,15 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
                         .zip(
                                 getTestClassType(),
                                 getProjectLayout().getBuildDirectory(),
-                                (type, buildDir) -> buildDir.file(String.format("discovered-%s-tests", type))));
+                                (type, buildDir) ->
+                                        buildDir.dir("tests-discovery").file(String.format("%s-test-classes", type))));
         getOutputFile()
                 .convention(getProviderFactory()
                         .zip(
                                 getTestClassType(),
                                 getProjectLayout().getBuildDirectory(),
-                                (type, buildDir) -> buildDir.file(String.format("project-%s-tests", type))));
+                                (type, buildDir) -> buildDir.dir("tests-discovery")
+                                        .file(String.format("%s-test-classes-paths", type))));
         getMainClass().set("com.palantir.gradle.plugintesting.DiscoverTestsMain");
         getArgumentProviders().add(this::getArguments);
 
