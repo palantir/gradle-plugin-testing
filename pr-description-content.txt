@@ -1,0 +1,38 @@
+# Migration: AbstractTestingPluginSpec to AbstractTestingPluginTest
+
+A formatted diff between the old and new test can be viewed [here](https://htmlpreview.github.io/?https://raw.githubusercontent.com/palantir/gradle-baseline/develop/test-migration-notes/AbstractTestingPluginTest.html)
+
+# Test Migration Notes: AbstractTestingPluginTest
+
+## Migration Overview
+Migrated `AbstractTestingPluginSpec.groovy` to `AbstractTestingPluginTest.java` from Nebula/Spock framework to the new Java-based testing framework.
+
+## Key Changes
+
+### Framework Approach Change
+The original Groovy class extended `IntegrationSpec` and overrode `runTasks()` to inject the plugin version property as a command-line argument (`-P` flag).
+
+The new Java class uses `@GradlePluginTests` annotation and implements a `@BeforeEach` method that sets the plugin version property directly in `gradle.properties` using the `gradlePropertiesFile().appendProperty()` API.
+
+### Benefits of New Approach
+1. **Cleaner separation of concerns**: Configuration is handled in setup rather than execution
+2. **More explicit**: The property file manipulation is visible and testable
+3. **Follows framework patterns**: Uses the structured API for properties files as documented in the testing guide
+4. **Better testability**: Properties are set once per test rather than being injected on every task invocation
+
+## First Pass - No Compilation Errors
+The initial migration compiled successfully without any errors. The new framework's APIs were straightforward to use:
+- Used `RootProject` parameter injection in `@BeforeEach`
+- Used `gradlePropertiesFile().appendProperty()` for setting the plugin version property
+- Added proper error handling for missing system property
+
+## Second Pass Review - No Changes Needed
+Reviewed against testing-guide.md:
+- ✅ Correctly uses `@GradlePluginTests` annotation
+- ✅ Uses parameter injection properly
+- ✅ Uses structured API for properties files (`appendProperty()`)
+- ✅ Follows naming conventions (Test suffix instead of Spec)
+- ✅ Maintains the same functionality as the original
+- ✅ Delineator comments in place for review
+
+No additional changes were necessary.
