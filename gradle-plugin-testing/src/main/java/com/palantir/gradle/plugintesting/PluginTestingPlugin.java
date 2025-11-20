@@ -40,6 +40,8 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
@@ -49,8 +51,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class PluginTestingPlugin implements Plugin<Project> {
     /**
@@ -65,7 +65,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
     public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
-    private static final Logger log = LoggerFactory.getLogger(PluginTestingPlugin.class);
+    private static final Logger log = Logging.getLogger(PluginTestingPlugin.class);
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
@@ -167,14 +167,14 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
     }
 
     private static void addTestClassesDiscoveryTasks(Project project) {
-        project.getTasks().register("discoverGradlePluginTests", DiscoveryTestClassesTask.class, task -> {
+        project.getTasks().register("discoverGradlePluginTests", DiscoverTestClassesTask.class, task -> {
             task.getTestClassType().set("java");
             task.getExtraArguments()
                     .addAll(List.of(
                             "withAnnotations", "--include", "com.palantir.gradle.testing.junit.GradlePluginTests"));
         });
 
-        project.getTasks().register("discoverGroovyTestClassesToMigrate", DiscoveryTestClassesTask.class, task -> {
+        project.getTasks().register("discoverGroovyTestClassesToMigrate", DiscoverTestClassesTask.class, task -> {
             task.getTestClassType().set("groovy");
             task.getExtraArguments()
                     .addAll(List.of(
@@ -185,13 +185,13 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             "com.palantir.gradle.plugintesting.ConfigurationCacheSpec"));
         });
 
-        project.getTasks().withType(DiscoveryTestClassesTask.class, task -> {
+        project.getTasks().withType(DiscoverTestClassesTask.class, task -> {
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
             SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
             task.getTestClasspath().setFrom(testSourceSet.getRuntimeClasspath());
             task.getRuntimeClasspath().setFrom(project.getConfigurations().getByName("runtimeClasspath"));
             task.getTestSourceFiles().setFrom(testSourceSet.getAllSource());
-            task.getParentPath().set(project.getRootProject().getProjectDir());
+            task.getRootPath().set(project.getRootProject().getProjectDir());
         });
     }
 

@@ -31,7 +31,7 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
     private List<String> includedAnnotations;
 
     @Override
-    Filter<?> getFilter() {
+    protected Filter<?> getFilter() {
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {

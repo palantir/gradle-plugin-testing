@@ -29,21 +29,24 @@ import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public abstract class DiscoveryTestClassesTask extends JavaExec {
+public abstract class DiscoverTestClassesTask extends JavaExec {
 
-    private static final Logger log = LoggerFactory.getLogger(DiscoveryTestClassesTask.class);
+    private static final Logger log = Logging.getLogger(DiscoverTestClassesTask.class);
 
     @InputFiles
     public abstract ConfigurableFileCollection getTestClasspath();
@@ -53,6 +56,15 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
 
     @InputFiles
     public abstract ConfigurableFileCollection getRuntimeClasspath();
+
+    @Input
+    public abstract Property<File> getRootPath();
+
+    @Input
+    public abstract ListProperty<String> getExtraArguments();
+
+    @Input
+    public abstract Property<String> getTestClassType();
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
@@ -66,31 +78,20 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
     @Inject
     public abstract ProviderFactory getProviderFactory();
 
-    @Input
-    public abstract Property<File> getParentPath();
+    @Inject
+    public abstract ObjectFactory getObjectFactory();
 
-    @Input
-    public abstract ListProperty<String> getExtraArguments();
+    public DiscoverTestClassesTask() {
+        setClasspath(getObjectFactory().fileCollection().from(getRuntimeClasspath(), getTestClasspath()));
+        Provider<Directory> outputRootDirectory = getProviderFactory()
+                .zip(
+                        getProjectLayout().getBuildDirectory(),
+                        getTestClassType(),
+                        (buildDirectory, testType) ->
+                                buildDirectory.dir(String.format("tests-discovery/%s", testType)));
 
-    @Input
-    public abstract Property<String> getTestClassType();
-
-    public DiscoveryTestClassesTask() {
-        setClasspath(getProject().files(getRuntimeClasspath(), getTestClasspath()));
-        getDiscoveredTestsFile()
-                .convention(getProviderFactory()
-                        .zip(
-                                getTestClassType(),
-                                getProjectLayout().getBuildDirectory(),
-                                (type, buildDir) ->
-                                        buildDir.dir("tests-discovery").file(String.format("%s-test-classes", type))));
-        getOutputFile()
-                .convention(getProviderFactory()
-                        .zip(
-                                getTestClassType(),
-                                getProjectLayout().getBuildDirectory(),
-                                (type, buildDir) -> buildDir.dir("tests-discovery")
-                                        .file(String.format("%s-test-classes-paths", type))));
+        getDiscoveredTestsFile().convention(outputRootDirectory.map(outputRoot -> outputRoot.file("test-classes")));
+        getOutputFile().convention(outputRootDirectory.map(outputRoot -> outputRoot.file("test-classes-paths")));
         getMainClass().set("com.palantir.gradle.plugintesting.DiscoverTestsMain");
         getArgumentProviders().add(this::getArguments);
 
@@ -98,25 +99,25 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
             @Override
             public void execute(Task _task) {
                 try {
-                    Path parentPath = getParentPath().get().toPath();
-                    Set<String> discoveredTestClassesPaths =
-                            Files.readAllLines(getDiscoveredTestsFile()
-                                            .getAsFile()
-                                            .get()
-                                            .toPath())
-                                    .stream()
-                                    .map(this::toFilePath)
-                                    .collect(Collectors.toSet());
+                    Path parentPath = getRootPath().get().toPath();
+                    Path discoveredTests =
+                            getDiscoveredTestsFile().getAsFile().get().toPath();
+                    Set<String> discoveredTestClassesPaths = Files.readAllLines(discoveredTests).stream()
+                            .map(this::toFilePath)
+                            .collect(Collectors.toSet());
                     Set<String> discoveredTestFiles = getTestSourceFiles().getAsFileTree().getFiles().stream()
                             .map(File::toPath)
                             .filter(path -> pathMatches(path, discoveredTestClassesPaths))
                             .map(path -> parentPath.relativize(path).toString())
                             .collect(Collectors.toSet());
                     if (discoveredTestFiles.size() != discoveredTestClassesPaths.size()) {
+                        List<String> missingClasses = discoveredTestClassesPaths.stream()
+                                .filter(classPath -> !anyMatch(classPath, discoveredTestFiles))
+                                .toList();
                         throw new RuntimeException(String.format(
                                 "Could not find all test source classes for the discovered test classes. Discovered"
-                                        + " tests: %s, but only mapped the following classes in the repo: %s",
-                                discoveredTestClassesPaths, discoveredTestFiles));
+                                        + " tests: %s, but some classes could not be found in the repo: %s",
+                                discoveredTestFiles, missingClasses));
                     }
                     Files.writeString(
                             getOutputFile().getAsFile().get().toPath(), String.join("\n", discoveredTestFiles));
@@ -153,7 +154,11 @@ public abstract class DiscoveryTestClassesTask extends JavaExec {
         throw new RuntimeException(String.format("Invalid classType %s", classType));
     }
 
-    private boolean pathMatches(Path path, Set<String> testClasses) {
+    private static boolean anyMatch(String path, Set<String> testFilePath) {
+        return testFilePath.stream().anyMatch(filePath -> filePath.endsWith(path));
+    }
+
+    private static boolean pathMatches(Path path, Set<String> testClasses) {
         return testClasses.stream().anyMatch(path::endsWith);
     }
 }

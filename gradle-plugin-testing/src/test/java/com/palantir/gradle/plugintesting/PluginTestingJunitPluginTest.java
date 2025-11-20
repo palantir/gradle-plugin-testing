@@ -245,8 +245,8 @@ class PluginTestingJunitPluginTest {
         gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
         rootProject
                 .buildDir()
-                .directory("tests-discovery")
-                .file("java-test-classes-paths")
+                .directory("tests-discovery/java")
+                .file("test-classes-paths")
                 .assertThat()
                 .content()
                 .isEqualTo("src/test/java/test/GradlePluginTestClass.java");
@@ -300,14 +300,13 @@ class PluginTestingJunitPluginTest {
         });
 
         gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
-        rootProject
-                .buildDir()
-                .directory("tests-discovery")
-                .file("groovy-test-classes-paths")
-                .assertThat()
-                .content()
-                .hasLineCount(2)
-                .contains("src/test/groovy/test/NebulaIntegrationTest.groovy")
-                .contains("src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
+        assertThat(Files.readAllLines(rootProject
+                        .buildDir()
+                        .directory("tests-discovery/groovy")
+                        .file("test-classes-paths")
+                        .path()))
+                .containsExactlyInAnyOrder(
+                        "src/test/groovy/test/NebulaIntegrationTest.groovy",
+                        "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
     }
 }

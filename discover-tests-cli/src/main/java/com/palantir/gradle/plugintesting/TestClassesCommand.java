@@ -16,9 +16,6 @@
 
 package com.palantir.gradle.plugintesting;
 
-import org.junit.jupiter.engine.JupiterTestEngine;
-import org.junit.platform.engine.TestEngine;
-import org.spockframework.runtime.SpockEngine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
@@ -38,14 +35,7 @@ public final class TestClassesCommand {
         return discoverTestsCommand;
     }
 
-    TestEngine getTestEngine() {
-        if (testEngine.equals("junit-jupiter")) {
-            return new JupiterTestEngine();
-        } else if (testEngine.equals("spock")) {
-            return new SpockEngine();
-        }
-        throw new IllegalArgumentException(String.format(
-                "testEngine should be either `junit-jupiter` or `spock`, %s is not a supported test engine",
-                testEngine));
+    String getTestEngine() {
+        return testEngine;
     }
 }

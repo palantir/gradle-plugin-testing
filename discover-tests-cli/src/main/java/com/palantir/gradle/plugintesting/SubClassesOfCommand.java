@@ -34,7 +34,7 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
     private List<String> excludeSubClasses;
 
     @Override
-    Filter<?> getFilter() {
+    protected Filter<?> getFilter() {
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {

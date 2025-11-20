@@ -25,10 +25,10 @@ import picocli.CommandLine.Option;
 public final class DiscoverTestsMain {
 
     @Option(names = "--output", description = "Output")
-    private String output;
+    private Path output;
 
     Path getOutputPath() {
-        return Path.of(output);
+        return output;
     }
 
     public static void main(String[] args) throws Exception {

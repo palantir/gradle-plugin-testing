@@ -32,6 +32,7 @@ import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
+import org.junit.platform.launcher.EngineFilter;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.LauncherSession;
@@ -47,21 +48,19 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
     @ParentCommand
     private TestClassesCommand testClassesCommand;
 
-    abstract Filter<?> getFilter();
+    protected abstract Filter<?> getFilter();
 
-    final Set<String> getDiscoveredClassNames() {
+    protected final Set<String> getDiscoveredClassNames() {
         String classPath = System.getProperty("java.class.path");
         LauncherDiscoveryRequest discoveryRequest = LauncherDiscoveryRequestBuilder.request()
                 .selectors(DiscoverySelectors.selectClasspathRoots(Arrays.stream(classPath.split(File.pathSeparator))
                         .map(Paths::get)
                         .collect(Collectors.toSet())))
-                .filters(getFilter())
+                .filters(getFilter(), EngineFilter.includeEngines(testClassesCommand.getTestEngine()))
                 .build();
 
-        LauncherConfig launcherConfig = LauncherConfig.builder()
-                .enableTestEngineAutoRegistration(false)
-                .addTestEngines(testClassesCommand.getTestEngine())
-                .build();
+        LauncherConfig launcherConfig =
+                LauncherConfig.builder().enableTestEngineAutoRegistration(true).build();
         try (LauncherSession launcherSession = LauncherFactory.openSession(launcherConfig)) {
             Launcher launcher = launcherSession.getLauncher();
             TestPlan testPlan = launcher.discover(discoveryRequest);
