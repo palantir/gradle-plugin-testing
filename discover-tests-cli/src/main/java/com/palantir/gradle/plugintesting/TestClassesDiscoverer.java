@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.junit.platform.engine.Filter;
 import org.junit.platform.engine.TestSource;
@@ -43,14 +42,14 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import picocli.CommandLine.ParentCommand;
 
-public abstract class TestClassesDiscoverer implements Callable<Integer> {
+public abstract class TestClassesDiscoverer implements Runnable {
 
     @ParentCommand
     private TestClassesCommand testClassesCommand;
 
     protected abstract Filter<?> getFilter();
 
-    protected final Set<String> getDiscoveredClassNames() {
+    private Set<String> getDiscoveredClassNames() {
         String classPath = System.getProperty("java.class.path");
         LauncherDiscoveryRequest discoveryRequest = LauncherDiscoveryRequestBuilder.request()
                 .selectors(DiscoverySelectors.selectClasspathRoots(Arrays.stream(classPath.split(File.pathSeparator))
@@ -75,12 +74,11 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
     }
 
     @Override
-    public final Integer call() throws Exception {
+    public final void run() {
         writeOutput(testClassesCommand.getDiscoverTestsCommand().getOutputPath(), getDiscoveredClassNames());
-        return 0;
     }
 
-    static Class<?> getTestClassFromSource(TestSource testSource) {
+    protected static Class<?> getTestClassFromSource(TestSource testSource) {
         if (testSource instanceof ClassSource classSource) {
             return classSource.getJavaClass();
         } else if (testSource instanceof MethodSource methodSource) {
@@ -93,12 +91,13 @@ public abstract class TestClassesDiscoverer implements Callable<Integer> {
         try {
             Files.writeString(
                     output,
-                    String.join("\n", classes),
+                    String.join("\n", classes.stream().sorted().toList()),
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.WRITE,
                     StandardOpenOption.CREATE);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to write the output to file %s", output), e);
+            throw new UncheckedIOException(
+                    String.format("Failed to write test discovery output to file %s", output), e);
         }
     }
 }

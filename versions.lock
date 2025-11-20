@@ -186,8 +186,6 @@ org.jspecify:jspecify:1.0.0 (3 constraints: 4431fdfd)
 
 org.junit.jupiter:junit-jupiter-api:5.13.4 (4 constraints: 3e35a85d)
 
-org.junit.jupiter:junit-jupiter-engine:5.13.4 (2 constraints: 7813555c)
-
 org.junit.jupiter:junit-jupiter-params:5.13.4 (2 constraints: 7813555c)
 
 org.junit.platform:junit-platform-commons:1.13.4 (2 constraints: 39219184)
@@ -229,5 +227,7 @@ com.google.truth:truth:1.4.0 (2 constraints: 72265a6a)
 org.hamcrest:hamcrest-library:2.2 (1 constraints: fc138e38)
 
 org.junit.jupiter:junit-jupiter:5.13.4 (1 constraints: 7e074077)
+
+org.junit.jupiter:junit-jupiter-engine:5.13.4 (2 constraints: 7813555c)
 
 org.junit.platform:junit-platform-testkit:1.13.4 (1 constraints: 3b05363b)
