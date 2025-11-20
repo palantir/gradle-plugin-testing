@@ -24,7 +24,6 @@ import com.palantir.gradle.testing.files.Directory;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
@@ -272,31 +271,25 @@ class PluginTestingJunitPluginTest {
                 "IgnoredSpecification",
                 "spock.lang.Specification");
         testNameToClass.forEach((testName, importClass) -> {
-            try {
-                List<String> parts = Splitter.on('.').splitToList(importClass);
+            List<String> parts = Splitter.on('.').splitToList(importClass);
 
-                String classToExtend = parts.get(parts.size() - 1);
-                Files.writeString(
-                        groovyDir.file(String.format("%s.groovy", testName)).path(),
-                        String.format("""
-                            package test;
+            String classToExtend = parts.get(parts.size() - 1);
+            groovyDir.file(String.format("%s.groovy", testName)).overwrite("""
+                package test;
 
-                            import %s
-                            import java.nio.file.Files;
+                import %s
+                import java.nio.file.Files;
 
-                            class %s extends %s {
+                class %s extends %s {
 
-                                def '#param: my test'() {
-                                    Files.createTempDirectory("prefix" + gradleVersion);
+                    def '#param: my test'() {
+                        Files.createTempDirectory("prefix" + gradleVersion);
 
-                                    where:
-                                    param << [1, 2]
-                                }
-                            }
-                            """, importClass, testName, classToExtend));
-            } catch (IOException e) {
-                throw new UncheckedIOException(String.format("Failed to write file %s", testName), e);
-            }
+                        where:
+                        param << [1, 2]
+                    }
+                }
+                """, importClass, testName, classToExtend);
         });
 
         gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
