@@ -174,7 +174,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             "withAnnotations", "--include", "com.palantir.gradle.testing.junit.GradlePluginTests"));
         });
 
-        project.getTasks().register("discoverGroovyTestClassesToMigrate", DiscoverTestClassesTask.class, task -> {
+        project.getTasks().register("discoverNebulaTestClassesToMigrate", DiscoverTestClassesTask.class, task -> {
             task.getTestClassType().set("groovy");
             task.getExtraArguments()
                     .addAll(List.of(

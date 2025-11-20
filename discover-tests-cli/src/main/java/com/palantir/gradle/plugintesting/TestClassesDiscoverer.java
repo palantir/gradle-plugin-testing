@@ -89,9 +89,9 @@ public abstract class TestClassesDiscoverer implements Runnable {
 
     private static void writeOutput(Path output, Set<String> classes) {
         try {
-            Files.writeString(
+            Files.write(
                     output,
-                    String.join("\n", classes.stream().sorted().toList()),
+                    classes.stream().sorted().toList(),
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.WRITE,
                     StandardOpenOption.CREATE);

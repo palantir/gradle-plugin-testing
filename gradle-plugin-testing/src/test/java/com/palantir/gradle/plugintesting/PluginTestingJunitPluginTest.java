@@ -217,13 +217,22 @@ class PluginTestingJunitPluginTest {
 
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import java.nio.file.Files;
-            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.Nested;import org.junit.jupiter.api.Test;
 
             @GradlePluginTests
             class GradlePluginTestClass {
                 @Test
                 void test() throws Exception {
                     Files.createTempDirectory("prefix");
+                }
+
+                @Nested
+                class NestedGradlePluginTestClass {
+
+                    @Test
+                    void nested_test() throws Exception {
+                        Files.createTempDirectory("other");
+                    }
                 }
             }
             """);
@@ -242,17 +251,16 @@ class PluginTestingJunitPluginTest {
             """);
 
         gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
-        rootProject
-                .buildDir()
-                .directory("tests-discovery/java")
-                .file("test-classes-paths")
-                .assertThat()
-                .content()
-                .isEqualTo("src/test/java/test/GradlePluginTestClass.java");
+        assertThat(Files.readAllLines(rootProject
+                        .buildDir()
+                        .directory("tests-discovery/java")
+                        .file("test-classes-paths")
+                        .path()))
+                .containsExactlyInAnyOrder("src/test/java/test/GradlePluginTestClass.java");
     }
 
     @Test
-    void groovy_tests_ready_for_migration_are_discovered(GradleInvoker gradle, RootProject rootProject)
+    void nebula_tests_ready_for_migration_are_discovered(GradleInvoker gradle, RootProject rootProject)
             throws IOException {
         Directory groovyDir =
                 rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
@@ -292,7 +300,7 @@ class PluginTestingJunitPluginTest {
                 """, importClass, testName, classToExtend);
         });
 
-        gradle.withArgs("discoverGroovyTestClassesToMigrate").buildsSuccessfully();
+        gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
         assertThat(Files.readAllLines(rootProject
                         .buildDir()
                         .directory("tests-discovery/groovy")

@@ -116,8 +116,7 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
                                         + " tests: %s, but some classes could not be found in the repo: %s",
                                 discoveredTestFiles, missingClasses));
                     }
-                    Files.writeString(
-                            getOutputFile().getAsFile().get().toPath(), String.join("\n", discoveredTestFiles));
+                    Files.write(getOutputFile().getAsFile().get().toPath(), discoveredTestFiles);
                 } catch (IOException e) {
                     throw new UncheckedIOException("failed to compute class files", e);
                 }
