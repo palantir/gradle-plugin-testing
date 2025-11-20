@@ -1,0 +1,98 @@
+A formatted diff between the old and new test can be viewed [here](https://htmlpreview.github.io/?https://raw.githubusercontent.com/palantir/gradle-baseline/develop/test-migration-notes/TestDependencyVersionsTaskTest.html)
+
+# Test Migration Errors and Fixes
+
+## First Compilation Attempt
+
+### Error 1: Cannot find symbol `projectDir()`
+**Error message:**
+```
+error: cannot find symbol
+                .projectDir()
+                ^
+  symbol:   method projectDir()
+  location: variable rootProject of type RootProject
+```
+
+**Root cause:** The `RootProject` API doesn't have a `projectDir()` method. The file path needs to be accessed differently.
+
+**Fix:** Removed the `outputFile` field entirely. Instead, used `rootProject.buildDir().file("plugin-testing/dependency-versions.properties")` to access the file through the framework's API.
+
+### Error 2: Cannot find symbol `read()`
+**Error message:**
+```
+error: cannot find symbol
+        String outputText = rootProject.file("build/plugin-testing/dependency-versions.properties").read();
+                                                                                                   ^
+  symbol:   method read()
+  location: class ArbitraryFile
+```
+
+**Root cause:** The `ArbitraryFile` class doesn't have a `read()` method. The framework uses a different pattern for file assertions.
+
+**Fix:** Changed to use the fluent assertion API:
+```java
+rootProject
+    .buildDir()
+    .file("plugin-testing/dependency-versions.properties")
+    .assertThat()
+    .content()
+    .contains("expected content");
+```
+
+### Error 3: Cannot find symbol `asFile()`
+**Error message:**
+```
+error: cannot find symbol
+                rootProject.file("versions.props").asFile(),
+                                                  ^
+  symbol:   method asFile()
+  location: class ArbitraryFile
+```
+
+**Root cause:** The framework's `ArbitraryFile` doesn't have an `asFile()` method.
+
+**Fix:** Changed from using `TestContentHelpers.addVersionsToPropsFile()` to using the framework's fluent API:
+```java
+rootProject
+    .propertiesFile("versions.props")
+    .appendProperty("key", "value");
+```
+
+## Second Compilation Attempt
+
+### Error 4: GradleTestPluginsBlock ErrorProne check
+**Error message:**
+```
+error: [GradleTestPluginsBlock] Plugins must be added using .plugins().add() method.
+Use gradleFile.plugins().add("plugin-id") instead.
+        rootProject.buildGradle().append("""
+```
+
+**Root cause:** The ErrorProne check `GradleTestPluginsBlock` detects when plugins are being added via `apply plugin:` syntax in appended strings, which goes against the framework's best practices.
+
+**Fix:** Extracted plugin declarations from the appended strings and used the `.plugins().add()` API instead:
+```java
+rootProject.buildGradle().plugins().add("groovy");
+rootProject.buildGradle().plugins().add("com.palantir.gradle-plugin-testing");
+```
+
+## Summary of API Differences
+
+1. **File reading:** Use `.assertThat().content()` instead of `.read()` or `.text`
+2. **File assertions:** Chain assertions fluently instead of extracting content to variables
+3. **Properties files:** Use `.propertiesFile().appendProperty()` instead of helper methods with File objects
+4. **Plugin declarations:** Use `.plugins().add()` instead of `apply plugin:` in appended strings
+5. **File paths:** Use `buildDir().file()` instead of constructing paths manually
+
+## Second Pass Refinements
+
+### Refinement 1: Removed redundant Spock-style comments
+**Issue:** The migrated test had comments like `// given:`, `// when:`, `// then:` which are Spock syntax remnants and unnecessary in JUnit tests.
+
+**Fix:** Removed these comments, keeping only the `// ***DELINEATOR FOR REVIEW:` comments that will be removed later.
+
+### Refinement 2: Improved line formatting for long method chains
+**Issue:** Some property append chains were becoming very long horizontally.
+
+**Fix:** Split the longer `.appendProperty()` calls across multiple lines for better readability, especially for the longer dependency coordinate strings.
