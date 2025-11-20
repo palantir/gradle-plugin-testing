@@ -17,6 +17,8 @@
 package com.palantir.gradle.plugintesting;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.platform.engine.Filter;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -28,13 +30,16 @@ import picocli.CommandLine.Option;
 public final class SubClassesOfCommand extends TestClassesDiscoverer {
 
     @Option(names = "--include", split = ",", description = "List of subClasses to include")
-    private List<String> subClasses;
+    private List<String> classNames;
 
     @Option(names = "--exclude", split = ",", description = "List of subClasses to exclude")
-    private List<String> excludeSubClasses;
+    private List<String> excludedClassNames;
 
     @Override
     protected Filter<?> getFilter() {
+        List<Class<?>> excludedClassesOnClasspath = getClassesFrom(excludedClassNames);
+        List<Class<?>> includedClassesOnClasspath = getClassesFrom(classNames);
+
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {
@@ -42,10 +47,10 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
                         .getSource()
                         .map(TestClassesDiscoverer::getTestClassFromSource)
                         .map(testClass -> {
-                            if (isSubclassOfAny(testClass, excludeSubClasses)) {
+                            if (isAssignableFrom(testClass, excludedClassesOnClasspath)) {
                                 return FilterResult.excluded(
                                         String.format("%s subclasses an excluded class", testDescriptor));
-                            } else if (isSubclassOfAny(testClass, subClasses)) {
+                            } else if (isAssignableFrom(testClass, includedClassesOnClasspath)) {
                                 return FilterResult.included(
                                         String.format("%s subclasses an allowlisted class", testDescriptor));
                             } else {
@@ -58,18 +63,21 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
         };
     }
 
-    static boolean isSubclassOfAny(Class<?> originalClass, List<String> targetClassNames) {
-        return targetClassNames.stream().anyMatch(targetClassName -> isSubclassOf(originalClass, targetClassName));
+    static List<Class<?>> getClassesFrom(List<String> classNames) {
+        return classNames.stream()
+                .map(className -> {
+                    try {
+                        return Optional.of(Class.forName(className));
+                    } catch (ClassNotFoundException e) {
+                        return Optional.<Class<?>>empty();
+                    }
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
-    static boolean isSubclassOf(Class<?> originalClass, String targetClassName) {
-        Class<?> clazz = originalClass;
-        while (clazz != null && !clazz.equals(Object.class)) {
-            if (clazz.getName().equals(targetClassName)) {
-                return true;
-            }
-            clazz = clazz.getSuperclass();
-        }
-        return false;
+    static boolean isAssignableFrom(Class<?> originalClass, List<Class<?>> targetClassNames) {
+        return targetClassNames.stream().anyMatch(targetClass -> targetClass.isAssignableFrom(originalClass));
     }
 }

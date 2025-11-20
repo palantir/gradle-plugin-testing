@@ -270,6 +270,9 @@ class PluginTestingJunitPluginTest {
                 "NebulaIntegrationTest",
                 "nebula.test.IntegrationSpec",
                 // included because it extends IntegrationSpec
+                "SubClassesNebulaIntegrationTest",
+                "test.NebulaIntegrationTest",
+                // included because it extends IntegrationSpec
                 "NebulaIntegrationTestKitSpec",
                 "nebula.test.IntegrationTestKitSpec",
                 // ignored because it extends ConfigurationCacheSpec
@@ -308,6 +311,7 @@ class PluginTestingJunitPluginTest {
                         .path()))
                 .containsExactlyInAnyOrder(
                         "src/test/groovy/test/NebulaIntegrationTest.groovy",
+                        "src/test/groovy/test/SubClassesNebulaIntegrationTest.groovy",
                         "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
     }
 }
