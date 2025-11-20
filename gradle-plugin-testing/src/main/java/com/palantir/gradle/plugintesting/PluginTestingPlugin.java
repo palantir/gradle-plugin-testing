@@ -189,7 +189,6 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
             SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
             task.getTestClasspath().setFrom(testSourceSet.getRuntimeClasspath());
-            task.getRuntimeClasspath().setFrom(project.getConfigurations().getByName("runtimeClasspath"));
             task.getTestSourceFiles().setFrom(testSourceSet.getAllSource());
             task.getRootPath().set(project.getRootProject().getProjectDir());
         });

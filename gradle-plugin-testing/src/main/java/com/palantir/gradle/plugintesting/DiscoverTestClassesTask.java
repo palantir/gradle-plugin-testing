@@ -54,9 +54,6 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
     @InputFiles
     public abstract ConfigurableFileCollection getTestSourceFiles();
 
-    @InputFiles
-    public abstract ConfigurableFileCollection getRuntimeClasspath();
-
     @Input
     public abstract Property<File> getRootPath();
 
@@ -82,7 +79,7 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
     public abstract ObjectFactory getObjectFactory();
 
     public DiscoverTestClassesTask() {
-        setClasspath(getObjectFactory().fileCollection().from(getRuntimeClasspath(), getTestClasspath()));
+        setClasspath(getObjectFactory().fileCollection().from(getTestClasspath()));
         Provider<Directory> outputRootDirectory = getProviderFactory()
                 .zip(
                         getProjectLayout().getBuildDirectory(),
