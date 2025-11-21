@@ -16,17 +16,50 @@
 
 package com.palantir.gradle.testing.execution;
 
+import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface GradleInvoker {
+
+    Logger log = LoggerFactory.getLogger(GradleInvoker.class);
 
     GradleInvocation withArgs(String... args);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
         DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
         if (configurationCache) {
+            if (shouldRunInTestkitDebugMode()) {
+                log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
+                        + " configuration cache cannot be used together. See"
+                        + " https://github.com/gradle/gradle/issues/25846 for details.");
+                return gradleInvoker;
+            }
             return new ConfigurationCacheInvoker(path, gradleInvoker);
         }
         return gradleInvoker;
+    }
+
+    static boolean shouldRunInTestkitDebugMode() {
+        // `withDebug(true)` will run the Gradle daemon inside the same JVM as the test, whereas
+        // `withDebug(false)` will run Gradle in a new daemon.
+        // When running tests from IntelliJ with debug or coverage, they only work when the Gradle daemon
+        // is in the same the JVM as the test, so we must set `withDebug(true)` in these cases.
+        // Beware: There can be differences between these two modes!
+        return isJavaDebugAgentLoaded() || isRunningCoverageInIntelliJ();
+    }
+
+    private static boolean isJavaDebugAgentLoaded() {
+        // When you run a test with debug in intellij, it passes an arg to the test process like:
+        //   -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=127.0.0.1:54342
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .anyMatch(arg -> arg.contains("-agentlib:jdwp"));
+    }
+
+    private static boolean isRunningCoverageInIntelliJ() {
+        // When you run a test with coverage in intellij, it sets a system property on the test JVM
+        // by adding the jvm arg `-Didea.coverage.calculate.hits=true`.
+        return Boolean.getBoolean("idea.coverage.calculate.hits");
     }
 }
