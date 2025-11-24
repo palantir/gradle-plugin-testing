@@ -283,9 +283,9 @@ Create custom Gradle files beyond `build.gradle` and `settings.gradle`:
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 
 @Test
-void create_custom_gradle_files(RootProject project) {
+GradleFile create_custom_gradle_files(RootProject project) {
     // Create custom Gradle files
-    project.gradleFile("dependencies.gradle").overwrite("""
+    GradleFile gradleFile = project.gradleFile("dependencies.gradle").overwrite("""
         dependencies {
             implementation 'com.google.guava:guava:32.1.0-jre'
         }
@@ -293,6 +293,8 @@ void create_custom_gradle_files(RootProject project) {
 
     // Reference from build.gradle
     project.buildGradle().append("apply from: 'dependencies.gradle'");
+    // return the GradleFile instance for further customization if needed
+    return gradleFile;
 }
 ```
 
