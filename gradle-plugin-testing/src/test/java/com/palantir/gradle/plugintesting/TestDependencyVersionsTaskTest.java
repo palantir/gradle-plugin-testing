@@ -37,8 +37,8 @@ class TestDependencyVersionsTaskTest {
                 .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
     }
 
-    // Helper method to replace the standardBuildFile variable
-    private void applyStandardBuildWithoutGcv(RootProject project) {
+    @Test
+    void write_versions_without_gcv(GradleInvoker gradle, RootProject project) {
         project.buildGradle().plugins().add("groovy").add("com.palantir.gradle-plugin-testing");
 
         project.buildGradle().append("""
@@ -61,11 +61,6 @@ class TestDependencyVersionsTaskTest {
                 testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0'
             }
             """);
-    }
-
-    @Test
-    void write_versions_without_gcv(GradleInvoker gradle, RootProject project) {
-        applyStandardBuildWithoutGcv(project);
 
         gradle.withArgs("writeTestDependencyVersions").buildsSuccessfully();
 
