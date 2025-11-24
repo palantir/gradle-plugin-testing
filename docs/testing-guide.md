@@ -280,10 +280,12 @@ When using [com.palantir.consistent-versions](https://github.com/palantir/gradle
 Create custom Gradle files beyond `build.gradle` and `settings.gradle`:
 
 ```java
+import com.palantir.gradle.testing.files.gradle.GradleFile;
+
 @Test
 void create_custom_gradle_files(RootProject project) {
     // Create custom Gradle files
-    project.gradleFile("dependencies.gradle").overwrite("""
+    GradleFile gradleFile = project.gradleFile("dependencies.gradle").overwrite("""
         dependencies {
             implementation 'com.google.guava:guava:32.1.0-jre'
         }
@@ -293,6 +295,38 @@ void create_custom_gradle_files(RootProject project) {
     project.buildGradle().append("apply from: 'dependencies.gradle'");
 }
 ```
+
+Or use a helper method to setup a standard build file used across multiple tests:
+```java
+import com.palantir.gradle.testing.files.gradle.GradleFile;
+
+GradleFile standardBuildFile(RootProject project) {
+    rootProject
+            .buildGradle()
+            .plugins()
+            .add("com.palantir.jdks.latest")
+            .add("java-library");
+
+    // Return the GradleFile instance for further configuration in tests
+    return rootProject.buildGradle().append("""
+            repositories {
+                mavenCentral()
+            }
+            """);
+}
+
+@Test
+void check_jdk_17(RootProject project) {
+    standardBuildFile(project).append("""
+            javaVersions {
+                libraryTarget = 17
+            }
+    """);
+
+    //...
+}
+```
+
 
 ### Java Source Files
 
@@ -490,6 +524,8 @@ The `MavenRepo` instance is shared across all test methods in a class. Artifacts
 Use `GradleInvoker` to run builds:
 
 ```java
+import com.palantir.gradle.testing.execution.InvocationResult;
+
 @Test
 void successful_build(GradleInvoker gradle, RootProject project) {
     project.buildGradle().plugins().add("java");
