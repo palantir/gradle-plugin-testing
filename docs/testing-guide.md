@@ -283,7 +283,7 @@ Create custom Gradle files beyond `build.gradle` and `settings.gradle`:
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 
 @Test
-GradleFile create_custom_gradle_files(RootProject project) {
+void create_custom_gradle_files(RootProject project) {
     // Create custom Gradle files
     GradleFile gradleFile = project.gradleFile("dependencies.gradle").overwrite("""
         dependencies {
@@ -293,10 +293,40 @@ GradleFile create_custom_gradle_files(RootProject project) {
 
     // Reference from build.gradle
     project.buildGradle().append("apply from: 'dependencies.gradle'");
-    // return the GradleFile instance for further customization if needed
-    return gradleFile;
 }
 ```
+
+Or use a helper method to setup a standard build file used across multiple tests:
+```java
+import com.palantir.gradle.testing.files.gradle.GradleFile;
+
+GradleFile standardBuildFile(RootProject project) {
+    rootProject
+            .buildGradle()
+            .plugins()
+            .add("com.palantir.jdks.latest")
+            .add("java-library");
+
+    // Return the GradleFile instance for further configuration in tests
+    return rootProject.buildGradle().append("""
+            repositories {
+                mavenCentral()
+            }
+            """);
+}
+
+@Test
+void check_jdk_17(RootProject project) {
+    standardBuildFile(project).append("""
+            javaVersions {
+                libraryTarget = 17
+            }
+    """);
+
+    //...
+}
+```
+
 
 ### Java Source Files
 
