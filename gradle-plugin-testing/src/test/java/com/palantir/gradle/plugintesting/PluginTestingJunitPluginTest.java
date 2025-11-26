@@ -217,7 +217,8 @@ class PluginTestingJunitPluginTest {
 
             import com.palantir.gradle.testing.junit.GradlePluginTests;
             import java.nio.file.Files;
-            import org.junit.jupiter.api.Nested;import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.Nested;
+            import org.junit.jupiter.api.Test;
 
             @GradlePluginTests
             class GradlePluginTestClass {
