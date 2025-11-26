@@ -16,11 +16,11 @@
 
 package com.palantir.gradle.testing.junit;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Extension that disables the configuration cache for tests.
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class DisabledConfigurationCacheExtension implements BeforeAllCallback, BeforeEachCallback {
 
-    private static final Logger log = LoggerFactory.getLogger(DisabledConfigurationCacheExtension.class);
+    private static final Logger log = Logging.getLogger(DisabledConfigurationCacheExtension.class);
 
     @Override
     public void beforeAll(ExtensionContext context) {

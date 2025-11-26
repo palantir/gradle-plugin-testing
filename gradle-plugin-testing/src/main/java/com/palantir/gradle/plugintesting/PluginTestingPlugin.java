@@ -40,6 +40,8 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
@@ -56,13 +58,14 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
      */
     static final String PLUGIN_VERSION_PROPERTY_NAME = "pluginTestingPluginVersion";
 
-    static final List<String> CORE_MAVEN_NAMES =
-            List.of("plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit");
+    static final List<String> CORE_MAVEN_NAMES = List.of(
+            "plugin-testing-core", "configuration-cache-spec", "gradle-plugin-testing-junit", "discover-tests-cli");
 
     public static final Set<String> PATCHABLE_CHECKS = Set.of("GradleTestStringFormatting", "GradleTestPluginsBlock");
     public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
+    private static final Logger log = Logging.getLogger(PluginTestingPlugin.class);
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
@@ -158,7 +161,37 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
             });
         });
 
+        addTestClassesDiscoveryTasks(project);
+
         addGradlePluginForTestingConfigurations(project);
+    }
+
+    private static void addTestClassesDiscoveryTasks(Project project) {
+        project.getTasks().register("discoverGradlePluginTests", DiscoverTestClassesTask.class, task -> {
+            task.getTestClassType().set("java");
+            task.getExtraArguments()
+                    .addAll(List.of(
+                            "withAnnotations", "--include", "com.palantir.gradle.testing.junit.GradlePluginTests"));
+        });
+
+        project.getTasks().register("discoverNebulaTestClassesToMigrate", DiscoverTestClassesTask.class, task -> {
+            task.getTestClassType().set("groovy");
+            task.getExtraArguments()
+                    .addAll(List.of(
+                            "subClassesOf",
+                            "--include",
+                            "nebula.test.IntegrationSpec,nebula.test.IntegrationTestKitSpec",
+                            "--exclude",
+                            "com.palantir.gradle.plugintesting.ConfigurationCacheSpec"));
+        });
+
+        project.getTasks().withType(DiscoverTestClassesTask.class, task -> {
+            SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
+            SourceSet testSourceSet = sourceSetContainer.getByName(SourceSet.TEST_SOURCE_SET_NAME);
+            task.getTestClasspath().setFrom(testSourceSet.getRuntimeClasspath());
+            task.getTestSourceFiles().setFrom(testSourceSet.getAllSource());
+            task.getRootPath().set(project.getRootProject().getProjectDir());
+        });
     }
 
     private static void setupErrorprones(Project project) {

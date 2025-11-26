@@ -29,4 +29,4 @@ include 'gradle-plugin-testing'
 include 'configuration-cache-spec'
 include 'gradle-plugin-testing-error-prone'
 include 'gradle-plugin-testing-junit'
-
+include 'discover-tests-cli'

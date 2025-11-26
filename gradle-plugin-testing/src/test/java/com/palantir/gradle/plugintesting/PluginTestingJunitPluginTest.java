@@ -18,14 +18,21 @@ package com.palantir.gradle.plugintesting;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.files.Directory;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 class PluginTestingJunitPluginTest {
+
     @BeforeEach
     void beforeEach(RootProject rootProject) {
         rootProject
@@ -35,6 +42,7 @@ class PluginTestingJunitPluginTest {
         rootProject
                 .buildGradle()
                 .plugins()
+                .add("groovy")
                 .add("com.palantir.gradle-plugin-testing")
                 .add("java-gradle-plugin")
                 .add("com.palantir.consistent-versions");
@@ -48,6 +56,8 @@ class PluginTestingJunitPluginTest {
             dependencies {
                 testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.13.4'
                 testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.14.0'
+
+                testImplementation 'com.netflix.nebula:nebula-test'
             }
 
             tasks.withType(Test).configureEach {
@@ -198,5 +208,111 @@ class PluginTestingJunitPluginTest {
             """);
 
         assertThat(gradle.withArgs("test").buildsWithFailure().output()).contains("[GradleTestTemporaryFile]");
+    }
+
+    @Test
+    void gradlePluginTests_are_discovered(GradleInvoker gradle, RootProject rootProject) throws IOException {
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import java.nio.file.Files;
+            import org.junit.jupiter.api.Nested;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            class GradlePluginTestClass {
+                @Test
+                void test() throws Exception {
+                    Files.createTempDirectory("prefix");
+                }
+
+                @Nested
+                class NestedGradlePluginTestClass {
+
+                    @Test
+                    void nested_test() throws Exception {
+                        Files.createTempDirectory("other");
+                    }
+                }
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import org.junit.jupiter.api.Test;
+
+            class JunitTest {
+                @Test
+                void my_junit_test() {
+                }
+            }
+            """);
+
+        gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
+        assertThat(readTestClassesPaths(rootProject, "java"))
+                .containsExactlyInAnyOrder("src/test/java/test/GradlePluginTestClass.java");
+    }
+
+    @Test
+    void nebula_tests_ready_for_migration_are_discovered(GradleInvoker gradle, RootProject rootProject)
+            throws IOException {
+        Directory groovyDir =
+                rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
+
+        Map<String, String> testNameToClass = Map.of(
+                // included because it extends IntegrationSpec
+                "NebulaIntegrationTest",
+                "nebula.test.IntegrationSpec",
+                // included because it extends IntegrationSpec
+                "SubClassesNebulaIntegrationTest",
+                "test.NebulaIntegrationTest",
+                // included because it extends IntegrationSpec
+                "NebulaIntegrationTestKitSpec",
+                "nebula.test.IntegrationTestKitSpec",
+                // ignored because it extends ConfigurationCacheSpec
+                "IgnoredConfigurationCacheTest",
+                "com.palantir.gradle.plugintesting.ConfigurationCacheSpec",
+                // ignored because it doesn't extend an allowlisted class
+                "IgnoredSpecification",
+                "spock.lang.Specification");
+        testNameToClass.forEach((testName, importClass) -> {
+            List<String> parts = Splitter.on('.').splitToList(importClass);
+
+            String classToExtend = parts.get(parts.size() - 1);
+            groovyDir.file(String.format("%s.groovy", testName)).overwrite("""
+                package test;
+
+                import %s
+                import java.nio.file.Files;
+
+                class %s extends %s {
+
+                    def '#param: my test'() {
+                        Files.createTempDirectory("prefix" + gradleVersion);
+
+                        where:
+                        param << [1, 2]
+                    }
+                }
+                """, importClass, testName, classToExtend);
+        });
+
+        gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
+        assertThat(readTestClassesPaths(rootProject, "groovy"))
+                .containsExactlyInAnyOrder(
+                        "src/test/groovy/test/NebulaIntegrationTest.groovy",
+                        "src/test/groovy/test/SubClassesNebulaIntegrationTest.groovy",
+                        "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
+    }
+
+    private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {
+        return Files.readAllLines(rootProject
+                .buildDir()
+                .directory(String.format("tests-discovery/%s", language))
+                .file("test-classes-paths")
+                .path());
     }
 }
