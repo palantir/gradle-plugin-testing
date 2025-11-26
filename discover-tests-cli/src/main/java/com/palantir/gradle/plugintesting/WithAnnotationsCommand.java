@@ -18,6 +18,7 @@ package com.palantir.gradle.plugintesting;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.Optional;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.engine.Filter;
 import org.junit.platform.engine.FilterResult;
@@ -35,7 +36,8 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
     @Override
     protected Filter<?> getFilter() {
         List<? extends Class<? extends Annotation>> annotationClasses = includedAnnotations.stream()
-                .map(WithAnnotationsCommand::getClassAnnotations)
+                .map(WithAnnotationsCommand::getClassAnnotation)
+                .mapMulti(Optional<Class<? extends Annotation>>::ifPresent)
                 .toList();
         return new PostDiscoveryFilter() {
             @Override
@@ -61,12 +63,14 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
         return annotations.stream().anyMatch(annotation -> AnnotationSupport.isAnnotated(clazz, annotation));
     }
 
-    private static Class<? extends Annotation> getClassAnnotations(String annotationName) {
+    @SuppressWarnings("BanSystemOut")
+    private static Optional<Class<? extends Annotation>> getClassAnnotation(String annotationName) {
         try {
-            return (Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName);
+            return Optional.of((Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName));
         } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException(
-                    String.format("Failed to retrieve the annotation class from the string name: %s", annotationName));
+            System.out.format(
+                    "Failed to retrieve the annotation class from the string name: %s, Skipping", annotationName);
+            return Optional.empty();
         }
     }
 }
