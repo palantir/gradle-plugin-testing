@@ -16,7 +16,9 @@
 
 package com.palantir.gradle.plugintesting;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
+import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.engine.Filter;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -32,6 +34,9 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
 
     @Override
     protected Filter<?> getFilter() {
+        List<? extends Class<? extends Annotation>> annotationClasses = includedAnnotations.stream()
+                .map(WithAnnotationsCommand::getClassAnnotations)
+                .toList();
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {
@@ -39,7 +44,7 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
                         .getSource()
                         .map(TestClassesDiscoverer::getTestClassFromSource)
                         .map(testClass -> {
-                            if (hasAnyClassAnnotations(testClass, includedAnnotations)) {
+                            if (hasAnyClassAnnotations(testClass, annotationClasses)) {
                                 return FilterResult.included(
                                         String.format("%s has an allowlisted annotation", testDescriptor));
                             }
@@ -51,18 +56,17 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
         };
     }
 
-    private static boolean hasAnyClassAnnotations(Class<?> clazz, List<String> annotations) {
-        return annotations.stream().anyMatch(annotation -> hasClassAnnotation(clazz, annotation));
+    private static boolean hasAnyClassAnnotations(
+            Class<?> clazz, List<? extends Class<? extends Annotation>> annotations) {
+        return annotations.stream().anyMatch(annotation -> AnnotationSupport.isAnnotated(clazz, annotation));
     }
 
-    private static boolean hasClassAnnotation(Class<?> clazz, String annotationName) {
+    private static Class<? extends Annotation> getClassAnnotations(String annotationName) {
         try {
-            Class<? extends java.lang.annotation.Annotation> annotationClass =
-                    (Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName);
-            return clazz.isAnnotationPresent(annotationClass);
+            return (Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(
-                    String.format("Failed to check if the class %s has annotation %s", clazz, annotationName));
+                    String.format("Failed to retrieve the annotation class from the string name: %s", annotationName));
         }
     }
 }

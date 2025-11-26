@@ -251,11 +251,7 @@ class PluginTestingJunitPluginTest {
             """);
 
         gradle.withArgs("discoverGradlePluginTests", "--info").buildsSuccessfully();
-        assertThat(Files.readAllLines(rootProject
-                        .buildDir()
-                        .directory("tests-discovery/java")
-                        .file("test-classes-paths")
-                        .path()))
+        assertThat(readTestClassesPaths(rootProject, "java"))
                 .containsExactlyInAnyOrder("src/test/java/test/GradlePluginTestClass.java");
     }
 
@@ -304,14 +300,18 @@ class PluginTestingJunitPluginTest {
         });
 
         gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
-        assertThat(Files.readAllLines(rootProject
-                        .buildDir()
-                        .directory("tests-discovery/groovy")
-                        .file("test-classes-paths")
-                        .path()))
+        assertThat(readTestClassesPaths(rootProject, "groovy"))
                 .containsExactlyInAnyOrder(
                         "src/test/groovy/test/NebulaIntegrationTest.groovy",
                         "src/test/groovy/test/SubClassesNebulaIntegrationTest.groovy",
                         "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
+    }
+
+    private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {
+        return Files.readAllLines(rootProject
+                .buildDir()
+                .directory(String.format("tests-discovery/%s", language))
+                .file("test-classes-paths")
+                .path());
     }
 }
