@@ -68,6 +68,12 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
     @Override
     public InvocationResult buildsWithFailure() {
         InvocationResult result = initialGradleInvocation.buildsWithFailure();
+
+        // check if there is a configuration time error that isn't related to configuration cache errors
+        if (result.output().contains("org.gradle.api.ProjectConfigurationException:")) {
+            return result;
+        }
+
         assertConfigCacheStored(result);
         InvocationResult configurationCacheResult = secondGradleInvocation.buildsSuccessfully();
         assertConfigCacheReused(configurationCacheResult);

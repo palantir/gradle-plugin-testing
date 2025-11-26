@@ -179,4 +179,21 @@ class ConfigurationCacheTests {
                 .hasMessageContaining("Configuration cache incompatibility: Build execution failed.")
                 .hasMessageContaining("1 problem was found storing the configuration cache.");
     }
+
+    @Test
+    void configuration_time_errors_do_not_run_dry_run(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            project.afterEvaluate(_p -> {
+                if (!project.getRootProject().getPlugins().hasPlugin("randomPlugin")) {
+                    throw new IllegalStateException("Missing a random plugin");
+                }
+            });
+            """);
+
+        InvocationResult result = invoker.withArgs("help").buildsWithFailure();
+        result.assertThat()
+                .output()
+                .contains("Missing a random plugin")
+                .contains("org.gradle.api.ProjectConfigurationException:");
+    }
 }
