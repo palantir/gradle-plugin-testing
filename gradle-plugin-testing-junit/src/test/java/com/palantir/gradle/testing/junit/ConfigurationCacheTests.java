@@ -179,4 +179,26 @@ class ConfigurationCacheTests {
                 .hasMessageContaining("Configuration cache incompatibility: Build execution failed.")
                 .hasMessageContaining("1 problem was found storing the configuration cache.");
     }
+
+    @Test
+    void configuration_time_errors_do_not_run_dry_run(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            afterEvaluate {
+                throw new IllegalStateException("Configuration time issue");
+            }
+            """);
+
+        InvocationResult result = invoker.withArgs("help").buildsWithFailure();
+        result.assertThat().output().contains("org.gradle.api.ProjectConfigurationException:");
+    }
+
+    @Test
+    void script_complication_errors_do_not_run_dry_run(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            throw new IllegalStateException("Configuration time issue");
+            """);
+
+        InvocationResult result = invoker.withArgs("help").buildsWithFailure();
+        result.assertThat().output().contains("org.gradle.api.GradleScriptException:");
+    }
 }
