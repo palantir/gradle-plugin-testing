@@ -69,8 +69,10 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
     public InvocationResult buildsWithFailure() {
         InvocationResult result = initialGradleInvocation.buildsWithFailure();
 
-        // check if there is a configuration time error that isn't related to configuration cache errors
-        if (result.output().contains("org.gradle.api.ProjectConfigurationException:")) {
+        // check if there is a configuration time error that isn't related to configuration cache errors or any script
+        // exceptions
+        if (result.output().contains("org.gradle.api.ProjectConfigurationException:")
+                || result.output().contains("org.gradle.api.GradleScriptException:")) {
             return result;
         }
 
