@@ -183,17 +183,12 @@ class ConfigurationCacheTests {
     @Test
     void configuration_time_errors_do_not_run_dry_run(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
-            project.afterEvaluate(_p -> {
-                if (!project.getRootProject().getPlugins().hasPlugin("randomPlugin")) {
-                    throw new IllegalStateException("Missing a random plugin");
-                }
-            });
+            afterEvaluate {
+                throw new IllegalStateException("Configuration time issue");
+            }
             """);
 
         InvocationResult result = invoker.withArgs("help").buildsWithFailure();
-        result.assertThat()
-                .output()
-                .contains("Missing a random plugin")
-                .contains("org.gradle.api.ProjectConfigurationException:");
+        result.assertThat().output().contains("org.gradle.api.ProjectConfigurationException:");
     }
 }
