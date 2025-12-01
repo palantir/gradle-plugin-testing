@@ -38,14 +38,8 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
 
     @Override
     protected Filter<?> getFilter() {
-        List<? extends Class<? extends Annotation>> includedClasses = includedAnnotations.stream()
-                .map(WithAnnotationsCommand::getClassAnnotation)
-                .mapMulti(Optional<Class<? extends Annotation>>::ifPresent)
-                .toList();
-        List<? extends Class<? extends Annotation>> excludedClasses = excludedAnnotations.stream()
-                .map(WithAnnotationsCommand::getClassAnnotation)
-                .mapMulti(Optional<Class<? extends Annotation>>::ifPresent)
-                .toList();
+        List<? extends Class<? extends Annotation>> includedClasses = asAnnotationClasses(includedAnnotations);
+        List<? extends Class<? extends Annotation>> excludedClasses = asAnnotationClasses(excludedAnnotations);
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {
@@ -66,6 +60,13 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
                         .orElseGet(() -> FilterResult.excluded("Not a class source"));
             }
         };
+    }
+
+    private static List<Class<? extends Annotation>> asAnnotationClasses(List<String> annotations) {
+        return annotations.stream()
+                .map(WithAnnotationsCommand::getClassAnnotation)
+                .mapMulti(Optional<Class<? extends Annotation>>::ifPresent)
+                .toList();
     }
 
     private static boolean hasAnyClassAnnotations(
