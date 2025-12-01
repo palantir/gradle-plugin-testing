@@ -33,9 +33,16 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
     @Option(names = "--include", split = ",", description = "List of testClasses with annotations to include")
     private List<String> includedAnnotations;
 
+    @Option(names = "--exclude", split = ",", description = "List of testClasses with annotations to exclude")
+    private List<String> excludedAnnotations;
+
     @Override
     protected Filter<?> getFilter() {
-        List<? extends Class<? extends Annotation>> annotationClasses = includedAnnotations.stream()
+        List<? extends Class<? extends Annotation>> includedClasses = includedAnnotations.stream()
+                .map(WithAnnotationsCommand::getClassAnnotation)
+                .mapMulti(Optional<Class<? extends Annotation>>::ifPresent)
+                .toList();
+        List<? extends Class<? extends Annotation>> excludedClasses = excludedAnnotations.stream()
                 .map(WithAnnotationsCommand::getClassAnnotation)
                 .mapMulti(Optional<Class<? extends Annotation>>::ifPresent)
                 .toList();
@@ -46,7 +53,10 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
                         .getSource()
                         .map(TestClassesDiscoverer::getTestClassFromSource)
                         .map(testClass -> {
-                            if (hasAnyClassAnnotations(testClass, annotationClasses)) {
+                            if (hasAnyClassAnnotations(testClass, excludedClasses)) {
+                                return FilterResult.excluded(
+                                        String.format("%s has an excluded annotation", testDescriptor));
+                            } else if (hasAnyClassAnnotations(testClass, includedClasses)) {
                                 return FilterResult.included(
                                         String.format("%s has an allowlisted annotation", testDescriptor));
                             }
