@@ -178,7 +178,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                                             "withAnnotations",
                                             "--include",
                                             "com.palantir.gradle.testing.junit.GradlePluginTests",
-                                            "--exclude",
+                                            "--include",
                                             "com.palantir.gradle.testing.junit.DisabledConfigurationCache"));
                         });
 
