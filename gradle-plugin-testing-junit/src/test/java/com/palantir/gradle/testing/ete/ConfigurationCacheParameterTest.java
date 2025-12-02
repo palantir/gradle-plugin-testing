@@ -19,6 +19,8 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.ConfigurationCacheFixtureTest;
+import com.palantir.example.DisabledConfigurationCacheFixtureTest;
+import com.palantir.example.DisabledConfigurationCacheFixtureTestBefore;
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,7 +35,7 @@ public class ConfigurationCacheParameterTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void runs_tests_with_disabled_configuration_cache_from_junit_parameter(boolean isConfigurationCacheEnabled) {
+    void runs_tests_with_configuration_cache_value(boolean isConfigurationCacheEnabled) {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(ConfigurationCacheFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.14.3")
@@ -52,6 +54,30 @@ public class ConfigurationCacheParameterTest {
             Assertions.assertThatTestFailureExceptionMessageContains(
                     testExecutionResult,
                     String.format("isConfigurationCacheRequested=%s", isConfigurationCacheEnabled));
+        });
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            classes = {DisabledConfigurationCacheFixtureTestBefore.class, DisabledConfigurationCacheFixtureTest.class})
+    void runs_tests_with_disabled_configuration_cache(Class<?> clazz) {
+        EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
+                .selectors(DiscoverySelectors.selectClass(clazz))
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.14.3")
+                // we require a value for this parameter to be set. Setting it to `invalid` to make sure the value will
+                // always be overridden to false due to the `@DisabledConfigurationCache` annotation.
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "invalid")
+                .execute();
+
+        List<Event> finished = executionResults.testEvents().finished().stream().toList();
+
+        assertThat(finished).hasSize(1);
+
+        assertThat(finished.get(0).getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
+            assertThat(testExecutionResult.getStatus()).isEqualTo(Status.FAILED);
+
+            Assertions.assertThatTestFailureExceptionMessageContains(
+                    testExecutionResult, "isConfigurationCacheRequested=false");
         });
     }
 }
