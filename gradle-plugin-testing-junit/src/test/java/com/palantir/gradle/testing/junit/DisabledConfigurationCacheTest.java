@@ -23,23 +23,12 @@ import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 @DisabledConfigurationCache(reason = "testing class level annotation")
-class WithoutConfigurationCacheTest {
+class DisabledConfigurationCacheTest {
 
     @Test
     void configuration_cache_is_disabled_by_default(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().plugins().add("java");
-        rootProject.buildGradle().append("""
-            tasks.register("checkConfigurationCache") {
-                def buildFeatures = services.get(BuildFeatures)
-                def isRequested = buildFeatures.configurationCache.requested.orElse(false)
-                inputs.property('configCacheStatus', isRequested)
-
-                doLast {
-                    def status = inputs.properties.get('configCacheStatus')
-                    println "isConfigurationCacheRequested=" + status
-                }
-            }
-            """);
+        ConfigurationCacheTests.setUpConfigurationCacheTask(rootProject);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
         result.assertThat().output().contains("isConfigurationCacheRequested=false");
