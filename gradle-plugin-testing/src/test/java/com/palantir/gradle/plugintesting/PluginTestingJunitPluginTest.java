@@ -273,7 +273,7 @@ class PluginTestingJunitPluginTest {
         gradle.withArgs("discoverGradlePluginTestsWithDisabledConfigurationCache")
                 .buildsSuccessfully();
         assertThat(readTestClassesPaths(rootProject, "java"))
-                .containsExactlyInAnyOrder("src/test/java/test/GradlePluginTestClass.java");
+                .containsExactlyInAnyOrder("src/test/java/test/NoConfigCacheGradlePluginTestClass.java");
     }
 
     @Test
