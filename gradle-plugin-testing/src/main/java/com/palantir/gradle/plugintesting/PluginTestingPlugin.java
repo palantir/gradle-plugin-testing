@@ -169,7 +169,9 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
     private static void addTestClassesDiscoveryTasks(Project project) {
         project.getTasks()
                 .register(
-                        "discoverDisabledConfigurationCacheGradlePluginTests", DiscoverTestClassesTask.class, task -> {
+                        "discoverGradlePluginTestsWithDisabledConfigurationCache",
+                        DiscoverTestClassesTask.class,
+                        task -> {
                             task.getTestClassType().set("java");
                             task.getExtraArguments()
                                     .addAll(List.of(

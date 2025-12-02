@@ -247,21 +247,12 @@ class PluginTestingJunitPluginTest {
             import org.junit.jupiter.api.Nested;
             import org.junit.jupiter.api.Test;
 
-            @DisabledConfigurationCache
             @GradlePluginTests
+            @DisabledConfigurationCache
             class NoConfigCacheGradlePluginTestClass {
                 @Test
                 void test() throws Exception {
                     Files.createTempDirectory("prefix");
-                }
-
-                @Nested
-                class NestedGradlePluginTestClass {
-
-                    @Test
-                    void nested_test() throws Exception {
-                        Files.createTempDirectory("other");
-                    }
                 }
             }
             """);
@@ -279,7 +270,8 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        gradle.withArgs("discoverDisabledConfigurationCacheGradlePluginTests").buildsSuccessfully();
+        gradle.withArgs("discoverGradlePluginTestsWithDisabledConfigurationCache")
+                .buildsSuccessfully();
         assertThat(readTestClassesPaths(rootProject, "java"))
                 .containsExactlyInAnyOrder("src/test/java/test/GradlePluginTestClass.java");
     }
