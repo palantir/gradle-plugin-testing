@@ -29,10 +29,10 @@ import picocli.CommandLine.Option;
 @Command(name = "subClassesOf", description = "Test classes options")
 public final class SubClassesOfCommand extends TestClassesDiscoverer {
 
-    @Option(names = "--include", split = ",", description = "List of sub-class names to include")
+    @Option(names = "--include", split = ",", description = "List of sub-class names to include", defaultValue = "")
     private List<String> classNames;
 
-    @Option(names = "--exclude", split = ",", description = "List of sub-class names to exclude")
+    @Option(names = "--exclude", split = ",", description = "List of sub-class names to exclude", defaultValue = "")
     private List<String> excludedClassNames;
 
     @Override
