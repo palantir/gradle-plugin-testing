@@ -19,6 +19,10 @@ package com.palantir.gradle.testing.execution;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import org.gradle.testkit.runner.GradleRunner;
@@ -29,10 +33,14 @@ public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVers
 
     @Override
     public GradleInvocation withArgs(String... args) {
+        ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
+        Writer captureWriter = new OutputStreamWriter(capturedOutput, StandardCharsets.UTF_8);
+
         GradleRunner runner = GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(GradleInvoker.shouldRunInTestkitDebugMode())
-                .forwardOutput()
+                .forwardStdOutput(captureWriter)
+                .forwardStdError(captureWriter)
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
                 .withArguments(ImmutableList.<String>builder()
@@ -40,6 +48,15 @@ public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVers
                         .add("--stacktrace")
                         .build());
 
-        return new DefaultGradleInvocation(runner);
+        String title = buildTitle(args);
+        return new DefaultGradleInvocation(runner, title, capturedOutput);
+    }
+
+    private String buildTitle(String... args) {
+        StringBuilder title = new StringBuilder();
+        title.append("gradle ");
+        title.append(String.join(" ", args));
+        title.append(" [Gradle ").append(gradleVersion.version()).append("]");
+        return title.toString();
     }
 }
