@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -89,29 +89,27 @@ public final class Plugins {
     }
 
     private static String repositionPluginsBlockWithContent(String textWithoutPluginsBlock, String pluginsBlock) {
-        // Extract all buildscript blocks and collect remaining content
-        List<String> buildscriptBlocks = new ArrayList<>();
-        String remainingText = textWithoutPluginsBlock;
+        // Find all buildscript block ranges in a single pass
+        List<int[]> ranges = BUILDSCRIPT_PATTERN
+                .matcher(textWithoutPluginsBlock)
+                .results()
+                .map(match -> findMatchingBrace(textWithoutPluginsBlock, match.end() - 1)
+                        .map(endIndex -> new int[] {match.start(), endIndex}))
+                .takeWhile(Optional::isPresent)
+                .flatMap(Optional::stream)
+                .toList();
 
-        for (Matcher matcher = BUILDSCRIPT_PATTERN.matcher(remainingText);
-                matcher.find();
-                matcher = BUILDSCRIPT_PATTERN.matcher(remainingText)) {
+        // Extract buildscript blocks
+        String buildscripts = ranges.stream()
+                .map(range -> textWithoutPluginsBlock.substring(range[0], range[1]))
+                .collect(Collectors.joining("\n"));
 
-            int startIndex = matcher.start();
-            int openBraceIndex = matcher.end() - 1;
-
-            // Find matching closing brace
-            Optional<Integer> endIndex = findMatchingBrace(remainingText, openBraceIndex);
-            if (endIndex.isEmpty()) {
-                break;
-            }
-
-            buildscriptBlocks.add(remainingText.substring(startIndex, endIndex.get()));
-            remainingText = remainingText.substring(0, startIndex) + remainingText.substring(endIndex.get());
-        }
-
-        // Reconstruct: buildscripts + plugins + remaining content
-        String buildscripts = String.join("\n", buildscriptBlocks);
+        // Build remaining text by subtracting ranges (reverse order to preserve indices)
+        String remainingText = Lists.reverse(ranges).stream()
+                .reduce(
+                        textWithoutPluginsBlock,
+                        (text, range) -> text.substring(0, range[0]) + text.substring(range[1]),
+                        (_a, _b) -> _a);
 
         String cleanedRemaining = remainingText.replaceFirst("^\\n+", "");
 
@@ -157,6 +155,8 @@ public final class Plugins {
 
         return repositionPluginsBlockWithContent(textWithoutPluginsBlock, pluginsBlock);
     }
+
+    private record Range(int start, int end) {}
 
     private static Optional<Integer> findMatchingBrace(String text, int openBraceIndex) {
         int depth = 1;
