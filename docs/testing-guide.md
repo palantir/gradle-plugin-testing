@@ -297,6 +297,9 @@ void create_custom_gradle_files(RootProject project) {
 ```
 
 Or use a helper method to setup a standard build file used across multiple tests:
+
+> Note: only use this pattern if you cannot setup the build gradle file in a `@BeforeEach` / `@BeforeAll`
+
 ```java
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 

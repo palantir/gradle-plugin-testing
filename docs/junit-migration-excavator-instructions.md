@@ -72,6 +72,8 @@ These comments should be copied over to the new test files as they are created t
     - `.build()` → `.buildsSuccessfully()`
     - `.buildAndFail()` → `.buildsWithFailure()`
     - `with('task').build()` → `gradle.withArgs('task').buildsSuccessfully()`
+- File you are parsing a POM / xml file use jackson with records 
+- When an external plugin is used ensure the correct `gradlePluginForTesting` configuration is added to the projects `build.gradle` file
 
 
 # File Manipulation Instructions
