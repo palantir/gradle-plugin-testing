@@ -72,8 +72,27 @@ These comments should be copied over to the new test files as they are created t
     - `.build()` → `.buildsSuccessfully()`
     - `.buildAndFail()` → `.buildsWithFailure()`
     - `with('task').build()` → `gradle.withArgs('task').buildsSuccessfully()`
-- If you need to parse a POM / xml file use `jackson` with `records`
 - When an external plugin is used ensure the correct `gradlePluginForTesting` configuration is added to the projects `build.gradle` file
+- When migrating ONLY use the `standardBuildFile` pattern if it was used in the old groovy test
+- If you need to parse a POM / xml file use `jackson` with `records` e.g.
+```java
+@JsonIgnoreProperties(ignoreUnknown = true)
+record PomProject(
+    @JacksonXmlProperty(localName = "dependencies") PomDependencies dependencies) {
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record PomDependencies(
+            @JacksonXmlElementWrapper(useWrapping = false) @JacksonXmlProperty(localName = "dependency")
+            List<PomDependency> dependency) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record PomDependency(
+            @JacksonXmlProperty(localName = "groupId") String groupId,
+            @JacksonXmlProperty(localName = "artifactId") String artifactId,
+            @JacksonXmlProperty(localName = "version") String version,
+            @JacksonXmlProperty(localName = "scope") String scope) {}
+}
+```
 
 
 # File Manipulation Instructions
