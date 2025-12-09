@@ -156,8 +156,6 @@ public final class Plugins {
         return repositionPluginsBlockWithContent(textWithoutPluginsBlock, pluginsBlock);
     }
 
-    private record Range(int start, int end) {}
-
     private static Optional<Integer> findMatchingBrace(String text, int openBraceIndex) {
         int depth = 1;
         for (int i = openBraceIndex + 1; i < text.length(); i++) {
