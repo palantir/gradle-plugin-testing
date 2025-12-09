@@ -247,4 +247,94 @@ class PluginsUsagesTest {
             }
             """);
     }
+
+    @Test
+    void plugins_block_is_positioned_after_all_buildscripts(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            repositories {
+                mavenCentral()
+            }
+            """);
+
+        rootProject.buildGradle().plugins().add("java");
+
+        rootProject.buildGradle().append("""
+            buildscript {
+                repositories {
+                    mavenLocal()
+                }
+            }
+            repositories {
+                mavenLocal()
+            }
+            """);
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            buildscript {
+                repositories {
+                    mavenLocal()
+                }
+            }
+            plugins {
+                id 'java'
+            }
+            repositories {
+                mavenCentral()
+            }
+
+            repositories {
+                mavenLocal()
+            }
+            """);
+    }
+
+    @Test
+    void adding_plugin_to_file_with_multiple_existing_buildscripts(RootProject rootProject) {
+        rootProject.buildGradle().overwrite("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            buildscript {
+                dependencies {
+                    classpath 'com.example:plugin:1.0'
+                }
+            }
+            repositories {
+                mavenCentral()
+            }
+            """);
+
+        rootProject.buildGradle().plugins().add("java");
+
+        rootProject.buildGradle().assertThat().hasContent("""
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            buildscript {
+                dependencies {
+                    classpath 'com.example:plugin:1.0'
+                }
+            }
+            plugins {
+                id 'java'
+            }
+            repositories {
+                mavenCentral()
+            }
+            """);
+    }
 }

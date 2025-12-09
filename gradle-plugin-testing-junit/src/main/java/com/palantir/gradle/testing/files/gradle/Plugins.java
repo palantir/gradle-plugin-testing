@@ -16,9 +16,9 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -89,16 +89,37 @@ public final class Plugins {
     }
 
     private static String repositionPluginsBlockWithContent(String textWithoutPluginsBlock, String pluginsBlock) {
-        OptionalInt buildscriptEnd = findBuildScriptBlockEnd(textWithoutPluginsBlock);
+        // Extract all buildscript blocks and collect remaining content
+        List<String> buildscriptBlocks = new ArrayList<>();
+        String remainingText = textWithoutPluginsBlock;
 
-        // plugins block must go after buildscript and above all else
-        if (buildscriptEnd.isPresent()) {
-            String suffix =
-                    textWithoutPluginsBlock.substring(buildscriptEnd.getAsInt()).replaceFirst("^\n", "");
-            return textWithoutPluginsBlock.substring(0, buildscriptEnd.getAsInt()) + "\n" + pluginsBlock + suffix;
+        for (Matcher matcher = BUILDSCRIPT_PATTERN.matcher(remainingText);
+                matcher.find();
+                matcher = BUILDSCRIPT_PATTERN.matcher(remainingText)) {
+
+            int startIndex = matcher.start();
+            int openBraceIndex = matcher.end() - 1;
+
+            // Find matching closing brace
+            Optional<Integer> endIndex = findMatchingBrace(remainingText, openBraceIndex);
+            if (endIndex.isEmpty()) {
+                break;
+            }
+
+            buildscriptBlocks.add(remainingText.substring(startIndex, endIndex.get()));
+            remainingText = remainingText.substring(0, startIndex) + remainingText.substring(endIndex.get());
         }
 
-        return pluginsBlock + textWithoutPluginsBlock;
+        // Reconstruct: buildscripts + plugins + remaining content
+        String buildscripts = String.join("\n", buildscriptBlocks);
+
+        String cleanedRemaining = remainingText.replaceFirst("^\\n+", "");
+
+        if (buildscripts.isEmpty()) {
+            return pluginsBlock + cleanedRemaining;
+        }
+
+        return buildscripts + "\n" + pluginsBlock + cleanedRemaining;
     }
 
     /**
@@ -137,14 +158,7 @@ public final class Plugins {
         return repositionPluginsBlockWithContent(textWithoutPluginsBlock, pluginsBlock);
     }
 
-    private static OptionalInt findBuildScriptBlockEnd(String text) {
-        Matcher matcher = BUILDSCRIPT_PATTERN.matcher(text);
-        if (!matcher.find()) {
-            return OptionalInt.empty();
-        }
-        int openBraceIndex = matcher.end() - 1; // position of '{'
-
-        // Match braces
+    private static Optional<Integer> findMatchingBrace(String text, int openBraceIndex) {
         int depth = 1;
         for (int i = openBraceIndex + 1; i < text.length(); i++) {
             char ch = text.charAt(i);
@@ -154,9 +168,9 @@ public final class Plugins {
                 depth--;
             }
             if (depth == 0) {
-                return OptionalInt.of(i + 1); // Return index after closing '}'
+                return Optional.of(i + 1);
             }
         }
-        return OptionalInt.empty();
+        return Optional.empty();
     }
 }
