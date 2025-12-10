@@ -28,7 +28,25 @@ public interface GradleInvoker {
     GradleInvocation withArgs(String... args);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
+        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion, null);
+        if (configurationCache) {
+            if (shouldRunInTestkitDebugMode()) {
+                log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
+                        + " configuration cache cannot be used together. See"
+                        + " https://github.com/gradle/gradle/issues/25846 for details.");
+                return gradleInvoker;
+            }
+            return new ConfigurationCacheInvoker(path, gradleInvoker);
+        }
+        return gradleInvoker;
+    }
+
+    static GradleInvoker create(
+            Path path,
+            GradleVersion gradleVersion,
+            boolean configurationCache,
+            NamedToolingApiGradleExecutor assignedExecutor) {
+        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion, assignedExecutor);
         if (configurationCache) {
             if (shouldRunInTestkitDebugMode()) {
                 log.warn("Configuration cache disabled because debug mode is active. Debug mode and"

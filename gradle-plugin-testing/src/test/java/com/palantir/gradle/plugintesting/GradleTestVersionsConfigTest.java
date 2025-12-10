@@ -24,10 +24,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class GradleTestVersionsConfigTest {
+
     @Nested
     class Deserialize {
         @Test
         public void deserialize_ok() throws IOException {
+            System.out.println("org.gradle.test.worker = " + System.getProperty("org.gradle.test.worker"));
+
             GradleTestVersionsConfig config = deserialize("""
                 major-versions:
                   8: 8.14.2
@@ -113,6 +116,7 @@ public class GradleTestVersionsConfigTest {
                     .putMajorVersions(9, "9.2.0")
                     .build();
 
+            System.out.println("removes_major_version");
             GradleTestVersionsConfig updated = config.withoutMajorVersion(8);
 
             GradleTestVersionsConfig expected = GradleTestVersionsConfig.builder()

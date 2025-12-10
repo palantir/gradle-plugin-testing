@@ -39,6 +39,7 @@ class TestDependencyVersionsTaskTest {
 
     @Test
     void write_versions_without_gcv(GradleInvoker gradle, RootProject project) {
+        System.out.println("org.gradle.test.worker = " + System.getProperty("org.gradle.test.worker"));
         project.buildGradle().plugins().add("groovy").add("com.palantir.gradle-plugin-testing");
 
         project.buildGradle().append("""

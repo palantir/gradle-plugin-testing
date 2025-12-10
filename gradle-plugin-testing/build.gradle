@@ -57,6 +57,11 @@ tasks.named('test', Test) {
     dependsOn ':configuration-cache-spec:publishToMavenLocal'
     dependsOn ':gradle-plugin-testing-junit:publishToMavenLocal'
     dependsOn ':gradle-plugin-testing-error-prone:publishToMavenLocal'
+
+}
+
+tasks.withType(Test).configureEach {
+    maxParallelForks 4
 }
 
 gradleTestUtils {

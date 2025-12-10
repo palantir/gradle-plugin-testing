@@ -120,6 +120,8 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         def result = runTasks('test')
 
         then:
+        System.out.println("org.gradle.test.worker = " + System.getProperty("org.gradle.test.worker"));
+
         result.standardOutput.contains('HelloWorldSpec > someTest FAILED')
         result.standardOutput.contains(DEPRECATION_ERROR_MESSAGE_FROM_NEBULA)
         !result.success

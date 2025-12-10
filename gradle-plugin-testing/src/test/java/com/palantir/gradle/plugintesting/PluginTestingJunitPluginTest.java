@@ -74,6 +74,8 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void can_add_external_gradle_plugins_for_testing(GradleInvoker gradleInvoker, RootProject rootProject) {
+        System.out.println("org.gradle.test.worker = " + System.getProperty("org.gradle.test.worker"));
+        System.out.println("can_add_external_gradle_plugins_for_testing");
 
         rootProject.buildGradle().append("""
             dependencies {
@@ -112,6 +114,7 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void confirm_gradlePluginForTesting_is_locked(GradleInvoker gradleInvoker, RootProject rootProject) {
+        System.out.println("confirm_gradlePluginForTesting_is_locked");
 
         rootProject.buildGradle().append("""
             dependencies {
@@ -172,6 +175,7 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
+        System.out.println("errorprones_are_injected_automatically");
         rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 
         rootProject.buildGradle().append("""
@@ -212,6 +216,8 @@ class PluginTestingJunitPluginTest {
 
     @Test
     void gradlePluginTests_are_discovered(GradleInvoker gradle, RootProject rootProject) throws IOException {
+        System.out.println("gradlePluginTests_are_discovered");
+
         rootProject.testSourceSet().java().writeClass("""
             package test;
 
@@ -279,6 +285,8 @@ class PluginTestingJunitPluginTest {
     @Test
     void nebula_tests_ready_for_migration_are_discovered(GradleInvoker gradle, RootProject rootProject)
             throws IOException {
+        System.out.println("nebula_tests_ready_for_migration_are_discovered");
+
         Directory groovyDir =
                 rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
 

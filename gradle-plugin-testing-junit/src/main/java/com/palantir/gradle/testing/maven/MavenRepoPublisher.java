@@ -36,7 +36,7 @@ final class MavenRepoPublisher {
 
     MavenRepoPublisher(Path projectRoot, Path mavenRepoUrl, GradleVersion gradleVersion) {
         this.rootProject = new RootProject(projectRoot);
-        this.gradleInvoker = new DefaultGradleInvoker(projectRoot, gradleVersion);
+        this.gradleInvoker = new DefaultGradleInvoker(projectRoot, gradleVersion, null);
         this.mavenRepoUrl = mavenRepoUrl;
 
         rootProject.settingsGradle().rootProjectName("maven-repo-publisher");

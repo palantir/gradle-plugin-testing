@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.DaemonExecutorStore;
+import com.palantir.gradle.testing.execution.DaemonPoolManager;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -23,14 +25,30 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
 final class GradleInvokerParameterResolver implements TerseParameterResolver {
+
+    private static final ExtensionContext.Namespace NAMESPACE =
+            ExtensionContext.Namespace.create(GradleInvokerParameterResolver.class);
+    private static final String GRADLE_INVOKER_KEY = "gradleInvoker";
+
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
         if (parameterContext.getParameter().getType().equals(GradleInvoker.class)) {
-            return Optional.of(GradleInvoker.create(
-                    RootProjectStore.rootProjectDir(extensionContext),
-                    GradleVersionStore.gradleVersion(extensionContext),
-                    ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)));
+            // Cache the GradleInvoker in the extension context to avoid creating it multiple times
+            // (supportsParameter and resolveParameter both call this method)
+            return Optional.of(extensionContext.getStore(NAMESPACE).getOrComputeIfAbsent(GRADLE_INVOKER_KEY, _key -> {
+                // Assign an executor from the pool for this test method
+                DaemonPoolManager.ExecutorAssignment assignment = DaemonPoolManager.assignNextExecutor();
+
+                // Store the executor index in the context for resource locking
+                DaemonExecutorStore.setExecutorIndex(extensionContext, assignment.index());
+
+                return GradleInvoker.create(
+                        RootProjectStore.rootProjectDir(extensionContext),
+                        GradleVersionStore.gradleVersion(extensionContext),
+                        ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext),
+                        assignment.executor());
+            }));
         }
 
         return Optional.empty();

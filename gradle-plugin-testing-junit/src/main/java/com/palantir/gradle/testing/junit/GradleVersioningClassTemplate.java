@@ -59,6 +59,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         @Override
         public List<Extension> getAdditionalExtensions() {
             return List.of(
+                    new com.palantir.gradle.testing.execution.DaemonResourceLockExtension(),
                     new GradleInvokerParameterResolver(),
                     new GradleProjectParameterResolver(),
                     new MavenRepoParameterResolver());
