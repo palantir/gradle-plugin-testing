@@ -44,8 +44,7 @@ public final class DefaultGradleInvocation implements GradleInvocation {
             return new InvocationResult(result);
         } catch (UnexpectedBuildFailure e) {
             printFormattedOutput(false);
-            // Don't rethrow e, as it needlessly prints the inner build output again
-            throw new RuntimeException("Expected build to be successful: " + outputTitle);
+            throw e;
         }
     }
 
@@ -57,8 +56,7 @@ public final class DefaultGradleInvocation implements GradleInvocation {
             return new InvocationResult(result);
         } catch (UnexpectedBuildSuccess e) {
             printFormattedOutput(true);
-            // Don't rethrow e, as it needlessly prints the inner build output again
-            throw new RuntimeException("Expected build to fail: " + outputTitle);
+            throw e;
         }
     }
 
