@@ -19,10 +19,11 @@ package com.palantir.gradle.plugintesting;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.palantir.gradle.testing.execution.GradlewInvoker;
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.WithJdkAutomanagement;
 import com.palantir.gradle.testing.project.RootProject;
 import java.nio.file.Path;
 import java.util.List;
@@ -32,13 +33,14 @@ import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 @DisabledConfigurationCache
+@WithJdkAutomanagement
 public class GradlewPluginTest {
 
     private static final Pattern locationPattern = Pattern.compile("Location:\\s+(.*)");
     private static final Pattern languageVersionPattern = Pattern.compile(" Language Version:\\s+(\\d+)");
 
     @Test
-    void javaToolchains_are_correctly_set(GradlewInvoker invoker, RootProject rootProject) {
+    void javaToolchains_are_correctly_set(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             jdks {
                 daemonTarget = 21
@@ -58,7 +60,7 @@ public class GradlewPluginTest {
     }
 
     @Test
-    void baselineJavaVersions_are_correctly_set(GradlewInvoker invoker, RootProject rootProject) {
+    void baselineJavaVersions_are_correctly_set(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().plugins().add("com.palantir.baseline-java-versions");
         rootProject.buildGradle().append("""
             javaVersions {

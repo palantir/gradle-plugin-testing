@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record GradlewInvocation(
+public record GradleWithJdksInvocation(
         GradleInvocation setupInvocation,
         ProcessBuilder generateToolchainsInvocation,
         Callable<GradleInvocation> tasksInvocation)
@@ -76,7 +76,7 @@ public record GradlewInvocation(
             String errorOutput = errorOutputFuture.get();
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new GradlewInvocationFailure(String.format(
+                throw new GradleWithJdksInvocationFailure(String.format(
                         "Unexpected gradlew result for command '%s'. "
                                 + "Failed with exit code %d.\nError output:\n\n%s\n\nStandard Output:\n\n%s",
                         String.join(" ", processBuilder.command()), exitCode, errorOutput, output));

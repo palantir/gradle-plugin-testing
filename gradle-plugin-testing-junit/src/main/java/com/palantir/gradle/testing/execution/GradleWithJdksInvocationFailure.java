@@ -16,9 +16,9 @@
 
 package com.palantir.gradle.testing.execution;
 
-public final class GradlewInvocationFailure extends RuntimeException {
+public final class GradleWithJdksInvocationFailure extends RuntimeException {
 
-    public GradlewInvocationFailure(String message) {
+    public GradleWithJdksInvocationFailure(String message) {
         super(message);
     }
 }

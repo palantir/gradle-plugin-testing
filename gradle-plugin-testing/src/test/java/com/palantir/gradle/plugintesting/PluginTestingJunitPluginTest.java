@@ -20,8 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.files.Directory;
+import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.WithJdkAutomanagement;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -326,6 +329,21 @@ class PluginTestingJunitPluginTest {
                         "src/test/groovy/test/NebulaIntegrationTest.groovy",
                         "src/test/groovy/test/SubClassesNebulaIntegrationTest.groovy",
                         "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
+    }
+
+    @Test
+    @WithJdkAutomanagement
+    @DisabledConfigurationCache(reason = "gradle-jdks are not yet compatible with CC")
+    void javaToolchains_are_correctly_set_when_jdkAutomanagement_is_enabled(
+            GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            jdks {
+                daemonTarget = 21
+            }
+            """);
+        InvocationResult result = invoker.withArgs("javaToolchains").buildsSuccessfully();
+        result.assertThat().output().contains("Auto-detection:     Disabled");
+        result.assertThat().output().contains("Auto-download:      Disabled");
     }
 
     private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {

@@ -26,13 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public final class GradlewInvoker implements GradleInvoker {
+public final class GradleWithJdksInvoker implements GradleInvoker {
 
     private final GradleInvoker gradleInvoker;
     private final RootProject rootProject;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public GradlewInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) {
+    public GradleWithJdksInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) {
         this.rootProject = new RootProject(rootProjectDir);
         this.gradleInvoker = gradleInvoker;
     }
@@ -53,7 +53,7 @@ public final class GradlewInvoker implements GradleInvoker {
                         .resolve("gradle/gradle-jdks-setup.sh")
                         .toString());
         processBuilder.environment().put("GRADLE_USER_HOME", gradleJdksDirectory.toString());
-        return new GradlewInvocation(
+        return new GradleWithJdksInvocation(
                 wrapperInvocation, processBuilder, () -> getInvokerWithToolchainsConfigured(gradleJdksDirectory, args));
     }
 

@@ -27,7 +27,16 @@ public interface GradleInvoker {
 
     GradleInvocation withArgs(String... args);
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
+    static GradleInvoker create(
+            Path path, GradleVersion gradleVersion, boolean configurationCache, boolean isJdkAutomanagementConfigured) {
+        GradleInvoker baseInvoker = createBaseInvoker(path, gradleVersion, configurationCache);
+        if (isJdkAutomanagementConfigured) {
+            return new GradleWithJdksInvoker(path, baseInvoker);
+        }
+        return baseInvoker;
+    }
+
+    static GradleInvoker createBaseInvoker(Path path, GradleVersion gradleVersion, boolean configurationCache) {
         DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
         if (configurationCache) {
             if (shouldRunInTestkitDebugMode()) {
