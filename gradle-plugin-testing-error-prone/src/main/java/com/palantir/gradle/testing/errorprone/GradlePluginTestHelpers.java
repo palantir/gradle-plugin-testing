@@ -59,6 +59,7 @@ public final class GradlePluginTestHelpers {
                 .map(TreePath::getLeaf)
                 .select(VariableTree.class)
                 .map(VariableTree::getInitializer)
+                .nonNull()
                 .findFirst();
     }
 
