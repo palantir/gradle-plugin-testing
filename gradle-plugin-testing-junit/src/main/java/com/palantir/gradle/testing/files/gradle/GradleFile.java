@@ -105,7 +105,7 @@ public interface GradleFile extends ProjectFile<GradleFile> {
      * This is called automatically after append/prepend operations to maintain proper ordering.
      */
     private GradleFile ensurePluginsBlockPosition() {
-        // edit(Plugins::repositionPluginsBlock);
+        edit(Plugins::repositionPluginsBlock);
         return this;
     }
 
