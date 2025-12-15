@@ -28,6 +28,9 @@ dependencies {
 
     testRuntimeOnly 'com.google.guava:guava'
     gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    implementation 'com.palantir.gradle.jdks:gradle-jdks'
+    implementation 'com.palantir.gradle.jdkslatest:gradle-jdks-latest'
+    implementation 'com.palantir.gradle.jdks:gradle-jdks-settings'
 
     // This needs to remain until all nebula based tests are removed from this project
     testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'

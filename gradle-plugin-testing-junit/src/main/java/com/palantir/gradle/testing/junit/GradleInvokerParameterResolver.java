@@ -17,6 +17,8 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.execution.GradlewInvoker;
+import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -31,6 +33,14 @@ final class GradleInvokerParameterResolver implements TerseParameterResolver {
                     RootProjectStore.rootProjectDir(extensionContext),
                     GradleVersionStore.gradleVersion(extensionContext),
                     ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)));
+        } else if (parameterContext.getParameter().getType().equals(GradlewInvoker.class)) {
+            Path rootProjectDir = RootProjectStore.rootProjectDir(extensionContext);
+            return Optional.of(new GradlewInvoker(
+                    rootProjectDir,
+                    GradleInvoker.create(
+                            rootProjectDir,
+                            GradleVersionStore.gradleVersion(extensionContext),
+                            ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext))));
         }
 
         return Optional.empty();
