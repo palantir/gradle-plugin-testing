@@ -16,20 +16,14 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * Formats output text within a colored box border for improved visual distinction.
  * Useful for displaying inner Gradle build output within test execution logs.
  */
 public final class OutputBoxFormatter {
-
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_GREEN = "\u001B[32m";
-    private static final String ANSI_BRIGHT_WHITE = "\u001B[97m";
 
     // Box drawing characters (Unicode)
     private static final char TOP_LEFT = '╔';
@@ -43,84 +37,96 @@ public final class OutputBoxFormatter {
 
     private static final int PADDING = 1; // spaces on each side of content
 
-    private OutputBoxFormatter() {}
+    private OutputBoxFormatter() {
+        // utility class
+    }
 
+    /**
+     * Formats the given content in a green-bordered box with the specified title.
+     *
+     * @param title the title to display in the header
+     * @param content the content to box
+     * @return the formatted output with green borders
+     */
     public static String formatSuccess(String title, String content) {
-        if (System.getenv("CI") == null) {
-            return format(title, content, Optional.of(ANSI_GREEN));
-        } else {
-            return format("SUCCESS: " + title, content, Optional.empty());
-        }
+        return format(title, content, Color.GREEN);
     }
 
+    /**
+     * Formats the given content in a red-bordered box with the specified title.
+     *
+     * @param title the title to display in the header
+     * @param content the content to box
+     * @return the formatted output with red borders
+     */
     public static String formatFailure(String title, String content) {
-        if (System.getenv("CI") == null) {
-            return format(title, content, Optional.of(ANSI_RED));
-        } else {
-            return format("FAILURE: " + title, content, Optional.empty());
-        }
+        return format(title, content, Color.RED);
     }
 
-    private static String format(String title, String content, Optional<String> color) {
-        List<String> lines = content.lines().toList();
+    private static String format(String title, String content, Color borderColor) {
+        java.util.List<String> lines = content.lines().toList();
 
         // Calculate the width based on content, but with reasonable bounds
         int contentWidth = calculateWidth(title, lines);
 
-        StringBuilder result = new StringBuilder();
+        Ansi ansi = Ansi.ansi();
 
         // Top border with title
-        color.ifPresent(result::append);
-        result.append(TOP_LEFT);
+        ansi.fg(borderColor);
+        ansi.a(TOP_LEFT);
         String header = " " + title + " ";
-        result.append(header);
-        result.append(repeatChar(HORIZONTAL, contentWidth - header.length()));
-        result.append(TOP_RIGHT);
-        color.ifPresent(unused -> result.append(ANSI_RESET));
-        result.append('\n');
+        ansi.a(header);
+        ansi.a(repeatChar(HORIZONTAL, contentWidth - header.length()));
+        ansi.a(TOP_RIGHT);
+        ansi.reset();
+        ansi.a('\n');
 
         // Separator line
-        color.ifPresent(result::append);
-        result.append(LEFT_T);
-        result.append(repeatChar(HORIZONTAL, contentWidth));
-        result.append(RIGHT_T);
-        color.ifPresent(unused -> result.append(ANSI_RESET));
-        result.append('\n');
+        ansi.fg(borderColor);
+        ansi.a(LEFT_T);
+        ansi.a(repeatChar(HORIZONTAL, contentWidth));
+        ansi.a(RIGHT_T);
+        ansi.reset();
+        ansi.a('\n');
 
         // Content lines - no truncation, pad to box width
         for (String line : lines) {
-            color.ifPresent(result::append);
-            result.append(VERTICAL);
-            color.ifPresent(unused -> result.append(ANSI_RESET));
-            result.append(' '); // left padding
+            ansi.fg(borderColor);
+            ansi.a(VERTICAL);
+            ansi.reset();
+            ansi.a(' '); // left padding
 
-            color.ifPresent(result::append);
-            color.ifPresent(unused -> result.append(ANSI_BRIGHT_WHITE));
-            result.append(line);
-            color.ifPresent(unused -> result.append(ANSI_RESET));
+            ansi.fgBright(Color.WHITE);
+            ansi.a(line);
+            ansi.reset();
             // Pad to match box width
-            result.append(repeatChar(' ', contentWidth - (2 * PADDING) - line.length()));
+            ansi.a(repeatChar(' ', contentWidth - (2 * PADDING) - line.length()));
 
-            result.append(' '); // right padding
-            color.ifPresent(result::append);
-            result.append(VERTICAL);
-            color.ifPresent(unused -> result.append(ANSI_RESET));
-            result.append('\n');
+            ansi.a(' '); // right padding
+            ansi.fg(borderColor);
+            ansi.a(VERTICAL);
+            ansi.reset();
+            ansi.a('\n');
         }
 
         // Bottom border
-        color.ifPresent(result::append);
-        result.append(BOTTOM_LEFT);
-        result.append(repeatChar(HORIZONTAL, contentWidth));
-        result.append(BOTTOM_RIGHT);
-        color.ifPresent(unused -> result.append(ANSI_RESET));
+        ansi.fg(borderColor);
+        ansi.a(BOTTOM_LEFT);
+        ansi.a(repeatChar(HORIZONTAL, contentWidth));
+        ansi.a(BOTTOM_RIGHT);
+        ansi.reset();
 
-        return result.toString();
+        return ansi.toString();
     }
 
-    private static int calculateWidth(String title, List<String> lines) {
+    private static int calculateWidth(String title, java.util.List<String> lines) {
         // Find the longest line
-        int maxLineLength = lines.stream().mapToInt(String::length).max().orElse(0);
+        int maxLineLength = 0;
+        for (String line : lines) {
+            if (line.length() > maxLineLength) {
+                maxLineLength = line.length();
+            }
+        }
 
         // Account for title with checkmark/cross prefix
         int titleLength = title.length() + 4; // " ✓ " or " ✗ " + title + " "
@@ -134,7 +140,9 @@ public final class OutputBoxFormatter {
             return "";
         }
         char[] chars = new char[count];
-        Arrays.fill(chars, ch);
+        for (int i = 0; i < count; i++) {
+            chars[i] = ch;
+        }
         return new String(chars);
     }
 }

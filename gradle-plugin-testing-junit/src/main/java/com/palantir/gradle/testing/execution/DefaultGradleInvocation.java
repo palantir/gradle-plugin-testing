@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.execution;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import org.fusesource.jansi.AnsiConsole;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.UnexpectedBuildFailure;
@@ -65,7 +66,7 @@ public final class DefaultGradleInvocation implements GradleInvocation {
         String formatted = success
                 ? OutputBoxFormatter.formatSuccess(outputTitle, output)
                 : OutputBoxFormatter.formatFailure(outputTitle, output);
-        // CHECKSTYLE.OFF: RegexpSinglelineJava
-        System.out.println("\n" + formatted + "\n");
+
+        AnsiConsole.out().println(formatted);
     }
 }

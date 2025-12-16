@@ -22,6 +22,8 @@ dependencies {
 
     implementation 'commons-io:commons-io'
     implementation 'com.google.guava:guava'
+    implementation 'org.fusesource.jansi:jansi'
+
 
     compileOnly 'org.immutables:value'
     annotationProcessor 'org.immutables:value'

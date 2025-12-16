@@ -13,6 +13,7 @@ org.junit.jupiter:* = 5.13.4
 org.jetbrains:annotations = 26.0.2
 info.picocli:* = 4.7.7
 one.util:streamex = 0.8.4
+org.fusesource.jansi:* = 2.4.2
 
 # test dependencies
 com.netflix.nebula:nebula-test = 10.6.2
