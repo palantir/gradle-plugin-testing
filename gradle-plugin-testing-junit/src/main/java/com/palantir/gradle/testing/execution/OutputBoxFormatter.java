@@ -17,6 +17,8 @@
 package com.palantir.gradle.testing.execution;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Formats output text within a colored box border for improved visual distinction.
@@ -41,34 +43,26 @@ public final class OutputBoxFormatter {
 
     private static final int PADDING = 1; // spaces on each side of content
 
-    private OutputBoxFormatter() {
-        // utility class
-    }
+    private OutputBoxFormatter() {}
 
-    /**
-     * Formats the given content in a green-bordered box with the specified title.
-     *
-     * @param title the title to display in the header
-     * @param content the content to box
-     * @return the formatted output with green borders
-     */
     public static String formatSuccess(String title, String content) {
-        return format(title, content, ANSI_GREEN);
+        if (System.getenv("CI") == null) {
+            return format(title, content, Optional.of(ANSI_GREEN));
+        } else {
+            return format("SUCCESS: " + title, content, Optional.empty());
+        }
     }
 
-    /**
-     * Formats the given content in a red-bordered box with the specified title.
-     *
-     * @param title the title to display in the header
-     * @param content the content to box
-     * @return the formatted output with red borders
-     */
     public static String formatFailure(String title, String content) {
-        return format(title, content, ANSI_RED);
+        if (System.getenv("CI") == null) {
+            return format(title, content, Optional.of(ANSI_RED));
+        } else {
+            return format("FAILURE: " + title, content, Optional.empty());
+        }
     }
 
-    private static String format(String title, String content, String color) {
-        String[] lines = content.split("\\r?\\n");
+    private static String format(String title, String content, Optional<String> color) {
+        List<String> lines = content.lines().toList();
 
         // Calculate the width based on content, but with reasonable bounds
         int contentWidth = calculateWidth(title, lines);
@@ -76,56 +70,57 @@ public final class OutputBoxFormatter {
         StringBuilder result = new StringBuilder();
 
         // Top border with title
-        result.append(color);
+        color.ifPresent(result::append);
         result.append(TOP_LEFT);
         String header = " " + title + " ";
         result.append(header);
         result.append(repeatChar(HORIZONTAL, contentWidth - header.length()));
         result.append(TOP_RIGHT);
-        result.append(ANSI_RESET);
+        color.ifPresent(unused -> result.append(ANSI_RESET));
         result.append('\n');
 
         // Separator line
-        result.append(color);
+        color.ifPresent(result::append);
         result.append(LEFT_T);
         result.append(repeatChar(HORIZONTAL, contentWidth));
         result.append(RIGHT_T);
-        result.append(ANSI_RESET);
+        color.ifPresent(unused -> result.append(ANSI_RESET));
         result.append('\n');
 
         // Content lines - no truncation, pad to box width
         for (String line : lines) {
-            result.append(color);
+            color.ifPresent(result::append);
             result.append(VERTICAL);
-            result.append(ANSI_RESET);
+            color.ifPresent(unused -> result.append(ANSI_RESET));
             result.append(' '); // left padding
 
-            result.append(ANSI_BRIGHT_WHITE);
+            color.ifPresent(result::append);
+            color.ifPresent(unused -> result.append(ANSI_BRIGHT_WHITE));
             result.append(line);
-            result.append(ANSI_RESET);
+            color.ifPresent(unused -> result.append(ANSI_RESET));
             // Pad to match box width
             result.append(repeatChar(' ', contentWidth - (2 * PADDING) - line.length()));
 
             result.append(' '); // right padding
-            result.append(color);
+            color.ifPresent(result::append);
             result.append(VERTICAL);
-            result.append(ANSI_RESET);
+            color.ifPresent(unused -> result.append(ANSI_RESET));
             result.append('\n');
         }
 
         // Bottom border
-        result.append(color);
+        color.ifPresent(result::append);
         result.append(BOTTOM_LEFT);
         result.append(repeatChar(HORIZONTAL, contentWidth));
         result.append(BOTTOM_RIGHT);
-        result.append(ANSI_RESET);
+        color.ifPresent(unused -> result.append(ANSI_RESET));
 
         return result.toString();
     }
 
-    private static int calculateWidth(String title, String[] lines) {
+    private static int calculateWidth(String title, List<String> lines) {
         // Find the longest line
-        int maxLineLength = Arrays.stream(lines).mapToInt(String::length).max().orElse(0);
+        int maxLineLength = lines.stream().mapToInt(String::length).max().orElse(0);
 
         // Account for title with checkmark/cross prefix
         int titleLength = title.length() + 4; // " ✓ " or " ✗ " + title + " "
