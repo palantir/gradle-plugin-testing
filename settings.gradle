@@ -26,6 +26,7 @@ develocity {
 
 include 'plugin-testing-core'
 include 'gradle-plugin-testing'
+include 'gradle-test-versions-config'
 include 'configuration-cache-spec'
 include 'gradle-plugin-testing-error-prone'
 include 'gradle-plugin-testing-junit'
