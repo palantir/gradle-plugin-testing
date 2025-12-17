@@ -19,11 +19,17 @@ package com.palantir.gradle.plugintesting;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class GradleTestVersionsConfigTest {
+    private GradleTestVersionsConfigTest() {}
+
+    public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+
     @Nested
     class Deserialize {
         @Test
@@ -99,7 +105,7 @@ public class GradleTestVersionsConfigTest {
         }
 
         private static GradleTestVersionsConfig deserialize(String content) throws IOException {
-            return PluginTestingPlugin.YAML_MAPPER.readValue(content, new TypeReference<>() {});
+            return YAML_MAPPER.readValue(content, new TypeReference<>() {});
         }
     }
 
