@@ -19,6 +19,8 @@ package com.palantir.gradle.testing.junit;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Extension that handles the configuration cache setting.
@@ -26,17 +28,25 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  */
 public final class ConfigurationCacheParameterExtension implements BeforeAllCallback, BeforeEachCallback {
 
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationCacheParameterExtension.class);
+
     @Override
     public void beforeAll(ExtensionContext context) {
-        setConfigurationCache(context);
+        maybeSetConfigurationCache(context);
     }
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        setConfigurationCache(context);
+        maybeSetConfigurationCache(context);
     }
 
-    private void setConfigurationCache(ExtensionContext context) {
+    private void maybeSetConfigurationCache(ExtensionContext context) {
+        if (ConfigurationCacheStore.hasConfigurationCacheValue(context)) {
+            log.info(
+                    "Configuration Cache value is already set by an extension to value = {}, not overriding it.",
+                    ConfigurationCacheStore.isConfigurationCacheEnabled(context));
+            return;
+        }
         Boolean configurationCacheEnabled = context.getConfigurationParameter(
                         "com.palantir.gradle.testing.configuration_cache_enabled")
                 .map(Boolean::parseBoolean)

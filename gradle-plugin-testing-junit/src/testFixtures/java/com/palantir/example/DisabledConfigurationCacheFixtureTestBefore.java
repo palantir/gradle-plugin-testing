@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.junit;
+package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.InvocationResult;
+import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
+import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
+// This is a test fixture, not a real test. It is used to check that CC is disabled even if the annotation is before
+// `@GradlePluginTests`.
+@DisabledConfigurationCache
 @GradlePluginTests
-@DisabledConfigurationCache(reason = "testing class level annotation")
-class WithoutConfigurationCacheTest {
+public class DisabledConfigurationCacheFixtureTestBefore {
 
     @Test
     void configuration_cache_is_disabled_by_default(GradleInvoker invoker, RootProject rootProject) {
@@ -41,8 +44,9 @@ class WithoutConfigurationCacheTest {
             }
             """);
 
-        InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
-        result.assertThat().output().contains("isConfigurationCacheRequested=false");
-        result.assertThat().task(":checkConfigurationCache").outcome().succeeded();
+        // This exception is just so we can pass the output back up to the JUnit testkit-based test that
+        // is running this fixture.
+        throw new RuntimeException(
+                invoker.withArgs("checkConfigurationCache").buildsSuccessfully().output());
     }
 }
