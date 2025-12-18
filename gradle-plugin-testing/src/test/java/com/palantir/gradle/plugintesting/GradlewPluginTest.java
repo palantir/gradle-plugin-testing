@@ -44,11 +44,16 @@ public class GradlewPluginTest {
         rootProject.buildGradle().append("""
             jdks {
                 daemonTarget = 21
+                jdk(21) {
+                    distribution = 'amazon-corretto'
+                    jdkVersion = '21.0.9.10.1'
+                }
             }
             """);
         String expectedGradleJdksDir = Path.of("")
                 .resolve("build/gradle-plugin-testing/gradle-jdks")
                 .toAbsolutePath()
+                .resolve("amazon-corretto-21.0.9.10.1")
                 .toString();
         InvocationResult result = invoker.withArgs("javaToolchains").buildsSuccessfully();
         result.assertThat().output().contains("Auto-detection:     Disabled");
@@ -62,6 +67,7 @@ public class GradlewPluginTest {
     @Test
     void baselineJavaVersions_are_correctly_set(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().plugins().add("com.palantir.baseline-java-versions");
+        rootProject.buildGradle().plugins().add("com.palantir.jdks.latest");
         rootProject.buildGradle().append("""
             javaVersions {
                 libraryTarget = '11'

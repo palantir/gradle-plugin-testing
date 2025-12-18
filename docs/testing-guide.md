@@ -28,6 +28,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
 - [Executing Gradle Builds](#executing-gradle-builds)
     - [Basic Execution](#basic-execution)
     - [Running builds with Configuration Cache enabled](#running-builds-with-configuration-cache-enabled)
+    - [Running builds with specific Jdks]()
     - [Environment Variables](#environment-variables)
 - [Assertions](#assertions)
     - [Fluent Assertion API](#fluent-assertion-api)
@@ -563,6 +564,74 @@ Or
 class PluginIncompatibleWithConfigCache {
 ```
 
+### Running builds with specific JDKs
+
+#### Overview
+Use the `@WithJdkAutomanagement` annotation when your tests need to run Gradle builds with specific JDK versions. This annotation can be applied to:
+- An entire test class
+- Individual test methods
+
+#### What it does
+The annotation automatically:
+1. Adds the required plugins: `com.palantir.jdks` and `com.palantir.jdks.settings`
+2. Enables [Gradle JDK Automanagement](https://github.com/palantir/gradle-jdks/tree/develop/gradle-jdks-setup#gradle-jdk-automanagement)
+3. Ensures your builds use only the JDKs you've explicitly configured
+
+#### Usage example
+
+```java
+@Test
+@WithJdkAutomanagement
+void can_run_with_daemon_21(GradleInvoker gradle, RootProject project) {
+    // Step 1: Configure JDK daemon target
+    
+    // Option A: Manually specify JDKs
+    project.buildGradle().append("""
+        jdks {
+            daemonTarget = 21
+            jdk(21) {
+                distribution = 'amazon-corretto'
+                jdkVersion = '21.0.16.9.1'    
+            }
+        }
+        """);
+        
+    // Option B: Or use the latest JDKs plugin
+    project.buildGradle().plugins().add("com.palantir.jdks.latest");
+            
+    // Step 2: Configure Java toolchains
+    
+    // Option A: Direct toolchain configuration
+    project.buildGradle().append("""
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(17)
+            }
+        }
+        """);
+        
+    // Option B: Using baseline-java-versions plugin
+    project.buildGradle().plugins().add("com.palantir.baseline-java-versions");
+    project.buildGradle().append("""
+        javaVersions {
+            libraryTarget = 11
+        }
+        """);
+}
+```
+
+Make sure that all the gradle plugins used in the tests are set up in the `build.gradle` of the plugin project using:
+```groovy
+dependencies {
+    // these 2 dependencies should always be added:
+    gradlePluginForTesting "com.palantir.gradle.jdks:gradle-jdks"
+    gradlePluginForTesting "com.palantir.gradle.jdks:gradle-jdks-settings"
+    // and optionally, dependending on which extra plugins were used:
+    // gradlePluginForTesting "com.palantir.gradle.jdkslatest:gradle-jdks-latest"
+    // gradlePluginForTesting "com.palantir.baseline:gradle-baseline-java"
+}
+```
+
 ### Environment Variables
 
 Use [`gradle-utils:environment-variables`](https://github.com/palantir/gradle-utils) which provides a testing-friendly way to access environment variables via Gradle properties.
@@ -590,6 +659,7 @@ void plugin_reads_environment_variable(GradleInvoker gradle, RootProject project
         .buildsSuccessfully();
 }
 ```
+
 
 ## Assertions
 
