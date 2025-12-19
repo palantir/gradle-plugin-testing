@@ -42,7 +42,7 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
     @Override
     public GradleInvocation withArgs(String... args) {
         setupRootProject(rootProject);
-        GradleInvocation wrapperInvocation =
+        GradleInvocation generateGradleJdkConfigs =
                 gradleInvoker.withArgs("generateGradleJdkConfigs", "--onlyForCurrentOsArch");
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .command(rootProject
@@ -51,9 +51,10 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
                         .toString())
                 .inheritIO();
         return new GradleWithJdksInvocation(
-                wrapperInvocation, processBuilder, () -> getInvokerWithToolchainsConfigured(args));
+                generateGradleJdkConfigs, processBuilder, () -> getInvokerWithToolchainsConfigured(args));
     }
 
+    // this needs to be called after the daemon jdk version is rendered (generateGradleJdkConfigs)
     private GradleInvocation getInvokerWithToolchainsConfigured(String... args) {
         String[] withJavaHome = ImmutableList.<String>builder()
                 .add(args)
