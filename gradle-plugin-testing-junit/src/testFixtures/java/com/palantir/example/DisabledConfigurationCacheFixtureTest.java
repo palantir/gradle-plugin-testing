@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 // This is a test fixture, not a test.
 @GradlePluginTests
-@DisabledConfigurationCache(reason = "testing class level annotation")
+@DisabledConfigurationCache("testing class level annotation")
 public class DisabledConfigurationCacheFixtureTest {
 
     @Test
