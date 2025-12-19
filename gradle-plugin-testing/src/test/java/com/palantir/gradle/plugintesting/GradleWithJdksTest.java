@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@DisabledConfigurationCache
+@DisabledConfigurationCache(reason = "gradle-jdks is not compatible atm with CC")
 @WithJdkAutomanagement
 public class GradleWithJdksTest {
 
