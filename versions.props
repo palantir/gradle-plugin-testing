@@ -18,7 +18,7 @@ one.util:streamex = 0.8.4
 com.netflix.nebula:nebula-test = 10.6.2
 org.codehaus.groovy:* = 3.0.24
 com.palantir.gradle.consistentversions:gradle-consistent-versions = 3.6.0
-com.palantir.gradle.jdks:* = 0.69.0-30-gc7fd786.dirty
+com.palantir.gradle.jdks:* = 0.71.0
 com.palantir.gradle.jdkslatest:* = 0.24.0
 
 # conflict resolution

@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 public final class GradleWithJdksInvoker implements GradleInvoker {
 
@@ -40,36 +42,29 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
     @Override
     public GradleInvocation withArgs(String... args) {
         setupRootProject(rootProject);
-        Path gradleJdksDirectory = rootProject.path().getParent().getParent().getParent();
-        GradleInvocation wrapperInvocation = gradleInvoker.withArgs(
-                "generateGradleJdkConfigs",
-                "--onlyForCurrentOsArch",
-                "--info",
-                "-P__TESTING=true",
-                String.format("-P__TESTING_GRADLE_USER_HOME=%s", gradleJdksDirectory));
+        GradleInvocation wrapperInvocation =
+                gradleInvoker.withArgs("generateGradleJdkConfigs", "--onlyForCurrentOsArch");
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .command(rootProject
                         .path()
                         .resolve("gradle/gradle-jdks-setup.sh")
-                        .toString());
-        processBuilder.environment().put("GRADLE_USER_HOME", gradleJdksDirectory.toString());
+                        .toString())
+                .inheritIO();
         return new GradleWithJdksInvocation(
-                wrapperInvocation, processBuilder, () -> getInvokerWithToolchainsConfigured(gradleJdksDirectory, args));
+                wrapperInvocation, processBuilder, () -> getInvokerWithToolchainsConfigured(args));
     }
 
-    private GradleInvocation getInvokerWithToolchainsConfigured(Path gradleJdksDirectory, String... args) {
+    private GradleInvocation getInvokerWithToolchainsConfigured(String... args) {
         String[] withJavaHome = ImmutableList.<String>builder()
                 .add(args)
-                .add(String.format(
-                        "-Dorg.gradle.java.home=%s", getGradleJavaHome(rootProject.path(), gradleJdksDirectory)))
-                .add("-P__TESTING=true")
-                .add(String.format("-P__TESTING_GRADLE_USER_HOME=%s", gradleJdksDirectory))
+                .add(String.format("-Dorg.gradle.java.home=%s", getGradleJavaHome(rootProject.path())))
                 .build()
                 .toArray(String[]::new);
         return gradleInvoker.withArgs(withJavaHome);
     }
 
-    private static Path getGradleJavaHome(Path rootProjectDir, Path gradleJdksDirectory) {
+    @SuppressWarnings("checkstyle:NestedTryDepth")
+    private static Path getGradleJavaHome(Path rootProjectDir) {
         try {
             String majorVersion = Files.readString(rootProjectDir.resolve("gradle/gradle-daemon-jdk-version"))
                     .trim();
@@ -78,19 +73,29 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
                     3,
                     (path, attr) -> path.getFileName().toString().equals("local-path") && attr.isRegularFile())) {
                 String localPath = stream.findFirst()
-                        .map(path -> {
-                            try {
-                                return Files.readString(path).trim();
-                            } catch (IOException e) {
-                                throw new UncheckedIOException("Failed to read the daemon jdk version path", e);
-                            }
-                        })
-                        .orElseThrow();
-                return gradleJdksDirectory.resolve("gradle-jdks").resolve(localPath);
+                        .map(GradleWithJdksInvoker::getLocalPath)
+                        .orElseThrow(() -> new RuntimeException(
+                                String.format("Failed to find the JDK local path for majorVersion %s", majorVersion)));
+                return getGradleJdksDirectory(localPath);
             }
-        } catch (IOException exception) {
-            throw new UncheckedIOException("Failed to retrieve the java home directory", exception);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to retrieve the gradle daemon jdk path", e);
         }
+    }
+
+    private static @NotNull String getLocalPath(Path path) {
+        try {
+            return Files.readString(path).trim();
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Failed to read the path %s", path), e);
+        }
+    }
+
+    public static Path getGradleJdksDirectory(String localJdkPath) {
+        return Path.of(Optional.ofNullable(System.getenv("GRADLE_USER_HOME"))
+                        .orElseGet(() -> System.getProperty("user.home") + "/.gradle"))
+                .resolve("gradle-jdks")
+                .resolve(localJdkPath);
     }
 
     private static void setupRootProject(RootProject rootProject) {

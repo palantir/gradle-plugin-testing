@@ -20,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.execution.GradleWithJdksInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.junit.WithJdkAutomanagement;
 import com.palantir.gradle.testing.project.RootProject;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 @GradlePluginTests
 @DisabledConfigurationCache
 @WithJdkAutomanagement
-public class GradlewPluginTest {
+public class GradleWithJdksTest {
 
     private static final Pattern locationPattern = Pattern.compile("Location:\\s+(.*)");
     private static final Pattern languageVersionPattern = Pattern.compile(" Language Version:\\s+(\\d+)");
@@ -50,10 +50,7 @@ public class GradlewPluginTest {
                 }
             }
             """);
-        String expectedGradleJdksDir = Path.of("")
-                .resolve("build/gradle-plugin-testing/gradle-jdks")
-                .toAbsolutePath()
-                .resolve("amazon-corretto-21.0.9.10.1")
+        String expectedGradleJdksDir = GradleWithJdksInvoker.getGradleJdksDirectory("amazon-corretto-21.0.9.10.1")
                 .toString();
         InvocationResult result = invoker.withArgs("javaToolchains").buildsSuccessfully();
         result.assertThat().output().contains("Auto-detection:     Disabled");
