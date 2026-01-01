@@ -3,6 +3,8 @@ apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
     api 'com.netflix.nebula:nebula-test'
+    api 'com.palantir.gradle.plugintesting:gradle-plugin-testing-junit'
+    api 'commons-io:commons-io'
     implementation 'org.codehaus.groovy:groovy'
     implementation 'org.spockframework:spock-core'
     implementation gradleTestKit()
