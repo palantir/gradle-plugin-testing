@@ -22,7 +22,6 @@ import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
-// This is a test fixture, not a real test. See AdditionalGradleVersionsTest which uses it.
 @GradlePluginTests
 @AdditionalGradleVersions({"8.0", "8.5"})
 public class AdditionalGradleVersionsFixtureTest {

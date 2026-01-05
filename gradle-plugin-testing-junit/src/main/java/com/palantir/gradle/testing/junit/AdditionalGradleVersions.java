@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that can be used alongside {@link GradlePluginTests} to add additional Gradle versions to test against.
+ * Annotation that can be used to add additional Gradle versions to test against.
  * The versions specified in this annotation will be merged with the versions configured via the
  * {@code com.palantir.gradle.testing.gradle_versions_to_test} configuration parameter.
  * This annotation can be applied to a test class.
