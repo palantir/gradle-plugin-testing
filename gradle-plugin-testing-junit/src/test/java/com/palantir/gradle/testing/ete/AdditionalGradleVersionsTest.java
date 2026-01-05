@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.palantir.example.AdditionalGradleVersionsFixtureTest;
 import com.palantir.example.MethodLevelAdditionalGradleVersionsFixtureTest;
 import java.util.List;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
@@ -40,15 +41,14 @@ final class AdditionalGradleVersionsTest {
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
 
-        // Should have 3 test runs: 7.6.5 from config + 8.0 and 8.5 from @AdditionalGradleVersions
-        assertThat(finished).hasSize(3);
-
-        Assertions.assertThatRanWithCorrectGradleVersion(
-                AdditionalGradleVersionsFixtureTest.class, finished.get(0), "7.6.5");
-        Assertions.assertThatRanWithCorrectGradleVersion(
-                AdditionalGradleVersionsFixtureTest.class, finished.get(1), "8.0");
-        Assertions.assertThatRanWithCorrectGradleVersion(
-                AdditionalGradleVersionsFixtureTest.class, finished.get(2), "8.5");
+        assertThat(finished)
+                .satisfiesExactlyInAnyOrder(
+                        // from config parameter
+                        ranWithGradleVersion("7.6.5"),
+                        // from @AdditionalGradleVersions
+                        ranWithGradleVersion("8.0"),
+                        // from @AdditionalGradleVersions
+                        ranWithGradleVersion("8.5"));
     }
 
     @Test
@@ -62,13 +62,12 @@ final class AdditionalGradleVersionsTest {
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
 
-        // Should have 2 test runs: 8.0 (deduplicated) and 8.5 from @AdditionalGradleVersions
-        assertThat(finished).hasSize(2);
-
-        Assertions.assertThatRanWithCorrectGradleVersion(
-                AdditionalGradleVersionsFixtureTest.class, finished.get(0), "8.0");
-        Assertions.assertThatRanWithCorrectGradleVersion(
-                AdditionalGradleVersionsFixtureTest.class, finished.get(1), "8.5");
+        assertThat(finished)
+                .satisfiesExactlyInAnyOrder(
+                        // 8.0 is in both config and @AdditionalGradleVersions, but only runs once
+                        ranWithGradleVersion("8.0"),
+                        // from @AdditionalGradleVersions
+                        ranWithGradleVersion("8.5"));
     }
 
     @Test
@@ -83,19 +82,33 @@ final class AdditionalGradleVersionsTest {
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
         List<Event> skipped = executionResults.testEvents().skipped().stream().toList();
 
-        // Method without annotation: runs with base + class (7.6.5, 8.0) = 2 runs
-        // Method with @AdditionalGradleVersions({"8.5"}): runs with base + class + method (7.6.5, 8.0, 8.5) = 3 runs
-        // Total finished: 5 tests, skipped: 1 (method without annotation skipped for 8.5)
-        assertThat(finished).hasSize(5);
-        assertThat(skipped).hasSize(1);
+        assertThat(finished)
+                .satisfiesExactlyInAnyOrder(
+                        // "test without method annotation" runs on base (7.6.5) and class-level (8.0)
+                        ranWithNameAndVersion("test without method annotation", "7.6.5"),
+                        ranWithNameAndVersion("test without method annotation", "8.0"),
+                        // "test with method annotation" runs on base (7.6.5), class-level (8.0), and method-level (8.5)
+                        ranWithNameAndVersion("test with method annotation", "7.6.5"),
+                        ranWithNameAndVersion("test with method annotation", "8.0"),
+                        ranWithNameAndVersion("test with method annotation", "8.5"));
+        // Method without annotation is skipped for 8.5 (only runs on base + class versions)
+        assertThat(skipped).satisfiesExactly(event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains("test without method annotation");
+            assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
+                    .hasValue("Gradle 8.5");
+        });
+    }
 
-        // Verify the skipped test is the method without annotation running on 8.5
-        assertThat(skipped.get(0).getTestDescriptor().getDisplayName()).contains("test without method annotation");
-        assertThat(skipped.get(0)
-                        .getTestDescriptor()
-                        .getParent()
-                        .map(TestDescriptor::getDisplayName)
-                        .orElse(""))
-                .isEqualTo("Gradle 8.5");
+    private static Consumer<Event> ranWithGradleVersion(String gradleVersion) {
+        return event -> Assertions.assertThatRanWithCorrectGradleVersion(
+                AdditionalGradleVersionsFixtureTest.class, event, gradleVersion);
+    }
+
+    private static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
+        return event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
+            Assertions.assertThatRanWithCorrectGradleVersion(
+                    AdditionalGradleVersionsFixtureTest.class, event, gradleVersion);
+        };
     }
 }

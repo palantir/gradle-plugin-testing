@@ -38,17 +38,17 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
     @Override
     public Stream<? extends ClassTemplateInvocationContext> provideClassTemplateInvocationContexts(
             ExtensionContext context) {
-        String gradleVersionsToTestAgainst = context.getConfigurationParameter(
-                        "com.palantir.gradle.testing.gradle_versions_to_test")
-                .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
-                        + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
-
-        List<String> configuredVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
-
-        Set<String> allVersions = new LinkedHashSet<>(configuredVersions);
+        Set<String> allVersions = new LinkedHashSet<>(configuredVersions(context));
         allVersions.addAll(findAdditionalVersions(context));
 
         return allVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
+    }
+
+    static List<String> configuredVersions(ExtensionContext context) {
+        return context.getConfigurationParameter("com.palantir.gradle.testing.gradle_versions_to_test")
+                .map(param -> Splitter.on(',').splitToList(param))
+                .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
+                        + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
     }
 
     private static Set<String> findAdditionalVersions(ExtensionContext context) {

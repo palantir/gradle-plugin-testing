@@ -16,11 +16,9 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
@@ -58,14 +56,9 @@ final class AdditionalGradleVersionsCondition implements ExecutionCondition {
     }
 
     private Set<String> getVersionsForMethod(ExtensionContext context) {
-        Set<String> versions = new LinkedHashSet<>();
 
         // Add base versions from configuration
-        context.getConfigurationParameter("com.palantir.gradle.testing.gradle_versions_to_test")
-                .ifPresent(param -> {
-                    List<String> configuredVersions = Splitter.on(',').splitToList(param);
-                    versions.addAll(configuredVersions);
-                });
+        Set<String> versions = new LinkedHashSet<>(GradleVersioningClassTemplate.configuredVersions(context));
 
         // Add class-level additional versions
         context.getTestClass()
