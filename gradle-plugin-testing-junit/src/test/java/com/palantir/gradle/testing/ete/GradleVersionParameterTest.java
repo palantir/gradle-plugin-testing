@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.GradleVersionAssumptionFixtureTest;
 import com.palantir.example.GradleVersionParameterFixtureTest;
+import com.palantir.example.GradleVersionWithAdditionalVersionsFixtureTest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.TestExecutionResult;
@@ -67,6 +68,38 @@ final class GradleVersionParameterTest {
         assertThat(finished.get(1).getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
             assertThat(result.getStatus()).isEqualTo(Status.FAILED);
             Assertions.assertThatTestFailureExceptionMessageContains(result, "Test ran on: 8.14.3");
+        });
+    }
+
+    @Test
+    void gradle_version_works_with_additional_gradle_versions_annotation() {
+        EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
+                .selectors(DiscoverySelectors.selectClass(GradleVersionWithAdditionalVersionsFixtureTest.class))
+                // Base version from config, 8.0 and 8.5 from @AdditionalGradleVersions
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .execute();
+
+        List<Event> finished = executionResults.testEvents().finished().stream().toList();
+
+        // Should have 3 test runs: 7.6.5 from config + 8.0 and 8.5 from @AdditionalGradleVersions
+        assertThat(finished).hasSize(3);
+
+        // 7.6.5 should run (not skipped)
+        assertThat(finished.get(0).getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
+            assertThat(result.getStatus()).isEqualTo(Status.FAILED);
+            Assertions.assertThatTestFailureExceptionMessageContains(result, "Test ran on: 7.6.5");
+        });
+
+        // 8.0 should be skipped due to assumption
+        assertThat(finished.get(1).getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
+            assertThat(result.getStatus()).isEqualTo(Status.ABORTED);
+        });
+
+        // 8.5 should run (not skipped)
+        assertThat(finished.get(2).getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
+            assertThat(result.getStatus()).isEqualTo(Status.FAILED);
+            Assertions.assertThatTestFailureExceptionMessageContains(result, "Test ran on: 8.5");
         });
     }
 
