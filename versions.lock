@@ -16,7 +16,7 @@ com.diffplug.spotless:spotless-lib-extra:2.25.3 (1 constraints: 4c132341)
 
 com.diffplug.spotless:spotless-plugin-gradle:6.6.0 (1 constraints: c51120f5)
 
-com.fasterxml.jackson.core:jackson-annotations:2.20 (7 constraints: ac7c5e4a)
+com.fasterxml.jackson.core:jackson-annotations:2.20 (7 constraints: 447c2451)
 
 com.fasterxml.jackson.core:jackson-core:2.20.1 (5 constraints: 4e6e7ac6)
 
@@ -78,7 +78,13 @@ com.palantir.gradle.idea-configuration:gradle-idea-configuration:0.7.0 (2 constr
 
 com.palantir.gradle.utils:environment-variables:0.19.0 (2 constraints: f12e5248)
 
+com.palantir.gradle.utils:exec:0.21.0 (1 constraints: 2e0f5e76)
+
 com.palantir.gradle.utils:lazily-configured-mapping:0.15.0 (2 constraints: 502138b8)
+
+com.palantir.gradle.utils:platform:0.21.0 (6 constraints: cf6010c4)
+
+com.palantir.gradle.utils:providers:0.21.0 (1 constraints: 6e0dd731)
 
 com.palantir.javaformat:gradle-palantir-java-format:1.1.0 (1 constraints: bb11f8f4)
 
@@ -239,8 +245,6 @@ com.palantir.gradle.jdks:gradle-jdks-setup:0.71.0 (1 constraints: 910f4f92)
 com.palantir.gradle.jdks:gradle-jdks-setup-common:0.71.0 (3 constraints: 173b3f42)
 
 com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.24.0 (1 constraints: 3805333b)
-
-com.palantir.gradle.utils:platform:0.15.0 (5 constraints: 9b5bc725)
 
 commons-codec:commons-codec:1.17.1 (1 constraints: a30f8387)
 

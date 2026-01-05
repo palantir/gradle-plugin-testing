@@ -336,6 +336,7 @@ class PluginTestingJunitPluginTest {
     @DisabledConfigurationCache(reason = "gradle-jdks are not yet compatible with CC")
     void javaToolchains_are_correctly_set_when_jdkAutomanagement_is_enabled(
             GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("com.palantir.jdks.latest");
         rootProject.buildGradle().append("""
             jdks {
                 daemonTarget = 21

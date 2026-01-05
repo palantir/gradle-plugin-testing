@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.project.RootProject;
+import com.palantir.platform.Architecture;
+import com.palantir.platform.OperatingSystem;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -30,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class GradleWithJdksInvoker implements GradleInvoker {
 
+    private static final Architecture arch = Architecture.get();
+    private static final OperatingSystem os = OperatingSystem.get();
     private final GradleInvoker gradleInvoker;
     private final RootProject rootProject;
 
@@ -42,8 +46,9 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
     @Override
     public GradleInvocation withArgs(String... args) {
         setupRootProject(rootProject);
-        GradleInvocation generateGradleJdkConfigs =
-                gradleInvoker.withArgs("generateGradleJdkConfigs", "--onlyForCurrentOsArch");
+
+        GradleInvocation generateGradleJdkConfigs = gradleInvoker.withArgs("generateGradleJdkConfigs");
+
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .command("./gradle/gradle-jdks-setup.sh")
                 .directory(rootProject.path().toFile());
@@ -66,8 +71,10 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
         try {
             String majorVersion = Files.readString(rootProjectDir.resolve("gradle/gradle-daemon-jdk-version"))
                     .trim();
+
             try (Stream<Path> stream = Files.find(
-                    rootProjectDir.resolve(String.format("gradle/jdks/%s", majorVersion)),
+                    rootProjectDir.resolve(
+                            String.format("gradle/jdks/%s/%s/%s", majorVersion, os.uiName(), arch.uiName())),
                     3,
                     (path, attr) -> path.getFileName().toString().equals("local-path") && attr.isRegularFile())) {
                 String localPath = stream.findFirst()
