@@ -101,6 +101,7 @@ Tests can request these parameters in any order:
 - **`RootProject`** - Gradle root project that will always be named "root". To use a different project name, call `rootProject.settingsGradle().rootProjectName("custom-name")`
 - **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named `apiService`
 - **`MavenRepo`** - Maven repository for publishing test artifacts. See [Maven Repository Testing](#maven-repository-testing)
+- **`GradleVersion`** - The Gradle version for the current test invocation. Useful for conditionally skipping tests with `Assumptions`. See [Skipping Tests for Specific Versions](#skipping-tests-for-specific-versions)
 
 These parameters can be used in the constructor for a test class or in `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, or `@AfterAll` methods.
 
@@ -161,6 +162,27 @@ class CompatibilityTest {
 ```
 
 The versions from `@AdditionalGradleVersions` are merged with the globally configured versions. Duplicate versions are automatically deduplicated.
+
+#### Skipping Tests for Specific Versions
+
+Inject `GradleVersion` as a test parameter to conditionally skip tests using JUnit's `Assumptions`:
+
+```java
+import com.palantir.gradle.testing.execution.GradleVersion;
+import org.junit.jupiter.api.Assumptions;
+
+@GradlePluginTests
+class VersionSpecificTest {
+    @Test
+    void feature_only_available_in_gradle_8(GradleInvoker gradle, RootProject project, GradleVersion gradleVersion) {
+        Assumptions.assumeTrue(
+                gradleVersion.version().startsWith("8."),
+                "This feature requires Gradle 8.x");
+
+        // Test code that only runs on Gradle 8.x
+    }
+}
+```
 
 ## File Operations
 
