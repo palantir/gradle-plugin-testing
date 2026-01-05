@@ -4,7 +4,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'com.palantir.gradle.jdks:gradle-jdks-settings:0.69.0'
+        classpath 'com.palantir.gradle.jdks:gradle-jdks-settings:0.71.0'
         classpath 'com.gradle:develocity-gradle-plugin:4.0'
     }
 }
@@ -26,6 +26,7 @@ develocity {
 
 include 'plugin-testing-core'
 include 'gradle-plugin-testing'
+include 'gradle-test-versions-config'
 include 'configuration-cache-spec'
 include 'gradle-plugin-testing-error-prone'
 include 'gradle-plugin-testing-junit'

@@ -140,8 +140,18 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             .addAll(versionsFromConfig)
                             .addAll(versionsFromExtension)
                             .build();
+                    log.info(
+                            "PluginTestingPlugin Gradle versions from gradle/gradle-test-versions.yml: {}",
+                            versionsFromConfig);
+                    log.info(
+                            "PluginTestingPlugin Gradle versions from extensions (deprecated): {}",
+                            versionsFromExtension);
                     if (gradleTestVersions.isEmpty()) {
                         gradleTestVersions = Set.of(GradleVersion.current().getVersion());
+                        log.info(
+                                "PluginTestingPlugin using default Gradle version (both extension and config file are"
+                                        + " unset) {}",
+                                gradleTestVersions);
                     }
                     String versions = String.join(",", gradleTestVersions);
                     test.systemProperty(GradleTestVersions.TEST_GRADLE_VERSIONS_SYSTEM_PROPERTY, versions);
@@ -177,8 +187,6 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                                     .addAll(List.of(
                                             "withAnnotations",
                                             "--include",
-                                            "com.palantir.gradle.testing.junit.GradlePluginTests",
-                                            "--exclude",
                                             "com.palantir.gradle.testing.junit.DisabledConfigurationCache"));
                         });
 
@@ -278,7 +286,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
 
     private Provider<Set<String>> readGradleTestingVersionsConfigFile() {
         RegularFile testVersionsConfigPath =
-                getProjectLayout().getProjectDirectory().file("gradle/gradle-test-versions.yml");
+                getProjectLayout().getSettingsDirectory().file("gradle/gradle-test-versions.yml");
 
         Provider<GradleTestVersionsConfig> config = getProviderFactory()
                 .fileContents(testVersionsConfigPath)

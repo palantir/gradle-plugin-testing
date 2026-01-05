@@ -28,7 +28,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
 - [Executing Gradle Builds](#executing-gradle-builds)
     - [Basic Execution](#basic-execution)
     - [Running builds with Configuration Cache enabled](#running-builds-with-configuration-cache-enabled)
-    - [Running builds with specific Jdks]()
+    - [Running builds with specific Jdks](#running-builds-with-specific-jdks)
     - [Environment Variables](#environment-variables)
 - [Assertions](#assertions)
     - [Fluent Assertion API](#fluent-assertion-api)
@@ -298,6 +298,9 @@ void create_custom_gradle_files(RootProject project) {
 ```
 
 Or use a helper method to setup a standard build file used across multiple tests:
+
+> Note: only use this pattern if you cannot setup the build gradle file in a `@BeforeEach` / `@BeforeAll`
+
 ```java
 import com.palantir.gradle.testing.files.gradle.GradleFile;
 
@@ -553,14 +556,14 @@ For tests or test classes that are incompatible with configuration cache, use th
 ```java
 // Disable configuration cache for a specific test method
 @Test
-@DisabledConfigurationCache(reason="task abc is incompatible with configuration cache")
+@DisabledConfigurationCache("task abc is incompatible with configuration cache")
 void incompatible_configuration_cache_build(GradleInvoker gradle, RootProject project) {
 ```
 Or
 ```java
 // Disable for an entire test class
 @GradlePluginTests
-@DisabledConfigurationCache(reason="tasks abc, xyz are incompatible with configuration cache")
+@DisabledConfigurationCache("tasks abc, xyz are incompatible with configuration cache")
 class PluginIncompatibleWithConfigCache {
 ```
 
@@ -575,7 +578,7 @@ Use the `@WithJdkAutomanagement` annotation when your tests need to run Gradle b
 The annotation automatically:
 1. Adds the required plugins: `com.palantir.jdks` and `com.palantir.jdks.settings`
 2. Enables [Gradle JDK Automanagement](https://github.com/palantir/gradle-jdks/tree/develop/gradle-jdks-setup#gradle-jdk-automanagement)
-3. Ensures your builds use only the JDKs you've explicitly configured
+3. Ensures your builds use only the JDKs you've explicitly configured (either by manually specifying them in the `jdks` extension or by using the `com.palantir.jdks.latest` plugin)
 
 #### Usage example
 
@@ -584,11 +587,15 @@ The annotation automatically:
 @WithJdkAutomanagement
 void can_run_with_daemon_21(GradleInvoker gradle, RootProject project) {
     // Step 1: Configure JDK daemon target
+    project.buildGradle().append("""
+        jdks {
+            daemonTarget = 21
+        }
+        """);
     
     // Option A: Manually specify JDKs
     project.buildGradle().append("""
         jdks {
-            daemonTarget = 21
             jdk(21) {
                 distribution = 'amazon-corretto'
                 jdkVersion = '21.0.16.9.1'    
@@ -620,7 +627,7 @@ void can_run_with_daemon_21(GradleInvoker gradle, RootProject project) {
 }
 ```
 
-Make sure that all the gradle plugins used in the tests are set up in the `build.gradle` of the plugin project using:
+Make sure that all the gradle plugins used in the tests are set up in the `build.gradle` of the plugin project. More detauls on this [here](#testing-with-external-plugins)
 ```groovy
 dependencies {
     // these 2 dependencies should always be added:

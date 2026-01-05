@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.execution.UnexpectedConfigurationCacheFailure;
+import com.palantir.gradle.testing.project.GradleProject;
 import com.palantir.gradle.testing.project.RootProject;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
@@ -38,18 +39,7 @@ class ConfigurationCacheTests {
 
     @Test
     void configuration_cache_is_enabled_by_default(GradleInvoker invoker, RootProject rootProject) {
-        rootProject.buildGradle().append("""
-            tasks.register("checkConfigurationCache") {
-                def buildFeatures = services.get(BuildFeatures)
-                def isRequested = buildFeatures.configurationCache.requested.orElse(false)
-                inputs.property('configCacheStatus', isRequested)
-
-                doLast {
-                    def status = inputs.properties.get('configCacheStatus')
-                    println "isConfigurationCacheRequested=" + status
-                }
-            }
-            """);
+        setUpConfigurationCacheTask(rootProject);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
         result.assertThat()
@@ -96,20 +86,9 @@ class ConfigurationCacheTests {
     }
 
     @Test
-    @DisabledConfigurationCache(reason = "testing method level annotation")
+    @DisabledConfigurationCache("testing method level annotation")
     void configuration_cache_is_disabled(GradleInvoker invoker, RootProject rootProject) {
-        rootProject.buildGradle().append("""
-            tasks.register("checkConfigurationCache") {
-                def buildFeatures = services.get(BuildFeatures)
-                def isRequested = buildFeatures.configurationCache.requested.orElse(false)
-                inputs.property('configCacheStatus', isRequested)
-
-                doLast {
-                    def status = inputs.properties.get('configCacheStatus')
-                    println "isConfigurationCacheRequested=" + status
-                }
-            }
-            """);
+        setUpConfigurationCacheTask(rootProject);
 
         InvocationResult result = invoker.withArgs("checkConfigurationCache").buildsSuccessfully();
         result.assertThat().output().contains("isConfigurationCacheRequested=false");
@@ -200,5 +179,20 @@ class ConfigurationCacheTests {
 
         InvocationResult result = invoker.withArgs("help").buildsWithFailure();
         result.assertThat().output().contains("org.gradle.api.GradleScriptException:");
+    }
+
+    static void setUpConfigurationCacheTask(GradleProject project) {
+        project.buildGradle().append("""
+            tasks.register("checkConfigurationCache") {
+                def buildFeatures = services.get(BuildFeatures)
+                def isRequested = buildFeatures.configurationCache.requested.orElse(false)
+                inputs.property('configCacheStatus', isRequested)
+
+                doLast {
+                    def status = inputs.properties.get('configCacheStatus')
+                    println "isConfigurationCacheRequested=" + status
+                }
+            }
+            """);
     }
 }

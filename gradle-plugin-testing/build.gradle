@@ -5,20 +5,17 @@ apply plugin: 'com.palantir.gradle-plugin-testing'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
+    implementation project(':gradle-test-versions-config')
     implementation project(':plugin-testing-core')
     implementation project(':discover-tests-cli')
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.palantir.baseline:gradle-baseline-java'
     implementation 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone'
-    implementation 'one.util:streamex'
     implementation 'com.google.guava:guava'
-
-    annotationProcessor 'org.immutables:value'
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
     compileOnlyApi 'org.immutables:value::annotations'
-
 
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
@@ -26,7 +23,6 @@ dependencies {
     testImplementation 'org.codehaus.groovy:groovy'
     testImplementation 'org.spockframework:spock-core'
 
-    testRuntimeOnly 'com.google.guava:guava'
     gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
     gradlePluginForTesting 'com.palantir.gradle.jdks:gradle-jdks'
     gradlePluginForTesting 'com.palantir.gradle.jdkslatest:gradle-jdks-latest'

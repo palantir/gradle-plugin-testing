@@ -1,0 +1,15 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'com.palantir.external-publish-jar'
+    id 'com.palantir.gradle-plugin-testing'
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    implementation 'one.util:streamex'
+    implementation 'com.google.guava:guava'
+
+    annotationProcessor 'org.immutables:value'
+    compileOnlyApi 'org.immutables:value::annotations'
+}

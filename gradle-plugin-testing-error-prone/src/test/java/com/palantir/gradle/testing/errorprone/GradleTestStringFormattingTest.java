@@ -220,6 +220,21 @@ class GradleTestStringFormattingTest {
     }
 
     @Test
+    void allow_method_parameter_as_argument() {
+        test("""
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.files.ProjectFile;
+
+            @GradlePluginTests
+            class TestClass {
+                void test(ProjectFile file, String extraContent) {
+                    file.appendLine(extraContent);
+                }
+            }
+            """);
+    }
+
+    @Test
     void allow_formatted_strings_when_no_format_method_overload_exists() {
         test("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
