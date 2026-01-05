@@ -39,7 +39,9 @@ final class GradleVersionsFromJunitParameterTest {
 
         assertThat(finished).hasSize(2);
 
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(0), "7.6.5");
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(1), "8.14.3");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(0), "7.6.5");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(1), "8.14.3");
     }
 }

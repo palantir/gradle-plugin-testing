@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.AdditionalGradleVersionsFixtureTest;
 import java.nio.file.Path;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestExecutionResult.Status;
@@ -33,7 +32,7 @@ public final class Assertions {
         });
     }
 
-    public static void assertThatRanWithCorrectGradleVersion(Event event, String gradleVersion) {
+    public static void assertThatRanWithCorrectGradleVersion(Class<?> testClass, Event event, String gradleVersion) {
         assertThatTestContainerDescriptorHasDisplayName(event, "Gradle " + gradleVersion);
 
         assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
@@ -45,7 +44,7 @@ public final class Assertions {
 
         assertThat(Path.of(
                         "build/gradle-plugin-testing",
-                        AdditionalGradleVersionsFixtureTest.class.getSimpleName(),
+                        testClass.getSimpleName(),
                         "test name",
                         gradleVersion,
                         "build.gradle"))

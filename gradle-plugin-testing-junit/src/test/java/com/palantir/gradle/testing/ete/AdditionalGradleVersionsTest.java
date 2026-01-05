@@ -41,9 +41,12 @@ final class AdditionalGradleVersionsTest {
         // Should have 3 test runs: 7.6.5 from config + 8.0 and 8.5 from @AdditionalGradleVersions
         assertThat(finished).hasSize(3);
 
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(0), "7.6.5");
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(1), "8.0");
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(2), "8.5");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                AdditionalGradleVersionsFixtureTest.class, finished.get(0), "7.6.5");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                AdditionalGradleVersionsFixtureTest.class, finished.get(1), "8.0");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                AdditionalGradleVersionsFixtureTest.class, finished.get(2), "8.5");
     }
 
     @Test
@@ -60,7 +63,9 @@ final class AdditionalGradleVersionsTest {
         // Should have 2 test runs: 8.0 (deduplicated) and 8.5 from @AdditionalGradleVersions
         assertThat(finished).hasSize(2);
 
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(0), "8.0");
-        Assertions.assertThatRanWithCorrectGradleVersion(finished.get(1), "8.5");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                AdditionalGradleVersionsFixtureTest.class, finished.get(0), "8.0");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                AdditionalGradleVersionsFixtureTest.class, finished.get(1), "8.5");
     }
 }
