@@ -61,9 +61,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
                 .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
 
         // Find method-level annotations from all test methods
-        context.getTestClass()
-                .map(Class::getDeclaredMethods)
-                .stream()
+        context.getTestClass().map(Class::getDeclaredMethods).stream()
                 .flatMap(Arrays::stream)
                 .flatMap(method -> AnnotationSupport.findAnnotation(method, AdditionalGradleVersions.class).stream())
                 .map(AdditionalGradleVersions::value)
