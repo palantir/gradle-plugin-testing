@@ -75,7 +75,7 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
             try (Stream<Path> stream = Files.find(
                     rootProjectDir.resolve(
                             String.format("gradle/jdks/%s/%s/%s", majorVersion, os.uiName(), arch.uiName())),
-                    3,
+                    1,
                     (path, attr) -> path.getFileName().toString().equals("local-path") && attr.isRegularFile())) {
                 String localPath = stream.findFirst()
                         .map(GradleWithJdksInvoker::getLocalPath)
