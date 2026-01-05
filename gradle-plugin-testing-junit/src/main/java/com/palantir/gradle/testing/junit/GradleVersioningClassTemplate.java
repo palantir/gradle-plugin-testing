@@ -18,10 +18,10 @@ package com.palantir.gradle.testing.junit;
 
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ClassTemplateInvocationContext;
@@ -47,15 +47,30 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         List<String> configuredVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
 
         Set<String> allVersions = new LinkedHashSet<>(configuredVersions);
-        findAdditionalVersions(context).ifPresent(additional -> allVersions.addAll(Arrays.asList(additional)));
+        allVersions.addAll(findAdditionalVersions(context));
 
         return allVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
     }
 
-    private static Optional<String[]> findAdditionalVersions(ExtensionContext context) {
-        return context.getTestClass()
+    private static Set<String> findAdditionalVersions(ExtensionContext context) {
+        Set<String> additionalVersions = new LinkedHashSet<>();
+
+        // Find class-level annotation
+        context.getTestClass()
                 .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, AdditionalGradleVersions.class))
-                .map(AdditionalGradleVersions::value);
+                .map(AdditionalGradleVersions::value)
+                .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
+
+        // Find method-level annotations from all test methods
+        context.getTestClass().ifPresent(testClass -> {
+            for (Method method : testClass.getDeclaredMethods()) {
+                AnnotationSupport.findAnnotation(method, AdditionalGradleVersions.class)
+                        .map(AdditionalGradleVersions::value)
+                        .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
+            }
+        });
+
+        return additionalVersions;
     }
 
     private record GradleVersionInvocationContext(GradleVersion gradleVersion)
@@ -73,6 +88,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         @Override
         public List<Extension> getAdditionalExtensions() {
             return List.of(
+                    new AdditionalGradleVersionsCondition(),
                     new GradleInvokerParameterResolver(),
                     new GradleProjectParameterResolver(),
                     new MavenRepoParameterResolver());

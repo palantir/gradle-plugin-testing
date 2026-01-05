@@ -25,9 +25,11 @@ import java.lang.annotation.Target;
  * Annotation that can be used to add additional Gradle versions to test against.
  * The versions specified in this annotation will be merged with the versions configured via the
  * {@code com.palantir.gradle.testing.gradle_versions_to_test} configuration parameter.
- * This annotation can be applied to a test class.
+ * This annotation can be applied to a test class or individual test methods.
+ *
+ * <p>When applied to both a class and a method, the versions are combined (base + class + method versions).
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AdditionalGradleVersions {
 
