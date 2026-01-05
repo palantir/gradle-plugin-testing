@@ -86,7 +86,7 @@ class ConfigurationCacheTests {
     }
 
     @Test
-    @DisabledConfigurationCache(reason = "testing method level annotation")
+    @DisabledConfigurationCache("testing method level annotation")
     void configuration_cache_is_disabled(GradleInvoker invoker, RootProject rootProject) {
         setUpConfigurationCacheTask(rootProject);
 
