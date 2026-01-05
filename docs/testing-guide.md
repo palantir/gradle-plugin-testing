@@ -147,7 +147,7 @@ See [Resolution of Gradle versions to test against](../README.md#resolution-of-g
 
 #### Adding Versions for Specific Tests
 
-Use `@AdditionalGradleVersions` to add extra Gradle versions for a specific test class:
+Use `@AdditionalGradleVersions` to add extra Gradle versions for a specific test class or individual test methods:
 
 ```java
 @GradlePluginTests
@@ -157,10 +157,16 @@ class CompatibilityTest {
     void works_on_older_gradle_versions(GradleInvoker gradle, RootProject project) {
         // This test runs against the globally configured versions PLUS 7.6.5 and 8.0
     }
+
+    @Test
+    @AdditionalGradleVersions("8.5")
+    void test_specific_version(GradleInvoker gradle, RootProject project) {
+        // This test runs against globally configured versions PLUS 7.6.5, 8.0 (from class), and 8.5 (from method)
+    }
 }
 ```
 
-The versions from `@AdditionalGradleVersions` are merged with the globally configured versions. Duplicate versions are automatically deduplicated.
+The versions from `@AdditionalGradleVersions` are merged with the globally configured versions. When applied to both a class and a method, all versions are combined. Duplicate versions are automatically deduplicated.
 
 ## File Operations
 
