@@ -51,7 +51,7 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
                 generateGradleJdkConfigs, processBuilder, () -> getInvokerWithToolchainsConfigured(args));
     }
 
-    // this needs to be called after the daemon jdk version is rendered (generateGradleJdkConfigs)
+    // this needs to be called after the daemon jdk version is rendered (by generateGradleJdkConfigs)
     private GradleInvocation getInvokerWithToolchainsConfigured(String... args) {
         String[] withJavaHome = ImmutableList.<String>builder()
                 .add(args)

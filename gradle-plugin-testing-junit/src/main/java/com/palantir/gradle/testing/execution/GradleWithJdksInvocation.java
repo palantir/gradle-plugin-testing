@@ -41,23 +41,30 @@ public record GradleWithJdksInvocation(
 
     @Override
     public InvocationResult buildsSuccessfully() {
-        setupInvocation.buildsSuccessfully();
-        runWithLogger(generateToolchainsInvocation);
+        setupJdkAutomanagement();
         try {
             return tasksInvocation.call().buildsSuccessfully();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to run the gradle invoker", e);
         }
     }
 
     @Override
     public InvocationResult buildsWithFailure() {
-        setupInvocation.buildsSuccessfully();
-        runWithLogger(generateToolchainsInvocation);
+        setupJdkAutomanagement();
         try {
             return tasksInvocation.call().buildsWithFailure();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to run the gradle invoker", e);
+        }
+    }
+
+    public void setupJdkAutomanagement() {
+        try {
+            setupInvocation.buildsSuccessfully();
+            runWithLogger(generateToolchainsInvocation);
+        } catch (Exception e) {
+            throw new GradleWithJdksInvocationFailure(e);
         }
     }
 

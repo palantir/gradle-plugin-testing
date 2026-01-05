@@ -17,9 +17,11 @@
 package com.palantir.gradle.plugintesting;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.execution.GradleWithJdksInvocationFailure;
 import com.palantir.gradle.testing.execution.GradleWithJdksInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
@@ -83,5 +85,21 @@ public class GradleWithJdksTest {
         }
         List<String> versions = versionsBuilder.build();
         assertThat(versions).contains("11", "21");
+    }
+
+    @Test
+    void fails_when_jdk_is_not_configured(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            jdks {
+                daemonTarget = 24
+                jdk(21) {
+                    distribution = 'amazon-corretto'
+                    jdkVersion = '21.0.9.10.1'
+                }
+            }
+            """);
+        assertThatThrownBy(() -> invoker.withArgs("javaToolchains").buildsSuccessfully())
+                .isInstanceOf(GradleWithJdksInvocationFailure.class)
+                .hasMessageContaining("Gradle daemon JDK version is `24` but no JDK configured for that version.");
     }
 }
