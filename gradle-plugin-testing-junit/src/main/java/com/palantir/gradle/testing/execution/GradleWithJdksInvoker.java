@@ -45,11 +45,8 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
         GradleInvocation generateGradleJdkConfigs =
                 gradleInvoker.withArgs("generateGradleJdkConfigs", "--onlyForCurrentOsArch");
         ProcessBuilder processBuilder = new ProcessBuilder()
-                .command(rootProject
-                        .path()
-                        .resolve("gradle/gradle-jdks-setup.sh")
-                        .toString())
-                .inheritIO();
+                .command("./gradle/gradle-jdks-setup.sh")
+                .directory(rootProject.path().toFile());
         return new GradleWithJdksInvocation(
                 generateGradleJdkConfigs, processBuilder, () -> getInvokerWithToolchainsConfigured(args));
     }
