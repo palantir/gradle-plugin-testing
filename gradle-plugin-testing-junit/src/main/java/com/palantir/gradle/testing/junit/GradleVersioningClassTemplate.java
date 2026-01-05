@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.junit;
 
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,13 +61,14 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
                 .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
 
         // Find method-level annotations from all test methods
-        context.getTestClass().ifPresent(testClass -> {
-            for (Method method : testClass.getDeclaredMethods()) {
-                AnnotationSupport.findAnnotation(method, AdditionalGradleVersions.class)
-                        .map(AdditionalGradleVersions::value)
-                        .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
-            }
-        });
+        context.getTestClass()
+                .map(Class::getDeclaredMethods)
+                .stream()
+                .flatMap(Arrays::stream)
+                .flatMap(method -> AnnotationSupport.findAnnotation(method, AdditionalGradleVersions.class).stream())
+                .map(AdditionalGradleVersions::value)
+                .flatMap(Arrays::stream)
+                .forEach(additionalVersions::add);
 
         return additionalVersions;
     }
