@@ -145,6 +145,23 @@ If not specified, tests run against the default version (currently `8.14.3`).
 
 See [Resolution of Gradle versions to test against](../README.md#resolution-of-gradle-versions-to-test-against) for more details.
 
+#### Adding Versions for Specific Tests
+
+Use `@AdditionalGradleVersions` to add extra Gradle versions for a specific test class:
+
+```java
+@GradlePluginTests
+@AdditionalGradleVersions({"7.6.5", "8.0"})
+class CompatibilityTest {
+    @Test
+    void works_on_older_gradle_versions(GradleInvoker gradle, RootProject project) {
+        // This test runs against the globally configured versions PLUS 7.6.5 and 8.0
+    }
+}
+```
+
+The versions from `@AdditionalGradleVersions` are merged with the globally configured versions. Duplicate versions are automatically deduplicated.
+
 ## File Operations
 
 ### Working with Files

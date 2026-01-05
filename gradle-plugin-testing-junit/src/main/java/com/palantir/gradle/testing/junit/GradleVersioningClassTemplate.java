@@ -18,12 +18,17 @@ package com.palantir.gradle.testing.junit;
 
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ClassTemplateInvocationContext;
 import org.junit.jupiter.api.extension.ClassTemplateInvocationContextProvider;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.commons.support.AnnotationSupport;
 
 final class GradleVersioningClassTemplate implements ClassTemplateInvocationContextProvider {
     @Override
@@ -39,9 +44,18 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
                 .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
                         + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
 
-        List<String> gradleVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
+        List<String> configuredVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
 
-        return gradleVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
+        Set<String> allVersions = new LinkedHashSet<>(configuredVersions);
+        findAdditionalVersions(context).ifPresent(additional -> allVersions.addAll(Arrays.asList(additional)));
+
+        return allVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
+    }
+
+    private static Optional<String[]> findAdditionalVersions(ExtensionContext context) {
+        return context.getTestClass()
+                .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, AdditionalGradleVersions.class))
+                .map(AdditionalGradleVersions::value);
     }
 
     private record GradleVersionInvocationContext(GradleVersion gradleVersion)
