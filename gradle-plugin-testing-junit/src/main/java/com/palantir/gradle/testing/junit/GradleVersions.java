@@ -30,12 +30,6 @@ import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
  * Utility class for Gradle versions based on annotations.
- *
- * <p>Provides two main methods:
- * <ul>
- *   <li>{@link #allVersions} - all versions across class and methods</li>
- *   <li>{@link #versionsForMethod} - all versions for a specific method</li>
- * </ul>
  */
 final class GradleVersions {
 
