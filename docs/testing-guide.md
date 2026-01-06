@@ -11,6 +11,9 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [The @GradlePluginTests Annotation](#the-gradleplugintests-annotation)
     - [Parameter Injection](#parameter-injection)
     - [Multi-Version Testing](#multi-version-testing)
+    - [Adding Versions for Specific Tests](#adding-versions-for-specific-tests)
+    - [Filtering to Specific Versions](#filtering-to-specific-versions)
+    - [Version Comparison Constraints](#version-comparison-constraints)
 - [File Operations](#file-operations)
     - [Working with Files](#working-with-files)
     - [Build Gradle](#build-gradle)
@@ -208,6 +211,65 @@ void test_only_on_8_5(GradleInvoker gradle, RootProject project) {
 ```
 
 The annotation can be applied at the class level to filter all tests in the class, or at the method level for individual tests. Method-level filters are applied in addition to class-level filters.
+
+#### Version Comparison Constraints
+
+For more flexible version filtering, use the comparison annotations to specify version ranges:
+
+- **`@WithGradleVersionsLessThan`** - Run only on versions strictly less than the specified version
+- **`@WithGradleVersionsGreaterThan`** - Run only on versions strictly greater than the specified version
+- **`@WithGradleVersionsLessThanOrEqualTo`** - Run only on versions less than or equal to the specified version
+- **`@WithGradleVersionsGreaterThanOrEqualTo`** - Run only on versions greater than or equal to the specified version
+
+```java
+@GradlePluginTests
+class VersionConstraintTest {
+    @Test
+    @WithGradleVersionsLessThan("8.0")
+    void test_pre_gradle_8_behavior(GradleInvoker gradle, RootProject project) {
+        // Only runs on Gradle versions before 8.0 (e.g., 7.6.5)
+    }
+
+    @Test
+    @WithGradleVersionsGreaterThanOrEqualTo("8.5")
+    void test_new_api_introduced_in_8_5(GradleInvoker gradle, RootProject project) {
+        // Only runs on Gradle 8.5 and later
+    }
+}
+```
+
+**Combining constraints for version ranges:**
+
+You can combine multiple annotations to define precise version ranges:
+
+```java
+@Test
+@WithGradleVersionsGreaterThanOrEqualTo("8.0")
+@WithGradleVersionsLessThan("9.0")
+void test_gradle_8_only(GradleInvoker gradle, RootProject project) {
+    // Runs on Gradle 8.x versions only (>= 8.0 and < 9.0)
+}
+
+@Test
+@WithGradleVersionsGreaterThan("7.6")
+@WithGradleVersionsLessThanOrEqualTo("8.5")
+void test_range_exclusive_inclusive(GradleInvoker gradle, RootProject project) {
+    // Runs on versions > 7.6 and <= 8.5
+}
+```
+
+**Combining with `@WithOnlyGradleVersions`:**
+
+Comparison annotations can be combined with `@WithOnlyGradleVersions` for complex filtering:
+
+```java
+@Test
+@WithOnlyGradleVersions({"8.0", "8.5", "8.10"})
+@WithGradleVersionsLessThanOrEqualTo("8.5")
+void test_subset_with_upper_bound(GradleInvoker gradle, RootProject project) {
+    // Only runs on 8.0 and 8.5 (8.10 is filtered out by the <= 8.5 constraint)
+}
+```
 
 ## File Operations
 

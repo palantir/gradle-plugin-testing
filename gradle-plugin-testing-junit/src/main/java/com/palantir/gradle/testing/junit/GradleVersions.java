@@ -18,11 +18,14 @@ package com.palantir.gradle.testing.junit;
 
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -93,10 +96,46 @@ final class GradleVersions {
     }
 
     private static void applyFilter(Set<GradleVersion> versions, AnnotatedElement element) {
+        applyExactFilter(versions, element);
+        applyComparisonFilter(
+                versions, element, WithGradleVersionsLessThan.class, WithGradleVersionsLessThan::value, v -> v < 0);
+        applyComparisonFilter(
+                versions,
+                element,
+                WithGradleVersionsGreaterThan.class,
+                WithGradleVersionsGreaterThan::value,
+                v -> v > 0);
+        applyComparisonFilter(
+                versions,
+                element,
+                WithGradleVersionsLessThanOrEqualTo.class,
+                WithGradleVersionsLessThanOrEqualTo::value,
+                v -> v <= 0);
+        applyComparisonFilter(
+                versions,
+                element,
+                WithGradleVersionsGreaterThanOrEqualTo.class,
+                WithGradleVersionsGreaterThanOrEqualTo::value,
+                v -> v >= 0);
+    }
+
+    private static void applyExactFilter(Set<GradleVersion> versions, AnnotatedElement element) {
         AnnotationSupport.findAnnotation(element, WithOnlyGradleVersions.class).ifPresent(annotation -> {
             Set<GradleVersion> allowed =
                     Arrays.stream(annotation.value()).map(GradleVersion::new).collect(Collectors.toSet());
             versions.retainAll(allowed);
+        });
+    }
+
+    private static <A extends Annotation> void applyComparisonFilter(
+            Set<GradleVersion> versions,
+            AnnotatedElement element,
+            Class<A> annotationClass,
+            Function<A, String> valueExtractor,
+            Predicate<Integer> comparisonPredicate) {
+        AnnotationSupport.findAnnotation(element, annotationClass).ifPresent(annotation -> {
+            GradleVersion boundVersion = new GradleVersion(valueExtractor.apply(annotation));
+            versions.removeIf(version -> !comparisonPredicate.test(version.compareTo(boundVersion)));
         });
     }
 
