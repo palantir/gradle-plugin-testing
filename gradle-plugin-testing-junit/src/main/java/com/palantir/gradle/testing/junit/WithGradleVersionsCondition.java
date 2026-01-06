@@ -17,13 +17,11 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleVersion;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
  * Execution condition that filters tests based on Gradle version.
@@ -42,9 +40,12 @@ final class WithGradleVersionsCondition implements ExecutionCondition {
         }
 
         GradleVersion currentVersion = GradleVersionStore.gradleVersion(context);
-
-        Set<String> versionsForThisMethod = getVersionsForMethod(context);
         String currentVersionString = currentVersion.toString();
+
+        Set<String> versionsForThisMethod = new LinkedHashSet<>(GradleVersioningClassTemplate.baseVersions(context));
+        context.getTestMethod()
+                .map(GradleVersioningClassTemplate::methodVersions)
+                .ifPresent(versionsForThisMethod::addAll);
 
         if (versionsForThisMethod.contains(currentVersionString)) {
             return ConditionEvaluationResult.enabled(
@@ -53,25 +54,5 @@ final class WithGradleVersionsCondition implements ExecutionCondition {
 
         return ConditionEvaluationResult.disabled("Gradle version " + currentVersionString
                 + " is not in the allowed set for this method: " + versionsForThisMethod);
-    }
-
-    private Set<String> getVersionsForMethod(ExtensionContext context) {
-
-        // Add base versions from configuration
-        Set<String> versions = new LinkedHashSet<>(GradleVersioningClassTemplate.configuredVersions(context));
-
-        // Add class-level additional versions
-        context.getTestClass()
-                .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, WithGradleVersions.class))
-                .map(WithGradleVersions::value)
-                .ifPresent(additionalVersions -> versions.addAll(Arrays.asList(additionalVersions)));
-
-        // Add method-level additional versions (only for this method)
-        context.getTestMethod()
-                .flatMap(method -> AnnotationSupport.findAnnotation(method, WithGradleVersions.class))
-                .map(WithGradleVersions::value)
-                .ifPresent(additionalVersions -> versions.addAll(Arrays.asList(additionalVersions)));
-
-        return versions;
     }
 }

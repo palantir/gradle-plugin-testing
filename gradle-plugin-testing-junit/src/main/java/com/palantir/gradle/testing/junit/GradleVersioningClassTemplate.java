@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.junit;
 
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,37 +39,35 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
     @Override
     public Stream<? extends ClassTemplateInvocationContext> provideClassTemplateInvocationContexts(
             ExtensionContext context) {
-        Set<String> allVersions = new LinkedHashSet<>(configuredVersions(context));
-        allVersions.addAll(findAdditionalVersions(context));
+        Set<String> allVersions = new LinkedHashSet<>(baseVersions(context));
+
+        context.getTestClass().stream()
+                .flatMap(clazz -> Arrays.stream(clazz.getDeclaredMethods()))
+                .forEach(method -> allVersions.addAll(methodVersions(method)));
 
         return allVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
     }
 
-    static List<String> configuredVersions(ExtensionContext context) {
-        return context.getConfigurationParameter("com.palantir.gradle.testing.gradle_versions_to_test")
+    static Set<String> baseVersions(ExtensionContext context) {
+        Set<String> versions = new LinkedHashSet<>(context.getConfigurationParameter(
+                        "com.palantir.gradle.testing.gradle_versions_to_test")
                 .map(param -> Splitter.on(',').splitToList(param))
                 .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
-                        + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
-    }
+                        + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?")));
 
-    private static Set<String> findAdditionalVersions(ExtensionContext context) {
-        Set<String> additionalVersions = new LinkedHashSet<>();
-
-        // Find class-level annotation
         context.getTestClass()
                 .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, WithGradleVersions.class))
                 .map(WithGradleVersions::value)
-                .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
+                .ifPresent(v -> versions.addAll(Arrays.asList(v)));
 
-        // Find method-level annotations from all test methods
-        context.getTestClass().map(Class::getDeclaredMethods).stream()
-                .flatMap(Arrays::stream)
-                .flatMap(method -> AnnotationSupport.findAnnotation(method, WithGradleVersions.class).stream())
+        return versions;
+    }
+
+    static Set<String> methodVersions(Method method) {
+        return AnnotationSupport.findAnnotation(method, WithGradleVersions.class)
                 .map(WithGradleVersions::value)
-                .flatMap(Arrays::stream)
-                .forEach(additionalVersions::add);
-
-        return additionalVersions;
+                .map(v -> new LinkedHashSet<>(Arrays.asList(v)))
+                .orElseGet(LinkedHashSet::new);
     }
 
     private record GradleVersionInvocationContext(GradleVersion gradleVersion)
