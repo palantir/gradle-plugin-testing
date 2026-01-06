@@ -28,10 +28,6 @@ import java.lang.annotation.Target;
  * available versions to only include the specified ones. If a specified version is not in the test matrix
  * (from configuration or {@code @WithGradleVersions}), it will simply not run.
  *
- * <p>Example: If the test matrix has versions 7.6.5 and 8.0, and you annotate with
- * {@code @WithOnlyGradleVersions("8.0")}, only 8.0 will run. If you annotate with
- * {@code @WithOnlyGradleVersions("8.5")}, no tests will run (since 8.5 is not in the matrix).
- *
  * <p>To run a specific version that isn't in the matrix, use both annotations:
  * {@code @WithGradleVersions("8.5")} and {@code @WithOnlyGradleVersions("8.5")}.
  */
