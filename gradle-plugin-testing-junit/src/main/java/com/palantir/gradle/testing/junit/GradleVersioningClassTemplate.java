@@ -56,15 +56,15 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
 
         // Find class-level annotation
         context.getTestClass()
-                .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, AdditionalGradleVersions.class))
-                .map(AdditionalGradleVersions::value)
+                .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, WithGradleVersions.class))
+                .map(WithGradleVersions::value)
                 .ifPresent(versions -> additionalVersions.addAll(Arrays.asList(versions)));
 
         // Find method-level annotations from all test methods
         context.getTestClass().map(Class::getDeclaredMethods).stream()
                 .flatMap(Arrays::stream)
-                .flatMap(method -> AnnotationSupport.findAnnotation(method, AdditionalGradleVersions.class).stream())
-                .map(AdditionalGradleVersions::value)
+                .flatMap(method -> AnnotationSupport.findAnnotation(method, WithGradleVersions.class).stream())
+                .map(WithGradleVersions::value)
                 .flatMap(Arrays::stream)
                 .forEach(additionalVersions::add);
 
@@ -86,7 +86,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         @Override
         public List<Extension> getAdditionalExtensions() {
             return List.of(
-                    new AdditionalGradleVersionsCondition(),
+                    new WithGradleVersionsCondition(),
                     new GradleInvokerParameterResolver(),
                     new GradleProjectParameterResolver(),
                     new MavenRepoParameterResolver());

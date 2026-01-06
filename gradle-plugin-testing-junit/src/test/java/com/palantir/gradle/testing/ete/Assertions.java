@@ -33,6 +33,11 @@ public final class Assertions {
     }
 
     public static void assertThatRanWithCorrectGradleVersion(Class<?> testClass, Event event, String gradleVersion) {
+        assertThatRanWithCorrectGradleVersion(testClass, event, gradleVersion, "test name");
+    }
+
+    public static void assertThatRanWithCorrectGradleVersion(
+            Class<?> testClass, Event event, String gradleVersion, String testName) {
         assertThatTestContainerDescriptorHasDisplayName(event, "Gradle " + gradleVersion);
 
         assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
@@ -45,7 +50,7 @@ public final class Assertions {
         assertThat(Path.of(
                         "build/gradle-plugin-testing",
                         testClass.getSimpleName(),
-                        "test name",
+                        testName,
                         gradleVersion,
                         "build.gradle"))
                 .exists();

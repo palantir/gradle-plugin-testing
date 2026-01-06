@@ -18,8 +18,8 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.AdditionalGradleVersionsFixtureTest;
-import com.palantir.example.MethodLevelAdditionalGradleVersionsFixtureTest;
+import com.palantir.example.MethodLevelWithGradleVersionsFixtureTest;
+import com.palantir.example.WithGradleVersionsFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -29,11 +29,11 @@ import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import org.junit.platform.testkit.engine.Event;
 
-final class AdditionalGradleVersionsTest {
+final class WithGradleVersionsTest {
     @Test
-    void additional_gradle_versions_annotation_adds_versions_to_test_matrix() {
+    void with_gradle_versions_annotation_adds_versions_to_test_matrix() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(AdditionalGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(WithGradleVersionsFixtureTest.class))
                 // Base version configured via parameter
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
@@ -45,17 +45,17 @@ final class AdditionalGradleVersionsTest {
                 .satisfiesExactlyInAnyOrder(
                         // from config parameter
                         ranWithGradleVersion("7.6.5"),
-                        // from @AdditionalGradleVersions
+                        // from @WithGradleVersions
                         ranWithGradleVersion("8.0"),
-                        // from @AdditionalGradleVersions
+                        // from @WithGradleVersions
                         ranWithGradleVersion("8.5"));
     }
 
     @Test
     void duplicate_versions_are_deduplicated() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(AdditionalGradleVersionsFixtureTest.class))
-                // 8.0 is both in config and in @AdditionalGradleVersions
+                .selectors(DiscoverySelectors.selectClass(WithGradleVersionsFixtureTest.class))
+                // 8.0 is both in config and in @WithGradleVersions
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -64,16 +64,16 @@ final class AdditionalGradleVersionsTest {
 
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
-                        // 8.0 is in both config and @AdditionalGradleVersions, but only runs once
+                        // 8.0 is in both config and @WithGradleVersions, but only runs once
                         ranWithGradleVersion("8.0"),
-                        // from @AdditionalGradleVersions
+                        // from @WithGradleVersions
                         ranWithGradleVersion("8.5"));
     }
 
     @Test
-    void method_level_additional_gradle_versions_only_apply_to_annotated_method() {
+    void method_level_with_gradle_versions_only_apply_to_annotated_method() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(MethodLevelAdditionalGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(MethodLevelWithGradleVersionsFixtureTest.class))
                 // Base version configured via parameter
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
@@ -101,14 +101,14 @@ final class AdditionalGradleVersionsTest {
 
     private static Consumer<Event> ranWithGradleVersion(String gradleVersion) {
         return event -> Assertions.assertThatRanWithCorrectGradleVersion(
-                AdditionalGradleVersionsFixtureTest.class, event, gradleVersion);
+                WithGradleVersionsFixtureTest.class, event, gradleVersion);
     }
 
     private static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
         return event -> {
             assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
             Assertions.assertThatRanWithCorrectGradleVersion(
-                    AdditionalGradleVersionsFixtureTest.class, event, gradleVersion);
+                    MethodLevelWithGradleVersionsFixtureTest.class, event, gradleVersion, displayNameContains);
         };
     }
 }

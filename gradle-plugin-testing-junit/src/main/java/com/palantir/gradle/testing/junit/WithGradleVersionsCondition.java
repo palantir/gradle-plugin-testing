@@ -28,11 +28,11 @@ import org.junit.platform.commons.support.AnnotationSupport;
 /**
  * Execution condition that filters tests based on Gradle version.
  *
- * <p>When a method has its own {@link AdditionalGradleVersions} annotation, this condition ensures
+ * <p>When a method has its own {@link WithGradleVersions} annotation, this condition ensures
  * that only the method-specific versions (plus base and class-level versions) run for that method.
  * For methods without the annotation, only base and class-level versions run.
  */
-final class AdditionalGradleVersionsCondition implements ExecutionCondition {
+final class WithGradleVersionsCondition implements ExecutionCondition {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
@@ -62,14 +62,14 @@ final class AdditionalGradleVersionsCondition implements ExecutionCondition {
 
         // Add class-level additional versions
         context.getTestClass()
-                .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, AdditionalGradleVersions.class))
-                .map(AdditionalGradleVersions::value)
+                .flatMap(testClass -> AnnotationSupport.findAnnotation(testClass, WithGradleVersions.class))
+                .map(WithGradleVersions::value)
                 .ifPresent(additionalVersions -> versions.addAll(Arrays.asList(additionalVersions)));
 
         // Add method-level additional versions (only for this method)
         context.getTestMethod()
-                .flatMap(method -> AnnotationSupport.findAnnotation(method, AdditionalGradleVersions.class))
-                .map(AdditionalGradleVersions::value)
+                .flatMap(method -> AnnotationSupport.findAnnotation(method, WithGradleVersions.class))
+                .map(WithGradleVersions::value)
                 .ifPresent(additionalVersions -> versions.addAll(Arrays.asList(additionalVersions)));
 
         return versions;

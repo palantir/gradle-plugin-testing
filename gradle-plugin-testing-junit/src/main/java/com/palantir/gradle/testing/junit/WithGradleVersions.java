@@ -22,16 +22,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that can be used to add additional Gradle versions to test against.
- * The versions specified in this annotation will be merged with the versions configured via the
- * {@code com.palantir.gradle.testing.gradle_versions_to_test} configuration parameter.
- * This annotation can be applied to a test class or individual test methods.
+ * Annotation for adding additional Gradle versions to individual test classes or methods.
  *
- * <p>When applied to both a class and a method, the versions are combined (base + class + method versions).
+ * <p><b>Important:</b> This annotation is intended for exceptional cases where a specific test or test class
+ * needs to run against additional Gradle versions beyond the globally configured versions. For configuring
+ * Gradle versions across your entire test suite, prefer setting versions in the
+ * {@code gradle/gradle-test-versions.yml} file
+ *
+ * <p>The versions specified in this annotation will be merged with the versions configured in the yml file.
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AdditionalGradleVersions {
+public @interface WithGradleVersions {
 
     /**
      * The additional Gradle versions to test against.
