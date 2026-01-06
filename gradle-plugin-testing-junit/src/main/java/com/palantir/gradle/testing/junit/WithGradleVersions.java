@@ -40,4 +40,10 @@ public @interface WithGradleVersions {
      * @return an array of Gradle version strings (e.g., "7.6.5", "8.0")
      */
     String[] value();
+
+    /**
+     * Optional reason explaining why these additional Gradle versions are needed.
+     * @return the reason for requiring these specific versions
+     */
+    String reason() default "";
 }
