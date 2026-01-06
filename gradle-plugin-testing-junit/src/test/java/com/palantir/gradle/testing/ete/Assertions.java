@@ -19,6 +19,8 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
+import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestExecutionResult.Status;
 import org.junit.platform.testkit.engine.Event;
@@ -54,6 +56,22 @@ public final class Assertions {
                         gradleVersion,
                         "build.gradle"))
                 .exists();
+    }
+
+    public static Consumer<Event> ranWithNameAndVersion(
+            Class<?> testClass, String displayNameContains, String gradleVersion) {
+        return event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
+            assertThatRanWithCorrectGradleVersion(testClass, event, gradleVersion, displayNameContains);
+        };
+    }
+
+    public static Consumer<Event> skippedWithNameAndVersion(String displayNameContains, String gradleVersion) {
+        return event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
+            assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
+                    .hasValue("Gradle " + gradleVersion);
+        };
     }
 
     private static void assertThatTestContainerDescriptorHasDisplayName(

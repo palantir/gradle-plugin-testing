@@ -1,0 +1,53 @@
+/*
+ * (c) Copyright 2025 Palantir Technologies Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.palantir.gradle.testing.junit;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Annotation for filtering Gradle versions to only run the specified versions.
+ *
+ * <p>Unlike {@link WithGradleVersions} which adds versions to the test matrix, this annotation filters the
+ * available versions to only include the specified ones. If a specified version is not in the test matrix
+ * (from configuration or {@code @WithGradleVersions}), it will simply not run.
+ *
+ * <p>Example: If the test matrix has versions 7.6.5 and 8.0, and you annotate with
+ * {@code @WithOnlyGradleVersions("8.0")}, only 8.0 will run. If you annotate with
+ * {@code @WithOnlyGradleVersions("8.5")}, no tests will run (since 8.5 is not in the matrix).
+ *
+ * <p>To run a specific version that isn't in the matrix, use both annotations:
+ * {@code @WithGradleVersions("8.5")} and {@code @WithOnlyGradleVersions("8.5")}.
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface WithOnlyGradleVersions {
+
+    /**
+     * The Gradle versions to filter to.
+     * @return an array of Gradle version strings (e.g., "7.6.5", "8.0")
+     */
+    String[] value();
+
+    /**
+     * Optional reason explaining why only these specific Gradle versions should run.
+     * @return the reason for filtering to these specific versions
+     */
+    String reason() default "";
+}

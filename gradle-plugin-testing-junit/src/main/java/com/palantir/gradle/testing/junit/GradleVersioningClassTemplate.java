@@ -45,6 +45,12 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
                 .flatMap(clazz -> Arrays.stream(clazz.getDeclaredMethods()))
                 .forEach(method -> allVersions.addAll(methodVersions(method)));
 
+        // Apply class-level @WithOnlyGradleVersions filter to the matrix
+        context.getTestClass()
+                .flatMap(clazz -> AnnotationSupport.findAnnotation(clazz, WithOnlyGradleVersions.class))
+                .map(WithOnlyGradleVersions::value)
+                .ifPresent(onlyVersions -> allVersions.retainAll(Arrays.asList(onlyVersions)));
+
         return allVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
     }
 

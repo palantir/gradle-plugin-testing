@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.ete;
 
+import static com.palantir.gradle.testing.ete.Assertions.ranWithNameAndVersion;
+import static com.palantir.gradle.testing.ete.Assertions.skippedWithNameAndVersion;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.MethodLevelWithGradleVersionsFixtureTest;
@@ -23,7 +25,6 @@ import com.palantir.example.WithGradleVersionsFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
@@ -85,30 +86,27 @@ final class WithGradleVersionsTest {
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
                         // "test without method annotation" runs on base (7.6.5) and class-level (8.0)
-                        ranWithNameAndVersion("test without method annotation", "7.6.5"),
-                        ranWithNameAndVersion("test without method annotation", "8.0"),
+                        ranWithNameAndVersion(
+                                MethodLevelWithGradleVersionsFixtureTest.class,
+                                "test without method annotation",
+                                "7.6.5"),
+                        ranWithNameAndVersion(
+                                MethodLevelWithGradleVersionsFixtureTest.class,
+                                "test without method annotation",
+                                "8.0"),
                         // "test with method annotation" runs on base (7.6.5), class-level (8.0), and method-level (8.5)
-                        ranWithNameAndVersion("test with method annotation", "7.6.5"),
-                        ranWithNameAndVersion("test with method annotation", "8.0"),
-                        ranWithNameAndVersion("test with method annotation", "8.5"));
+                        ranWithNameAndVersion(
+                                MethodLevelWithGradleVersionsFixtureTest.class, "test with method annotation", "7.6.5"),
+                        ranWithNameAndVersion(
+                                MethodLevelWithGradleVersionsFixtureTest.class, "test with method annotation", "8.0"),
+                        ranWithNameAndVersion(
+                                MethodLevelWithGradleVersionsFixtureTest.class, "test with method annotation", "8.5"));
         // Method without annotation is skipped for 8.5 (only runs on base + class versions)
-        assertThat(skipped).satisfiesExactly(event -> {
-            assertThat(event.getTestDescriptor().getDisplayName()).contains("test without method annotation");
-            assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
-                    .hasValue("Gradle 8.5");
-        });
+        assertThat(skipped).satisfiesExactly(skippedWithNameAndVersion("test without method annotation", "8.5"));
     }
 
     private static Consumer<Event> ranWithGradleVersion(String gradleVersion) {
         return event -> Assertions.assertThatRanWithCorrectGradleVersion(
                 WithGradleVersionsFixtureTest.class, event, gradleVersion);
-    }
-
-    private static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
-        return event -> {
-            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
-            Assertions.assertThatRanWithCorrectGradleVersion(
-                    MethodLevelWithGradleVersionsFixtureTest.class, event, gradleVersion, displayNameContains);
-        };
     }
 }
