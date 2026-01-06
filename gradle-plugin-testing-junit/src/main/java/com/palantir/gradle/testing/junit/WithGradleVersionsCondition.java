@@ -17,7 +17,6 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleVersion;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
@@ -40,19 +39,14 @@ final class WithGradleVersionsCondition implements ExecutionCondition {
         }
 
         GradleVersion currentVersion = GradleVersionStore.gradleVersion(context);
-        String currentVersionString = currentVersion.toString();
+        Set<GradleVersion> versionsForThisMethod = GradleVersions.versionsForMethod(context);
 
-        Set<String> versionsForThisMethod = new LinkedHashSet<>(GradleVersioningClassTemplate.baseVersions(context));
-        context.getTestMethod()
-                .map(GradleVersioningClassTemplate::methodVersions)
-                .ifPresent(versionsForThisMethod::addAll);
-
-        if (versionsForThisMethod.contains(currentVersionString)) {
+        if (versionsForThisMethod.contains(currentVersion)) {
             return ConditionEvaluationResult.enabled(
-                    "Gradle version " + currentVersionString + " is in the allowed set for this method");
+                    "Gradle version " + currentVersion + " is in the allowed set for this method");
         }
 
-        return ConditionEvaluationResult.disabled("Gradle version " + currentVersionString
+        return ConditionEvaluationResult.disabled("Gradle version " + currentVersion
                 + " is not in the allowed set for this method: " + versionsForThisMethod);
     }
 }
