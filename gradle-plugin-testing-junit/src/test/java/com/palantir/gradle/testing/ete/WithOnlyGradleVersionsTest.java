@@ -43,10 +43,6 @@ final class WithOnlyGradleVersionsTest {
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
         List<Event> skipped = executionResults.testEvents().skipped().stream().toList();
 
-        // test_without_only_annotation runs on both base versions (7.6.5, 8.0)
-        // test_with_only_annotation_filtering_to_existing_version runs only on 8.0 (filtered)
-        // test_with_only_annotation_filtering_to_nonexisting_version is skipped on both (8.5 not in matrix)
-
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
                         // test_without_only_annotation runs on both base versions
@@ -60,8 +56,6 @@ final class WithOnlyGradleVersionsTest {
                                 "test with only annotation filtering to existing version",
                                 "8.0"));
 
-        // test_with_only_annotation_filtering_to_existing_version is skipped on 7.6.5
-        // test_with_only_annotation_filtering_to_nonexisting_version is skipped on both versions
         assertThat(skipped).hasSize(3);
         assertThat(skipped)
                 .satisfiesExactlyInAnyOrder(
@@ -85,14 +79,12 @@ final class WithOnlyGradleVersionsTest {
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
         List<Event> skipped = executionResults.testEvents().skipped().stream().toList();
 
-        // @WithGradleVersions("8.5") adds 8.5 to matrix, @WithOnlyGradleVersions("8.5") filters to only 8.5
         assertThat(finished)
                 .satisfiesExactly(ranWithNameAndVersion(
                         WithOnlyAndWithGradleVersionsFixtureTest.class,
                         "test with both annotations adding and filtering",
                         "8.5"));
 
-        // 7.6.5 and 8.0 are skipped because @WithOnlyGradleVersions filters them out
         assertThat(skipped).hasSize(2);
         assertThat(skipped)
                 .satisfiesExactlyInAnyOrder(
