@@ -91,12 +91,9 @@ final class WithGradleVersionsTest {
                         ranWithNameAndVersion("test with method annotation", "7.6.5"),
                         ranWithNameAndVersion("test with method annotation", "8.0"),
                         ranWithNameAndVersion("test with method annotation", "8.5"));
+
         // Method without annotation is skipped for 8.5 (only runs on base + class versions)
-        assertThat(skipped).satisfiesExactly(event -> {
-            assertThat(event.getTestDescriptor().getDisplayName()).contains("test without method annotation");
-            assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
-                    .hasValue("Gradle 8.5");
-        });
+        assertThat(skipped).satisfiesExactly(skippedWithNameAndVersion("test without method annotation", "8.5"));
     }
 
     private static Consumer<Event> ranWithGradleVersion(String gradleVersion) {
@@ -104,11 +101,19 @@ final class WithGradleVersionsTest {
                 WithGradleVersionsFixtureTest.class, event, gradleVersion);
     }
 
-    private static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
+    public static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
         return event -> {
             assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
             Assertions.assertThatRanWithCorrectGradleVersion(
                     MethodLevelWithGradleVersionsFixtureTest.class, event, gradleVersion, displayNameContains);
+        };
+    }
+
+    public static Consumer<Event> skippedWithNameAndVersion(String displayNameContains, String gradleVersion) {
+        return event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
+            assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
+                    .hasValue("Gradle " + gradleVersion);
         };
     }
 }

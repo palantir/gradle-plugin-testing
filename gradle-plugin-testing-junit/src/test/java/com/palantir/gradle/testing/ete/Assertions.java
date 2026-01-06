@@ -48,11 +48,11 @@ public final class Assertions {
         });
 
         assertThat(Path.of(
-                        "build/gradle-plugin-testing",
-                        testClass.getSimpleName(),
-                        testName,
-                        gradleVersion,
-                        "build.gradle"))
+                "build/gradle-plugin-testing",
+                testClass.getSimpleName(),
+                testName,
+                gradleVersion,
+                "build.gradle"))
                 .exists();
     }
 
