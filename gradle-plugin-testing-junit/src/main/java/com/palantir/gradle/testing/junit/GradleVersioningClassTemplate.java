@@ -33,7 +33,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
     @Override
     public Stream<? extends ClassTemplateInvocationContext> provideClassTemplateInvocationContexts(
             ExtensionContext context) {
-        return GradleVersionFilter.allFilteredVersions(context).stream().map(GradleVersionInvocationContext::new);
+        return GradleVersions.allFilteredVersions(context).stream().map(GradleVersionInvocationContext::new);
     }
 
     private record GradleVersionInvocationContext(GradleVersion gradleVersion)

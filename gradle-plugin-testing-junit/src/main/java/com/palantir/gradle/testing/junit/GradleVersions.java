@@ -29,15 +29,9 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
- * Utility class for filtering Gradle versions based on annotations.
- *
- * <p>Provides two main methods:
- * <ul>
- *   <li>{@link #allFilteredVersions} - all versions across class and methods, with class-level filter applied</li>
- *   <li>{@link #filteredVersionsForMethod} - versions for a specific method, with method-level filter applied</li>
- * </ul>
+ * Utility class for Gradle versions based on annotations.
  */
-final class GradleVersionFilter {
+final class GradleVersions {
 
     private static final String GRADLE_VERSIONS_CONFIG_PARAM = "com.palantir.gradle.testing.gradle_versions_to_test";
 
@@ -54,7 +48,7 @@ final class GradleVersionFilter {
             versions.addAll(versionsFromAnnotation(clazz));
 
             Arrays.stream(clazz.getDeclaredMethods())
-                    .filter(GradleVersionFilter::isTestMethod)
+                    .filter(GradleVersions::isTestMethod)
                     .forEach(method -> versions.addAll(versionsFromAnnotation(method)));
 
             applyFilter(versions, clazz);
@@ -100,9 +94,8 @@ final class GradleVersionFilter {
 
     private static void applyFilter(Set<GradleVersion> versions, AnnotatedElement element) {
         AnnotationSupport.findAnnotation(element, WithOnlyGradleVersions.class).ifPresent(annotation -> {
-            Set<GradleVersion> allowed = Arrays.stream(annotation.value())
-                    .map(GradleVersion::new)
-                    .collect(Collectors.toSet());
+            Set<GradleVersion> allowed =
+                    Arrays.stream(annotation.value()).map(GradleVersion::new).collect(Collectors.toSet());
             versions.retainAll(allowed);
         });
     }
@@ -111,5 +104,5 @@ final class GradleVersionFilter {
         return AnnotationSupport.isAnnotated(method, Test.class);
     }
 
-    private GradleVersionFilter() {}
+    private GradleVersions() {}
 }

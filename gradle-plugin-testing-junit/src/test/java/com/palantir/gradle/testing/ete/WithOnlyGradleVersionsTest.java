@@ -16,15 +16,15 @@
 
 package com.palantir.gradle.testing.ete;
 
-import static com.palantir.gradle.testing.ete.Assertions.ranWithNameAndVersion;
-import static com.palantir.gradle.testing.ete.Assertions.skippedWithNameAndVersion;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.ClassLevelWithOnlyGradleVersionsFixtureTest;
 import com.palantir.example.WithOnlyAndWithGradleVersionsFixtureTest;
 import com.palantir.example.WithOnlyGradleVersionsFixtureTest;
 import java.util.List;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
@@ -120,5 +120,21 @@ final class WithOnlyGradleVersionsTest {
                         "8.0"));
 
         assertThat(skipped).isEmpty();
+    }
+
+    public static Consumer<Event> ranWithNameAndVersion(
+            Class<?> testClass, String displayNameContains, String gradleVersion) {
+        return event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
+            Assertions.assertThatRanWithCorrectGradleVersion(testClass, event, gradleVersion, displayNameContains);
+        };
+    }
+
+    public static Consumer<Event> skippedWithNameAndVersion(String displayNameContains, String gradleVersion) {
+        return event -> {
+            assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
+            assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
+                    .hasValue("Gradle " + gradleVersion);
+        };
     }
 }

@@ -42,14 +42,14 @@ final class WithGradleVersionsCondition implements ExecutionCondition {
         }
 
         GradleVersion currentVersion = GradleVersionStore.gradleVersion(context);
-        Set<GradleVersion> allowedVersions = GradleVersionFilter.filteredVersionsForMethod(context);
+        Set<GradleVersion> versionsForThisMethod = GradleVersions.filteredVersionsForMethod(context);
 
-        if (allowedVersions.contains(currentVersion)) {
+        if (versionsForThisMethod.contains(currentVersion)) {
             return ConditionEvaluationResult.enabled(
                     "Gradle version " + currentVersion + " is in the allowed set for this method");
         }
 
         return ConditionEvaluationResult.disabled("Gradle version " + currentVersion
-                + " is not in the allowed set for this method: " + allowedVersions);
+                + " is not in the allowed set for this method: " + versionsForThisMethod);
     }
 }
