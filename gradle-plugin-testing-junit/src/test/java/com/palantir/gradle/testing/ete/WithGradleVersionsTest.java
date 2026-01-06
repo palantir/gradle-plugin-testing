@@ -101,7 +101,7 @@ final class WithGradleVersionsTest {
                 WithGradleVersionsFixtureTest.class, event, gradleVersion);
     }
 
-    public static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
+    private static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
         return event -> {
             assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
             Assertions.assertThatRanWithCorrectGradleVersion(
@@ -109,7 +109,7 @@ final class WithGradleVersionsTest {
         };
     }
 
-    public static Consumer<Event> skippedWithNameAndVersion(String displayNameContains, String gradleVersion) {
+    private static Consumer<Event> skippedWithNameAndVersion(String displayNameContains, String gradleVersion) {
         return event -> {
             assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
             assertThat(event.getTestDescriptor().getParent().map(TestDescriptor::getDisplayName))
