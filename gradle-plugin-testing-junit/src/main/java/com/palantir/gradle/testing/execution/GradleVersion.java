@@ -16,9 +16,15 @@
 
 package com.palantir.gradle.testing.execution;
 
-public record GradleVersion(String version) {
+public record GradleVersion(String version) implements Comparable<GradleVersion> {
     @Override
     public String toString() {
         return version;
+    }
+
+    @Override
+    public int compareTo(GradleVersion other) {
+        return org.gradle.util.GradleVersion.version(this.version)
+                .compareTo(org.gradle.util.GradleVersion.version(other.version));
     }
 }
