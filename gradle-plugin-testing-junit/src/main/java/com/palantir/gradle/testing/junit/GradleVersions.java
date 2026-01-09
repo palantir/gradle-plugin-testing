@@ -37,7 +37,7 @@ final class GradleVersions {
 
     /**
      * Returns all Gradle versions for the test class, including versions from all methods,
-     * with the class-level {@link WithOnlyGradleVersions} filter applied.
+     * with the class-level {@link RestrictToGradleVersionsEqualTo} filter applied.
      *
      * <p>This is used to build the complete test matrix for the class.
      */
@@ -59,7 +59,7 @@ final class GradleVersions {
 
     /**
      * Returns all Gradle versions for a specific method, including class-level versions,
-     * with the method-level {@link WithOnlyGradleVersions} filter applied.
+     * with the method-level {@link RestrictToGradleVersionsEqualTo} filter applied.
      *
      * <p>This is used to determine if a method should run for a given Gradle version.
      */
@@ -93,11 +93,13 @@ final class GradleVersions {
     }
 
     private static void applyFilter(Set<GradleVersion> versions, AnnotatedElement element) {
-        AnnotationSupport.findAnnotation(element, WithOnlyGradleVersions.class).ifPresent(annotation -> {
-            Set<GradleVersion> allowed =
-                    Arrays.stream(annotation.value()).map(GradleVersion::new).collect(Collectors.toSet());
-            versions.retainAll(allowed);
-        });
+        AnnotationSupport.findAnnotation(element, RestrictToGradleVersionsEqualTo.class)
+                .ifPresent(annotation -> {
+                    Set<GradleVersion> allowed = Arrays.stream(annotation.value())
+                            .map(GradleVersion::new)
+                            .collect(Collectors.toSet());
+                    versions.retainAll(allowed);
+                });
     }
 
     private static boolean isTestMethod(Method method) {

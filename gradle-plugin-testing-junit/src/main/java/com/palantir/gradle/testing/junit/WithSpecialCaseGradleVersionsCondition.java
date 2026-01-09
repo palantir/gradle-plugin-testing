@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * that only the method-specific versions (plus base and class-level versions) run for that method.
  * For methods without the annotation, only base and class-level versions run.
  *
- * <p>When a method has filter annotations like {@link WithOnlyGradleVersions}, the allowed versions
+ * <p>When a method has filter annotations like {@link RestrictToGradleVersionsEqualTo}, the allowed versions
  * are filtered accordingly. Class-level filter annotations are handled in {@link GradleVersioningClassTemplate}
  * to filter the test matrix upfront.
  */

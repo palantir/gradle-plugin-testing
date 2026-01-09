@@ -22,28 +22,28 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for filtering Gradle versions to only run the specified versions.
+ * Annotation for restricting Gradle versions to only run the specified versions.
  *
  * <p>Unlike {@link WithSpecialCaseGradleVersions} which adds versions to the test matrix, this annotation filters the
  * available versions to only include the specified ones. If a specified version is not in the test matrix
  * (from configuration or {@code @WithSpecialCaseGradleVersions}), it will simply not run.
  *
  * <p>To run a specific version that isn't in the matrix, use both annotations:
- * {@code @WithSpecialCaseGradleVersions("8.5")} and {@code @WithOnlyGradleVersions("8.5")}.
+ * {@code @WithSpecialCaseGradleVersions("8.5")} and {@code @RestrictToGradleVersionsEqualTo("8.5")}.
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WithOnlyGradleVersions {
+public @interface RestrictToGradleVersionsEqualTo {
 
     /**
-     * The Gradle versions to filter to.
+     * The Gradle versions to restrict to.
      * @return an array of Gradle version strings (e.g., "7.6.5", "8.0")
      */
     String[] value();
 
     /**
-     * Optional reason explaining why only these specific Gradle versions should run.
-     * @return the reason for filtering to these specific versions
+     * Optional reason explaining why this test is restricted to these specific Gradle versions.
+     * @return the reason for restricting to these specific versions
      */
     String reason() default "";
 }

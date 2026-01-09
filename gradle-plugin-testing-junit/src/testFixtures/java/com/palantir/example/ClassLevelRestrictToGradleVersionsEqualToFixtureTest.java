@@ -18,20 +18,20 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
-import com.palantir.gradle.testing.junit.WithOnlyGradleVersions;
+import com.palantir.gradle.testing.junit.RestrictToGradleVersionsEqualTo;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test fixture for testing class-level {@link WithOnlyGradleVersions} annotation behavior.
- * When applied at class level, the annotation filters the test matrix upfront.
+ * Test fixture for testing class-level {@link RestrictToGradleVersionsEqualTo} annotation behavior.
+ * When applied at class level, the annotation restricts the test matrix upfront.
  */
 @GradlePluginTests
-@WithOnlyGradleVersions("8.0")
-public class ClassLevelWithOnlyGradleVersionsFixtureTest {
+@RestrictToGradleVersionsEqualTo("8.0")
+public class ClassLevelRestrictToGradleVersionsEqualToFixtureTest {
 
     @Test
-    void test_runs_only_on_filtered_version(GradleInvoker gradleInvoker, RootProject rootProject) {
+    void test_runs_only_on_restricted_version(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"

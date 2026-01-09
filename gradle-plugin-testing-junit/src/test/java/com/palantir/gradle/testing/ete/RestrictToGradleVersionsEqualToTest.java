@@ -18,9 +18,9 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.ClassLevelWithOnlyGradleVersionsFixtureTest;
-import com.palantir.example.WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest;
-import com.palantir.example.WithOnlyGradleVersionsFixtureTest;
+import com.palantir.example.ClassLevelRestrictToGradleVersionsEqualToFixtureTest;
+import com.palantir.example.RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest;
+import com.palantir.example.RestrictToGradleVersionsEqualToFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -30,12 +30,12 @@ import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import org.junit.platform.testkit.engine.Event;
 
-final class WithOnlyGradleVersionsTest {
+final class RestrictToGradleVersionsEqualToTest {
 
     @Test
-    void with_only_gradle_versions_filters_to_specified_version() {
+    void restrict_to_gradle_versions_equal_to_filters_to_specified_version() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(WithOnlyGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(RestrictToGradleVersionsEqualToFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -45,33 +45,40 @@ final class WithOnlyGradleVersionsTest {
 
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
-                        // test_without_only_annotation runs on both base versions
+                        // test_without_restrict_annotation runs on both base versions
                         ranWithNameAndVersion(
-                                WithOnlyGradleVersionsFixtureTest.class, "test without only annotation", "7.6.5"),
+                                RestrictToGradleVersionsEqualToFixtureTest.class,
+                                "test without restrict annotation",
+                                "7.6.5"),
                         ranWithNameAndVersion(
-                                WithOnlyGradleVersionsFixtureTest.class, "test without only annotation", "8.0"),
-                        // test_with_only_annotation_filtering_to_existing_version only runs on 8.0
+                                RestrictToGradleVersionsEqualToFixtureTest.class,
+                                "test without restrict annotation",
+                                "8.0"),
+                        // test_with_restrict_annotation_filtering_to_existing_version only runs on 8.0
                         ranWithNameAndVersion(
-                                WithOnlyGradleVersionsFixtureTest.class,
-                                "test with only annotation filtering to existing version",
+                                RestrictToGradleVersionsEqualToFixtureTest.class,
+                                "test with restrict annotation filtering to existing version",
                                 "8.0"));
 
         assertThat(skipped).hasSize(3);
         assertThat(skipped)
                 .satisfiesExactlyInAnyOrder(
-                        // 7.6.5 skipped for "only 8.0" test
-                        skippedWithNameAndVersion("test with only annotation filtering to existing version", "7.6.5"),
-                        // 7.6.5 skipped for "only 8.5" test (nonexistent in matrix)
+                        // 7.6.5 skipped for "restrict to 8.0" test
                         skippedWithNameAndVersion(
-                                "test with only annotation filtering to nonexisting version", "7.6.5"),
-                        // 8.0 skipped for "only 8.5" test (nonexistent in matrix)
-                        skippedWithNameAndVersion("test with only annotation filtering to nonexisting version", "8.0"));
+                                "test with restrict annotation filtering to existing version", "7.6.5"),
+                        // 7.6.5 skipped for "restrict to 8.5" test (nonexistent in matrix)
+                        skippedWithNameAndVersion(
+                                "test with restrict annotation filtering to nonexisting version", "7.6.5"),
+                        // 8.0 skipped for "restrict to 8.5" test (nonexistent in matrix)
+                        skippedWithNameAndVersion(
+                                "test with restrict annotation filtering to nonexisting version", "8.0"));
     }
 
     @Test
-    void with_only_and_with_gradle_versions_combined_adds_then_filters() {
+    void restrict_to_equal_to_and_with_special_case_gradle_versions_combined_adds_then_filters() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(
+                        RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -81,21 +88,21 @@ final class WithOnlyGradleVersionsTest {
 
         assertThat(finished)
                 .satisfiesExactly(ranWithNameAndVersion(
-                        WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest.class,
-                        "test with both annotations adding and filtering",
+                        RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest.class,
+                        "test with both annotations adding and restricting",
                         "8.5"));
 
         assertThat(skipped).hasSize(2);
         assertThat(skipped)
                 .satisfiesExactlyInAnyOrder(
-                        skippedWithNameAndVersion("test with both annotations adding and filtering", "7.6.5"),
-                        skippedWithNameAndVersion("test with both annotations adding and filtering", "8.0"));
+                        skippedWithNameAndVersion("test with both annotations adding and restricting", "7.6.5"),
+                        skippedWithNameAndVersion("test with both annotations adding and restricting", "8.0"));
     }
 
     @Test
-    void class_level_with_only_gradle_versions_filters_matrix_upfront() {
+    void class_level_restrict_to_gradle_versions_equal_to_filters_matrix_upfront() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(ClassLevelWithOnlyGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(ClassLevelRestrictToGradleVersionsEqualToFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -103,12 +110,12 @@ final class WithOnlyGradleVersionsTest {
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
         List<Event> skipped = executionResults.testEvents().skipped().stream().toList();
 
-        // Class-level @WithOnlyGradleVersions("8.0") filters matrix to only 8.0
+        // Class-level @RestrictToGradleVersionsEqualTo("8.0") filters matrix to only 8.0
         // No tests should be skipped - 7.6.5 is not even in the matrix
         assertThat(finished)
                 .satisfiesExactly(ranWithNameAndVersion(
-                        ClassLevelWithOnlyGradleVersionsFixtureTest.class,
-                        "test runs only on filtered version",
+                        ClassLevelRestrictToGradleVersionsEqualToFixtureTest.class,
+                        "test runs only on restricted version",
                         "8.0"));
 
         assertThat(skipped).isEmpty();

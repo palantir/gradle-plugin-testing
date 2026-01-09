@@ -18,19 +18,19 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
-import com.palantir.gradle.testing.junit.WithOnlyGradleVersions;
+import com.palantir.gradle.testing.junit.RestrictToGradleVersionsEqualTo;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test fixture for testing {@link WithOnlyGradleVersions} annotation behavior.
+ * Test fixture for testing {@link RestrictToGradleVersionsEqualTo} annotation behavior.
  * This fixture is designed to be run with base versions 7.6.5 and 8.0 via configuration parameter.
  */
 @GradlePluginTests
-public class WithOnlyGradleVersionsFixtureTest {
+public class RestrictToGradleVersionsEqualToFixtureTest {
 
     @Test
-    void test_without_only_annotation(GradleInvoker gradleInvoker, RootProject rootProject) {
+    void test_without_restrict_annotation(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"
@@ -41,8 +41,9 @@ public class WithOnlyGradleVersionsFixtureTest {
     }
 
     @Test
-    @WithOnlyGradleVersions("8.0")
-    void test_with_only_annotation_filtering_to_existing_version(GradleInvoker gradleInvoker, RootProject rootProject) {
+    @RestrictToGradleVersionsEqualTo("8.0")
+    void test_with_restrict_annotation_filtering_to_existing_version(
+            GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"
@@ -52,8 +53,8 @@ public class WithOnlyGradleVersionsFixtureTest {
     }
 
     @Test
-    @WithOnlyGradleVersions("8.5")
-    void test_with_only_annotation_filtering_to_nonexisting_version(
+    @RestrictToGradleVersionsEqualTo("8.5")
+    void test_with_restrict_annotation_filtering_to_nonexisting_version(
             GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
