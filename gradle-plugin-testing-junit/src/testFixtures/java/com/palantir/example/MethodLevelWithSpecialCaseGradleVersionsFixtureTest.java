@@ -18,13 +18,13 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
-import com.palantir.gradle.testing.junit.WithGradleVersions;
+import com.palantir.gradle.testing.junit.WithSpecialCaseGradleVersions;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@WithGradleVersions("8.0")
-public class MethodLevelWithGradleVersionsFixtureTest {
+@WithSpecialCaseGradleVersions("8.0")
+public class MethodLevelWithSpecialCaseGradleVersionsFixtureTest {
 
     @Test
     void test_without_method_annotation(GradleInvoker gradleInvoker, RootProject rootProject) {
@@ -39,7 +39,7 @@ public class MethodLevelWithGradleVersionsFixtureTest {
     }
 
     @Test
-    @WithGradleVersions("8.5")
+    @WithSpecialCaseGradleVersions("8.5")
     void test_with_method_annotation(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

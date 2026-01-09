@@ -51,7 +51,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         @Override
         public List<Extension> getAdditionalExtensions() {
             return List.of(
-                    new WithGradleVersionsCondition(),
+                    new WithSpecialCaseGradleVersionsCondition(),
                     new GradleInvokerParameterResolver(),
                     new GradleProjectParameterResolver(),
                     new MavenRepoParameterResolver());

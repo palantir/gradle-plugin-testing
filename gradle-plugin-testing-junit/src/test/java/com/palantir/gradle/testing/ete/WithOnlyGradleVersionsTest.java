@@ -19,7 +19,7 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.ClassLevelWithOnlyGradleVersionsFixtureTest;
-import com.palantir.example.WithOnlyAndWithGradleVersionsFixtureTest;
+import com.palantir.example.WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest;
 import com.palantir.example.WithOnlyGradleVersionsFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
@@ -71,7 +71,7 @@ final class WithOnlyGradleVersionsTest {
     @Test
     void with_only_and_with_gradle_versions_combined_adds_then_filters() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(WithOnlyAndWithGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -81,7 +81,7 @@ final class WithOnlyGradleVersionsTest {
 
         assertThat(finished)
                 .satisfiesExactly(ranWithNameAndVersion(
-                        WithOnlyAndWithGradleVersionsFixtureTest.class,
+                        WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest.class,
                         "test with both annotations adding and filtering",
                         "8.5"));
 

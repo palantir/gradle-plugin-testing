@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 /**
  * Execution condition that filters tests based on Gradle version.
  *
- * <p>When a method has its own {@link WithGradleVersions} annotation, this condition ensures
+ * <p>When a method has its own {@link WithSpecialCaseGradleVersions} annotation, this condition ensures
  * that only the method-specific versions (plus base and class-level versions) run for that method.
  * For methods without the annotation, only base and class-level versions run.
  *
@@ -33,7 +33,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * are filtered accordingly. Class-level filter annotations are handled in {@link GradleVersioningClassTemplate}
  * to filter the test matrix upfront.
  */
-final class WithGradleVersionsCondition implements ExecutionCondition {
+final class WithSpecialCaseGradleVersionsCondition implements ExecutionCondition {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {

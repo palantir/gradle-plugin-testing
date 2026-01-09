@@ -18,20 +18,21 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
-import com.palantir.gradle.testing.junit.WithGradleVersions;
 import com.palantir.gradle.testing.junit.WithOnlyGradleVersions;
+import com.palantir.gradle.testing.junit.WithSpecialCaseGradleVersions;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test fixture for testing {@link WithOnlyGradleVersions} combined with {@link WithGradleVersions}.
- * This is in a separate fixture so that the @WithGradleVersions doesn't affect the test matrix of other tests.
+ * Test fixture for testing {@link WithOnlyGradleVersions} combined with {@link WithSpecialCaseGradleVersions}.
+ * This is in a separate fixture so that the {@link WithSpecialCaseGradleVersions} doesn't affect the test matrix of
+ * other tests.
  */
 @GradlePluginTests
-public class WithOnlyAndWithGradleVersionsFixtureTest {
+public class WithOnlyAndWithSpecialCaseGradleVersionsFixtureTest {
 
     @Test
-    @WithGradleVersions("8.5")
+    @WithSpecialCaseGradleVersions("8.5")
     @WithOnlyGradleVersions("8.5")
     void test_with_both_annotations_adding_and_filtering(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
