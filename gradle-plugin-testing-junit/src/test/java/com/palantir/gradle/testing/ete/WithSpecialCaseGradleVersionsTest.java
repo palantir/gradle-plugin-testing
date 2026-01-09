@@ -18,8 +18,8 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.MethodLevelWithGradleVersionsFixtureTest;
-import com.palantir.example.WithGradleVersionsFixtureTest;
+import com.palantir.example.MethodLevelWithSpecialCaseGradleVersionsFixtureTest;
+import com.palantir.example.WithSpecialCaseGradleVersionsFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -29,11 +29,11 @@ import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import org.junit.platform.testkit.engine.Event;
 
-final class WithGradleVersionsTest {
+final class WithSpecialCaseGradleVersionsTest {
     @Test
-    void with_gradle_versions_annotation_adds_versions_to_test_matrix() {
+    void with_special_case_gradle_versions_annotation_adds_versions_to_test_matrix() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(WithGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(WithSpecialCaseGradleVersionsFixtureTest.class))
                 // Base version configured via parameter
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
@@ -45,17 +45,17 @@ final class WithGradleVersionsTest {
                 .satisfiesExactlyInAnyOrder(
                         // from config parameter
                         ranWithGradleVersion("7.6.5"),
-                        // from @WithGradleVersions
+                        // from @WithSpecialCaseGradleVersions
                         ranWithGradleVersion("8.0"),
-                        // from @WithGradleVersions
+                        // from @WithSpecialCaseGradleVersions
                         ranWithGradleVersion("8.5"));
     }
 
     @Test
     void duplicate_versions_are_deduplicated() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(WithGradleVersionsFixtureTest.class))
-                // 8.0 is both in config and in @WithGradleVersions
+                .selectors(DiscoverySelectors.selectClass(WithSpecialCaseGradleVersionsFixtureTest.class))
+                // 8.0 is both in config and in @WithSpecialCaseGradleVersions
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -64,16 +64,16 @@ final class WithGradleVersionsTest {
 
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
-                        // 8.0 is in both config and @WithGradleVersions, but only runs once
+                        // 8.0 is in both config and @WithSpecialCaseGradleVersions, but only runs once
                         ranWithGradleVersion("8.0"),
-                        // from @WithGradleVersions
+                        // from @WithSpecialCaseGradleVersions
                         ranWithGradleVersion("8.5"));
     }
 
     @Test
-    void method_level_with_gradle_versions_only_apply_to_annotated_method() {
+    void method_level_with_special_case_gradle_versions_only_apply_to_annotated_method() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(MethodLevelWithGradleVersionsFixtureTest.class))
+                .selectors(DiscoverySelectors.selectClass(MethodLevelWithSpecialCaseGradleVersionsFixtureTest.class))
                 // Base version configured via parameter
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
@@ -98,14 +98,17 @@ final class WithGradleVersionsTest {
 
     private static Consumer<Event> ranWithGradleVersion(String gradleVersion) {
         return event -> Assertions.assertThatRanWithCorrectGradleVersion(
-                WithGradleVersionsFixtureTest.class, event, gradleVersion);
+                WithSpecialCaseGradleVersionsFixtureTest.class, event, gradleVersion);
     }
 
     private static Consumer<Event> ranWithNameAndVersion(String displayNameContains, String gradleVersion) {
         return event -> {
             assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
             Assertions.assertThatRanWithCorrectGradleVersion(
-                    MethodLevelWithGradleVersionsFixtureTest.class, event, gradleVersion, displayNameContains);
+                    MethodLevelWithSpecialCaseGradleVersionsFixtureTest.class,
+                    event,
+                    gradleVersion,
+                    displayNameContains);
         };
     }
 
