@@ -105,10 +105,7 @@ final class AdditionallyRunWithGradleTest {
         return event -> {
             assertThat(event.getTestDescriptor().getDisplayName()).contains(displayNameContains);
             Assertions.assertThatRanWithCorrectGradleVersion(
-                    MethodLevelAdditionallyRunWithGradleFixtureTest.class,
-                    event,
-                    gradleVersion,
-                    displayNameContains);
+                    MethodLevelAdditionallyRunWithGradleFixtureTest.class, event, gradleVersion, displayNameContains);
         };
     }
 
