@@ -37,5 +37,5 @@ public @interface DisabledConfigurationCache {
      * The reason why the configuration cache is disabled.
      * @return the reason as a string
      */
-    String reason() default "";
+    String value() default "";
 }

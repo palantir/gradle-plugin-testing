@@ -37,6 +37,7 @@ final class AdditionallyRunWithGradleCondition implements ExecutionCondition {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+        // Only evaluate for test methods
         if (context.getTestMethod().isEmpty()) {
             return ConditionEvaluationResult.enabled("No test method");
         }

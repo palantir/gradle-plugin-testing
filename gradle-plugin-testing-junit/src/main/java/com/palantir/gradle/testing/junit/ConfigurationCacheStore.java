@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
+import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
@@ -31,6 +32,14 @@ final class ConfigurationCacheStore {
      */
     public static boolean isConfigurationCacheEnabled(ExtensionContext context) {
         return Boolean.TRUE.equals(context.getStore(NAMESPACE).get(CONFIG_CACHE_ENABLED, Boolean.class));
+    }
+
+    /**
+     * Returns whether configuration cache already has a value.
+     */
+    public static boolean hasConfigurationCacheValue(ExtensionContext context) {
+        return Optional.ofNullable(context.getStore(NAMESPACE).get(CONFIG_CACHE_ENABLED, Boolean.class))
+                .isPresent();
     }
 
     /**
