@@ -173,7 +173,7 @@ The versions from `@AdditionallyRunWithGradle` are merged with the globally conf
 
 #### Restricting to Specific Versions
 
-Use `@RestrictToGradleVersionsEqualTo` to restrict the test matrix to only run on specific Gradle versions. Unlike `@WithSpecialCaseGradleVersions` which adds versions, this annotation restricts which versions from the matrix will actually run.
+Use `@RestrictToGradleVersionsEqualTo` to restrict the test matrix to only run on specific Gradle versions. Unlike `@AdditionallyRunWithGradle` which adds versions, this annotation restricts which versions from the matrix will actually run.
 
 ```java
 @GradlePluginTests
@@ -192,15 +192,15 @@ class RestrictedVersionTest {
 }
 ```
 
-**Key differences from `@WithSpecialCaseGradleVersions`:**
-- `@WithSpecialCaseGradleVersions` **adds** versions to the test matrix
+**Key differences from `@AdditionallyRunWithGradle`:**
+- `@AdditionallyRunWithGradle` **adds** versions to the test matrix
 - `@RestrictToGradleVersionsEqualTo` **restricts** the existing matrix to only include specified versions
 
 **Important:** If you specify a version that isn't in the test matrix, the test simply won't run for that version. To run a specific version that isn't in the matrix, use both annotations together:
 
 ```java
 @Test
-@WithSpecialCaseGradleVersions("8.5")      // Add 8.5 to the matrix
+@AdditionallyRunWithGradle("8.5")          // Add 8.5 to the matrix
 @RestrictToGradleVersionsEqualTo("8.5")    // Restrict to only run 8.5
 void test_only_on_8_5(GradleInvoker gradle, RootProject project) {
     // Runs exclusively on Gradle 8.5

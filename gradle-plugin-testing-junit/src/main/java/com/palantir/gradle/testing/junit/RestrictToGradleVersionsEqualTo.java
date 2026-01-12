@@ -24,12 +24,12 @@ import java.lang.annotation.Target;
 /**
  * Annotation for restricting Gradle versions to only run the specified versions.
  *
- * <p>Unlike {@link WithSpecialCaseGradleVersions} which adds versions to the test matrix, this annotation filters the
+ * <p>Unlike {@link AdditionallyRunWithGradle} which adds versions to the test matrix, this annotation filters the
  * available versions to only include the specified ones. If a specified version is not in the test matrix
- * (from configuration or {@code @WithSpecialCaseGradleVersions}), it will simply not run.
+ * (from configuration or {@code @AdditionallyRunWithGradle}), it will simply not run.
  *
  * <p>To run a specific version that isn't in the matrix, use both annotations:
- * {@code @WithSpecialCaseGradleVersions("8.5")} and {@code @RestrictToGradleVersionsEqualTo("8.5")}.
+ * {@code @AdditionallyRunWithGradle("8.5")} and {@code @RestrictToGradleVersionsEqualTo("8.5")}.
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

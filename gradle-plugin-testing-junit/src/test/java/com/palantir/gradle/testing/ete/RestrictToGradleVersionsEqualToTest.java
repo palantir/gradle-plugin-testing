@@ -19,7 +19,7 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.ClassLevelRestrictToGradleVersionsEqualToFixtureTest;
-import com.palantir.example.RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest;
+import com.palantir.example.RestrictToEqualToAndAdditionallyRunWithGradleFixtureTest;
 import com.palantir.example.RestrictToGradleVersionsEqualToFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
@@ -75,10 +75,10 @@ final class RestrictToGradleVersionsEqualToTest {
     }
 
     @Test
-    void restrict_to_equal_to_and_with_special_case_gradle_versions_combined_adds_then_filters() {
+    void restrict_to_equal_to_and_additionally_run_with_gradle_combined_adds_then_filters() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(
-                        RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest.class))
+                        RestrictToEqualToAndAdditionallyRunWithGradleFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
@@ -88,7 +88,7 @@ final class RestrictToGradleVersionsEqualToTest {
 
         assertThat(finished)
                 .satisfiesExactly(ranWithNameAndVersion(
-                        RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest.class,
+                        RestrictToEqualToAndAdditionallyRunWithGradleFixtureTest.class,
                         "test with both annotations adding and restricting",
                         "8.5"));
 

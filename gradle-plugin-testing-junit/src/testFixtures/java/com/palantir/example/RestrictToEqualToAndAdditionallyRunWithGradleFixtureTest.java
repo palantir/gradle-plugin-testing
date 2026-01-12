@@ -19,20 +19,20 @@ package com.palantir.example;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.junit.RestrictToGradleVersionsEqualTo;
-import com.palantir.gradle.testing.junit.WithSpecialCaseGradleVersions;
+import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test fixture for testing {@link RestrictToGradleVersionsEqualTo} combined with {@link WithSpecialCaseGradleVersions}.
- * This is in a separate fixture so that the {@link WithSpecialCaseGradleVersions} doesn't affect the test matrix of
+ * Test fixture for testing {@link RestrictToGradleVersionsEqualTo} combined with {@link AdditionallyRunWithGradle}.
+ * This is in a separate fixture so that the {@link AdditionallyRunWithGradle} doesn't affect the test matrix of
  * other tests.
  */
 @GradlePluginTests
-public class RestrictToEqualToAndWithSpecialCaseGradleVersionsFixtureTest {
+public class RestrictToEqualToAndAdditionallyRunWithGradleFixtureTest {
 
     @Test
-    @WithSpecialCaseGradleVersions("8.5")
+    @AdditionallyRunWithGradle("8.5")
     @RestrictToGradleVersionsEqualTo("8.5")
     void test_with_both_annotations_adding_and_restricting(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
