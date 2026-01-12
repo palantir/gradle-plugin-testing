@@ -17,8 +17,8 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
+import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 

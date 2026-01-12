@@ -77,8 +77,8 @@ final class RestrictToGradleVersionsEqualToTest {
     @Test
     void restrict_to_equal_to_and_additionally_run_with_gradle_combined_adds_then_filters() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(
-                        RestrictToEqualToAndAdditionallyRunWithGradleFixtureTest.class))
+                .selectors(
+                        DiscoverySelectors.selectClass(RestrictToEqualToAndAdditionallyRunWithGradleFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
