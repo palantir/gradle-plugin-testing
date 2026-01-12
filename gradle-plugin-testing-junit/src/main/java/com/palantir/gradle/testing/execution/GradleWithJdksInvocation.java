@@ -16,25 +16,11 @@
 
 package com.palantir.gradle.testing.execution;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-public record GradleWithJdksInvocation(
-        GradleInvocation setupInvocation,
-        ProcessBuilder generateToolchainsInvocation,
-        Callable<GradleInvocation> tasksInvocation)
+public record GradleWithJdksInvocation(GradleInvocation setupInvocation, Callable<GradleInvocation> tasksInvocation)
         implements GradleInvocation {
 
     private static final Logger logger = Logging.getLogger(GradleWithJdksInvocation.class);
@@ -62,45 +48,8 @@ public record GradleWithJdksInvocation(
     public void setupJdkAutomanagement() {
         try {
             setupInvocation.buildsSuccessfully();
-            runWithLogger(generateToolchainsInvocation);
         } catch (Exception e) {
             throw new GradleWithJdksInvocationFailure(e);
-        }
-    }
-
-    public static void runWithLogger(ProcessBuilder processBuilder) {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-        try {
-            Process process = processBuilder.start();
-            CompletableFuture<Void> stdOutputFuture = CompletableFuture.runAsync(
-                    () -> processStream(process.getInputStream(), logger::lifecycle), executorService);
-            CompletableFuture<Void> stdErrFuture = CompletableFuture.runAsync(
-                    () -> processStream(process.getErrorStream(), logger::error), executorService);
-            stdOutputFuture.get();
-            stdErrFuture.get();
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException(String.format(
-                        "Command '%s' failed with exit code %d.",
-                        String.join(" ", processBuilder.command()), exitCode));
-            }
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            throw new RuntimeException(
-                    String.format("Failed to run command '%s'. ", String.join(" ", processBuilder.command())), e);
-        } finally {
-            executorService.shutdown();
-        }
-    }
-
-    public static void processStream(InputStream inputStream, Consumer<String> logFunction) {
-        try (BufferedReader bufferedReader =
-                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                logFunction.accept(line);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to write inputStream", e);
         }
     }
 }

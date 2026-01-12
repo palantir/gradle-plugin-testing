@@ -27,6 +27,8 @@ public interface GradleInvoker {
 
     GradleInvocation withArgs(String... args);
 
+    GradleVersion getGradleVersion();
+
     static GradleInvoker create(
             Path path, GradleVersion gradleVersion, boolean configurationCache, boolean isJdkAutomanagementConfigured) {
         GradleInvoker baseInvoker = createBaseInvoker(path, gradleVersion, configurationCache);

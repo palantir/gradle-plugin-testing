@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Streams;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.project.RootProject;
@@ -26,7 +27,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +39,10 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
     private static final OperatingSystem os = OperatingSystem.get();
     private final GradleInvoker gradleInvoker;
     private final RootProject rootProject;
+    // RunJavaToolchains is running "./gradlew" and the "gradle-jdks-settings" plugin cannot be found
+    private final Set<String> ignoredTasks = Set.of("runJavaToolchains");
+    private final List<String> ignoredTasksWithFlag =
+            ignoredTasks.stream().flatMap(task -> Stream.of("-x", task)).collect(ImmutableList.toImmutableList());
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public GradleWithJdksInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) {
@@ -46,20 +53,27 @@ public final class GradleWithJdksInvoker implements GradleInvoker {
     @Override
     public GradleInvocation withArgs(String... args) {
         setupRootProject(rootProject);
+        GradleInvocation generateGradleJdkConfigs = gradleInvoker.withArgs(ImmutableList.<String>builder()
+                .add("generateGradleJdkConfigs", "setupJdks")
+                .addAll(ignoredTasksWithFlag)
+                .build()
+                .toArray(String[]::new));
 
-        GradleInvocation generateGradleJdkConfigs = gradleInvoker.withArgs("generateGradleJdkConfigs");
+        return new GradleWithJdksInvocation(generateGradleJdkConfigs, () -> getInvokerWithToolchainsConfigured(args));
+    }
 
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .command("./gradle/gradle-jdks-setup.sh")
-                .directory(rootProject.path().toFile());
-        return new GradleWithJdksInvocation(
-                generateGradleJdkConfigs, processBuilder, () -> getInvokerWithToolchainsConfigured(args));
+    @Override
+    public GradleVersion getGradleVersion() {
+        return gradleInvoker.getGradleVersion();
     }
 
     // this needs to be called after the daemon jdk version is rendered (by generateGradleJdkConfigs)
     private GradleInvocation getInvokerWithToolchainsConfigured(String... args) {
+        List<String> argsWithExcludedTasks = Streams.concat(
+                        Stream.of(args).filter(arg -> !ignoredTasks.contains(arg)), ignoredTasksWithFlag.stream())
+                .toList();
         String[] withJavaHome = ImmutableList.<String>builder()
-                .add(args)
+                .addAll(argsWithExcludedTasks)
                 .add(String.format("-Dorg.gradle.java.home=%s", getGradleJavaHome(rootProject.path())))
                 .build()
                 .toArray(String[]::new);

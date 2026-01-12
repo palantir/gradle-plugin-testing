@@ -56,6 +56,11 @@ public final class ConfigurationCacheInvoker implements GradleInvoker {
         return new ConfigurationCacheInvocation(rootProjectDir, initialGradleInvocation, secondGradleInvocation);
     }
 
+    @Override
+    public GradleVersion getGradleVersion() {
+        return gradleInvoker.getGradleVersion();
+    }
+
     public Path getRootProjectDir() {
         return this.rootProjectDir;
     }
