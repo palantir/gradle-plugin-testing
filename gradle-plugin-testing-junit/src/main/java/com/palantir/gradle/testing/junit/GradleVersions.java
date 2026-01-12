@@ -86,7 +86,7 @@ final class GradleVersions {
     }
 
     private static Set<GradleVersion> versionsFromAnnotation(AnnotatedElement element) {
-        return AnnotationSupport.findAnnotation(element, WithSpecialCaseGradleVersions.class).stream()
+        return AnnotationSupport.findAnnotation(element, AdditionallyRunWithGradle.class).stream()
                 .flatMap(annotation -> Arrays.stream(annotation.value()))
                 .map(GradleVersion::new)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
