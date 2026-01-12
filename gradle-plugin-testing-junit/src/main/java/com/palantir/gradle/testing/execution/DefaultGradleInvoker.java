@@ -39,6 +39,8 @@ public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVers
                 .withArguments(ImmutableList.<String>builder()
                         .addAll(Arrays.asList(args))
                         .add("--stacktrace")
+                        .add("-P__TESTING=true")
+                        .add("-P__TESTING_palantir.gradle.plugin.tests=true")
                         .build());
 
         return new DefaultGradleInvocation(runner);
