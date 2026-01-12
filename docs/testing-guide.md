@@ -627,7 +627,7 @@ void can_run_with_daemon_21(GradleInvoker gradle, RootProject project) {
 }
 ```
 
-Make sure that all the gradle plugins used in the tests are set up in the `build.gradle` of the plugin project. More detauls on this [here](#testing-with-external-plugins)
+Make sure that all the gradle plugins used in the tests are set up in the `build.gradle` of the plugin project. More details on this [here](#testing-with-external-plugins)
 ```groovy
 dependencies {
     // these 2 dependencies should always be added:

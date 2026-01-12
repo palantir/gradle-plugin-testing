@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public final class WithJdkAutomanagementExtension implements BeforeAllCallback, BeforeEachCallback {
 
-    private static final Logger log = Logging.getLogger(DisabledConfigurationCacheExtension.class);
+    private static final Logger log = Logging.getLogger(WithJdkAutomanagementExtension.class);
 
     @Override
     public void beforeAll(ExtensionContext context) {

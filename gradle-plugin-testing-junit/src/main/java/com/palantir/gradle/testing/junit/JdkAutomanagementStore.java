@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 final class JdkAutomanagementStore {
-    private static final Namespace NAMESPACE = Namespace.create(ConfigurationCacheStore.class);
+    private static final Namespace NAMESPACE = Namespace.create(JdkAutomanagementStore.class);
     private static final String CONFIG_CACHE_ENABLED = "jdkAutomanagement";
 
     /**
