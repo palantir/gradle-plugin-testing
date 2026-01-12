@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,14 +33,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
     @Override
     public Stream<? extends ClassTemplateInvocationContext> provideClassTemplateInvocationContexts(
             ExtensionContext context) {
-        String gradleVersionsToTestAgainst = context.getConfigurationParameter(
-                        "com.palantir.gradle.testing.gradle_versions_to_test")
-                .orElseThrow(() -> new RuntimeException("Not configured with the gradle versions to test against. "
-                        + "Have you applied the `com.palantir.gradle-plugin-testing` plugin to this project?"));
-
-        List<String> gradleVersions = Splitter.on(',').splitToList(gradleVersionsToTestAgainst);
-
-        return gradleVersions.stream().map(GradleVersion::new).map(GradleVersionInvocationContext::new);
+        return GradleVersions.allVersions(context).stream().map(GradleVersionInvocationContext::new);
     }
 
     private record GradleVersionInvocationContext(GradleVersion gradleVersion)
@@ -59,6 +51,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
         @Override
         public List<Extension> getAdditionalExtensions() {
             return List.of(
+                    new AdditionallyRunWithGradleCondition(),
                     new GradleInvokerParameterResolver(),
                     new GradleProjectParameterResolver(),
                     new MavenRepoParameterResolver());

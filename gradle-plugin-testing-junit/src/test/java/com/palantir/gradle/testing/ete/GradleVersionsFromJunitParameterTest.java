@@ -19,11 +19,8 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.GradleVersionsFromJunitParameterFixtureTest;
-import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.TestExecutionResult.Status;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
@@ -42,33 +39,9 @@ final class GradleVersionsFromJunitParameterTest {
 
         assertThat(finished).hasSize(2);
 
-        assertThatRanWithCorrectGradleVersion(finished.get(0), "7.6.5");
-        assertThatRanWithCorrectGradleVersion(finished.get(1), "8.14.3");
-    }
-
-    private static void assertThatRanWithCorrectGradleVersion(Event event, String gradleVersion) {
-        assertThatTestContainerDescriptorHasDisplayName(event, "Gradle " + gradleVersion);
-
-        assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
-            assertThat(testExecutionResult.getStatus()).isEqualTo(Status.FAILED);
-
-            Assertions.assertThatTestFailureExceptionMessageContains(
-                    testExecutionResult, "GradleVersion: " + gradleVersion);
-        });
-
-        assertThat(Path.of(
-                        "build/gradle-plugin-testing",
-                        GradleVersionsFromJunitParameterFixtureTest.class.getSimpleName(),
-                        "test name",
-                        gradleVersion,
-                        "build.gradle"))
-                .exists();
-    }
-
-    private static void assertThatTestContainerDescriptorHasDisplayName(
-            Event event, String containerDescriptorDisplayName) {
-        assertThat(event.getTestDescriptor().getParent()).hasValueSatisfying(desc -> {
-            assertThat(desc.getDisplayName()).isEqualTo(containerDescriptorDisplayName);
-        });
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(0), "7.6.5");
+        Assertions.assertThatRanWithCorrectGradleVersion(
+                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(1), "8.14.3");
     }
 }

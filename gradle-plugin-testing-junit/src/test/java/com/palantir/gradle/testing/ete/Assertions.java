@@ -18,7 +18,10 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.TestExecutionResult.Status;
+import org.junit.platform.testkit.engine.Event;
 
 public final class Assertions {
 
@@ -26,6 +29,37 @@ public final class Assertions {
             TestExecutionResult testExecutionResult, String exceptionFragment) {
         assertThat(testExecutionResult.getThrowable()).hasValueSatisfying(throwable -> {
             assertThat(throwable).hasMessageContaining(exceptionFragment);
+        });
+    }
+
+    public static void assertThatRanWithCorrectGradleVersion(Class<?> testClass, Event event, String gradleVersion) {
+        assertThatRanWithCorrectGradleVersion(testClass, event, gradleVersion, "test name");
+    }
+
+    public static void assertThatRanWithCorrectGradleVersion(
+            Class<?> testClass, Event event, String gradleVersion, String testName) {
+        assertThatTestContainerDescriptorHasDisplayName(event, "Gradle " + gradleVersion);
+
+        assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(testExecutionResult -> {
+            assertThat(testExecutionResult.getStatus()).isEqualTo(Status.FAILED);
+
+            Assertions.assertThatTestFailureExceptionMessageContains(
+                    testExecutionResult, "GradleVersion: " + gradleVersion);
+        });
+
+        assertThat(Path.of(
+                        "build/gradle-plugin-testing",
+                        testClass.getSimpleName(),
+                        testName,
+                        gradleVersion,
+                        "build.gradle"))
+                .exists();
+    }
+
+    private static void assertThatTestContainerDescriptorHasDisplayName(
+            Event event, String containerDescriptorDisplayName) {
+        assertThat(event.getTestDescriptor().getParent()).hasValueSatisfying(desc -> {
+            assertThat(desc.getDisplayName()).isEqualTo(containerDescriptorDisplayName);
         });
     }
 
