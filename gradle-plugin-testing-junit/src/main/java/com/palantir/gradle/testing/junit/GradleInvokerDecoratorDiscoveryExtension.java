@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -62,8 +61,8 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
             ExtensionContext context, Annotation annotation, RegistersGradleInvokerDecorator meta) {
         try {
             Class<? extends GradleInvokerDecoratorFactory<?>> factoryClass = meta.value();
-            GradleInvokerDecoratorFactory<Annotation> factory =
-                    (GradleInvokerDecoratorFactory<Annotation>) factoryClass.getDeclaredConstructor().newInstance();
+            GradleInvokerDecoratorFactory<Annotation> factory = (GradleInvokerDecoratorFactory<Annotation>)
+                    factoryClass.getDeclaredConstructor().newInstance();
 
             GradleInvokerDecorator decorator = factory.create(annotation);
             GradleInvokerDecoratorRegistry.register(context, decorator);
