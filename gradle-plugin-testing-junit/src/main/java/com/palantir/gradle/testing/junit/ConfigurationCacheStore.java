@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 /**
  * Store for configuration cache state in JUnit extension context.
  */
-final class ConfigurationCacheStore {
+public final class ConfigurationCacheStore {
     private static final Namespace NAMESPACE = Namespace.create(ConfigurationCacheStore.class);
     private static final String CONFIG_CACHE_ENABLED = "configCacheEnabled";
 

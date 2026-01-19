@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.ConfigurationCacheDecorator;
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -25,6 +27,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Extension that handles the configuration cache setting.
  * This is used by the {@link GradlePluginTests} annotation to set up the default configuration cache behavior.
+ *
+ * <p>When configuration cache is enabled (and not disabled by {@link DisabledConfigurationCache}),
+ * this extension registers a {@link ConfigurationCacheDecorator} that wraps Gradle invocations
+ * to test configuration cache compatibility.
  */
 public final class ConfigurationCacheParameterExtension implements BeforeAllCallback, BeforeEachCallback {
 
@@ -32,28 +38,43 @@ public final class ConfigurationCacheParameterExtension implements BeforeAllCall
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        maybeSetConfigurationCache(context);
+        maybeRegisterConfigurationCacheDecorator(context);
     }
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        maybeSetConfigurationCache(context);
+        maybeRegisterConfigurationCacheDecorator(context);
     }
 
-    private void maybeSetConfigurationCache(ExtensionContext context) {
+    private void maybeRegisterConfigurationCacheDecorator(ExtensionContext context) {
+        // Check if already processed (either enabled or explicitly disabled)
         if (ConfigurationCacheStore.hasConfigurationCacheValue(context)) {
-            log.info(
+            log.debug(
                     "Configuration Cache value is already set by an extension to value = {}, not overriding it.",
                     ConfigurationCacheStore.isConfigurationCacheEnabled(context));
             return;
         }
-        Boolean configurationCacheEnabled = context.getConfigurationParameter(
+
+        boolean configurationCacheEnabled = context.getConfigurationParameter(
                         "com.palantir.gradle.testing.configuration_cache_enabled")
                 .map(Boolean::parseBoolean)
                 .orElseThrow(() -> new RuntimeException(
                         "Could not configure whether to run the tests with configuration-cache. Have you"
                                 + " applied the latest `com.palantir.gradle-plugin-testing` plugin to this"
                                 + " project?"));
+
+        // Store the value so other extensions can check it
         ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
+
+        if (configurationCacheEnabled) {
+            if (GradleInvoker.shouldRunInTestkitDebugMode()) {
+                log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
+                        + " configuration cache cannot be used together. See"
+                        + " https://github.com/gradle/gradle/issues/25846 for details.");
+                return;
+            }
+            log.debug("Registering ConfigurationCacheDecorator");
+            GradleInvokerDecoratorRegistry.register(context, new ConfigurationCacheDecorator());
+        }
     }
 }

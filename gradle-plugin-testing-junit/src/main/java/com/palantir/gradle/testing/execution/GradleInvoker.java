@@ -16,8 +16,11 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.palantir.gradle.testing.junit.GradleInvokerDecoratorRegistry;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
+import java.util.List;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,18 +30,28 @@ public interface GradleInvoker {
 
     GradleInvocation withArgs(String... args);
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
-        if (configurationCache) {
-            if (shouldRunInTestkitDebugMode()) {
-                log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
-                        + " configuration cache cannot be used together. See"
-                        + " https://github.com/gradle/gradle/issues/25846 for details.");
-                return gradleInvoker;
-            }
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
+    /**
+     * Creates a GradleInvoker with all registered decorators applied.
+     *
+     * <p>Decorators are applied in registration order: first-registered decorators become
+     * innermost wrappers, while later-registered decorators become outer wrappers.
+     *
+     * @param path the root project directory
+     * @param gradleVersion the Gradle version to use
+     * @param extensionContext the JUnit extension context containing registered decorators
+     * @return a decorated GradleInvoker
+     */
+    static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
+        GradleInvoker invoker = new DefaultGradleInvoker(path, gradleVersion);
+
+        DecoratorContext context = new DecoratorContext(path, gradleVersion, extensionContext);
+        List<GradleInvokerDecorator> decorators = GradleInvokerDecoratorRegistry.getDecorators(extensionContext);
+
+        for (GradleInvokerDecorator decorator : decorators) {
+            invoker = decorator.decorate(context, invoker);
         }
-        return gradleInvoker;
+
+        return invoker;
     }
 
     static boolean shouldRunInTestkitDebugMode() {
