@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.GradleInvokerDecorator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

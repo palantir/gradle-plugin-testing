@@ -16,9 +16,6 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.GradleInvokerDecorator;
-import com.palantir.gradle.testing.execution.GradleInvokerDecoratorFactory;
-import com.palantir.gradle.testing.execution.RegistersGradleInvokerDecorator;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;

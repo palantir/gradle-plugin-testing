@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.GradleVersion;
 import java.nio.file.Path;
 import org.junit.jupiter.api.extension.ExtensionContext;
 

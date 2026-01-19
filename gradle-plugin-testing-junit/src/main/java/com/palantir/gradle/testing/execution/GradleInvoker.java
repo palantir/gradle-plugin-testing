@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.palantir.gradle.testing.junit.DecoratorContext;
+import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.GradleInvokerDecoratorRegistry;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;

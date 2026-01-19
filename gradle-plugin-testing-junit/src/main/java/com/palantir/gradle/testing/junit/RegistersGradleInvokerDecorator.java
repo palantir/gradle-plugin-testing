@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
