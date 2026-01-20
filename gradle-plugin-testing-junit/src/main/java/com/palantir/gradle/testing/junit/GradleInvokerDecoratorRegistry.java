@@ -17,8 +17,8 @@
 package com.palantir.gradle.testing.junit;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
@@ -50,8 +50,9 @@ public final class GradleInvokerDecoratorRegistry {
      * @return an unmodifiable list of decorators in registration order
      */
     public static List<GradleInvokerDecorator> getDecorators(ExtensionContext context) {
-        List<GradleInvokerDecorator> decorators = getDecoratorList(context);
-        return decorators != null ? Collections.unmodifiableList(decorators) : List.of();
+        return Optional.ofNullable(getDecoratorList(context))
+                .map(List::copyOf)
+                .orElseGet(List::of);
     }
 
     @SuppressWarnings("unchecked")
