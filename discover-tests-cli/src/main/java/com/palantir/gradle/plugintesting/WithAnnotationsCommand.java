@@ -39,7 +39,8 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
 
     @Override
     protected Filter<?> getFilter() {
-        List<? extends Class<? extends Annotation>> includedClasses = asAnnotationClasses(includedAnnotations);
+        List<? extends Class<? extends java.lang.annotation.Annotation>> includedClasses =
+                asAnnotationClasses(includedAnnotations);
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {

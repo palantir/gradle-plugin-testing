@@ -44,15 +44,13 @@ public interface GradleInvoker {
      */
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker invoker = new DefaultGradleInvoker(path, gradleVersion);
-
         RootProject rootProject = new RootProject(path);
-
         DecoratorContext context = new DecoratorContext(rootProject, gradleVersion, extensionContext);
+
         List<GradleInvokerDecorator> decorators = GradleInvokerDecoratorRegistry.getDecorators(extensionContext);
         for (GradleInvokerDecorator decorator : decorators) {
             invoker = decorator.decorate(context, invoker);
         }
-
         return invoker;
     }
 

@@ -66,15 +66,16 @@ public final class ConfigurationCacheParameterExtension implements BeforeAllCall
         // Store the value so other extensions can check it
         ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
 
-        if (configurationCacheEnabled) {
-            if (GradleInvoker.shouldRunInTestkitDebugMode()) {
-                log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
-                        + " configuration cache cannot be used together. See"
-                        + " https://github.com/gradle/gradle/issues/25846 for details.");
-                return;
-            }
-            log.debug("Registering ConfigurationCacheDecorator");
-            GradleInvokerDecoratorRegistry.register(context, new ConfigurationCacheDecorator());
+        if (!configurationCacheEnabled) {
+            return;
         }
+        if (GradleInvoker.shouldRunInTestkitDebugMode()) {
+            log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
+                    + " configuration cache cannot be used together. See"
+                    + " https://github.com/gradle/gradle/issues/25846 for details.");
+            return;
+        }
+        log.debug("Registering ConfigurationCacheDecorator");
+        GradleInvokerDecoratorRegistry.register(context, new ConfigurationCacheDecorator());
     }
 }

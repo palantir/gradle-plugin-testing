@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.Optional;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -48,11 +49,9 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
 
     private void discoverAndRegisterDecorators(ExtensionContext context, AnnotatedElement element) {
         for (Annotation annotation : element.getAnnotations()) {
-            RegistersGradleInvokerDecorator meta =
-                    annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);
-            if (meta != null) {
-                registerDecoratorFromAnnotation(context, annotation, meta);
-            }
+            Optional.ofNullable(annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class))
+                    .ifPresent(registersGradleInvokerDecorator ->
+                            registerDecoratorFromAnnotation(context, annotation, registersGradleInvokerDecorator));
         }
     }
 
@@ -72,7 +71,7 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
                     annotation.annotationType().getSimpleName(),
                     decorator.getClass().getSimpleName());
         } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(
+            throw new RuntimeException(
                     String.format(
                             "Failed to instantiate decorator factory %s for annotation @%s",
                             meta.value().getName(), annotation.annotationType().getSimpleName()),
