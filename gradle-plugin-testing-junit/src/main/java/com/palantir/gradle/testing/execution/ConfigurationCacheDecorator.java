@@ -40,6 +40,6 @@ public final class ConfigurationCacheDecorator implements GradleInvokerDecorator
         if (!ConfigurationCacheStore.isConfigurationCacheEnabled(context.extensionContext())) {
             return delegate;
         }
-        return new ConfigurationCacheInvoker(context.rootProjectDir(), delegate);
+        return new ConfigurationCacheInvoker(context.rootProject().path(), delegate);
     }
 }

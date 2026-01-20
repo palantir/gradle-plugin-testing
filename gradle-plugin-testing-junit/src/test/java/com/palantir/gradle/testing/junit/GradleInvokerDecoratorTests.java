@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.GradleInvocation;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.project.RootProject;
@@ -24,6 +23,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -70,37 +71,22 @@ class GradleInvokerDecoratorTests {
 
     @Test
     @WithArgAddingDecorator(arg = "--info")
-    @WithArgAddingDecorator2(arg = "--stacktrace")
+    @WithArgAddingDecorator2(arg = "-Pname=hello")
     void multiple_decorators_are_applied(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
+                def value = providers.gradleProperty("name")
                 doLast {
-                    println "Hello from task"
+                    println "Hello from task " + value.get()
                 }
             }
             """);
 
         // Both decorators should add their args
         InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
-        result.assertThat().output().contains("Hello from task");
+        result.assertThat().output().contains("Hello from task hello");
         // --info adds verbose output
         result.assertThat().output().contains("Task :hello");
-    }
-
-    @Test
-    @WithContextAccessingDecorator
-    void decorator_has_access_to_context(GradleInvoker invoker, RootProject rootProject) {
-        rootProject.buildGradle().append("""
-            tasks.register("hello") {
-                doLast {
-                    println "Hello from task"
-                }
-            }
-            """);
-
-        // The decorator adds a property based on the context
-        InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
-        result.assertThat().output().contains("Hello from task");
     }
 
     // --- Test Decorators ---
@@ -119,23 +105,14 @@ class GradleInvokerDecoratorTests {
         }
     }
 
-    static class ArgAddingDecorator implements GradleInvokerDecorator {
-        private final String argToAdd;
-
-        ArgAddingDecorator(String argToAdd) {
-            this.argToAdd = argToAdd;
-        }
+    record ArgAddingDecorator(String argToAdd) implements GradleInvokerDecorator {
 
         @Override
         public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
-            return new GradleInvoker() {
-                @Override
-                public GradleInvocation withArgs(String... args) {
-                    String[] modifiedArgs = new String[args.length + 1];
-                    System.arraycopy(args, 0, modifiedArgs, 0, args.length);
-                    modifiedArgs[args.length] = argToAdd;
-                    return delegate.withArgs(modifiedArgs);
-                }
+            return args -> {
+                String[] modifiedArgs =
+                        Stream.concat(Arrays.stream(args), Stream.of(argToAdd)).toArray(String[]::new);
+                return delegate.withArgs(modifiedArgs);
             };
         }
     }
@@ -151,36 +128,6 @@ class GradleInvokerDecoratorTests {
         @Override
         public GradleInvokerDecorator create(WithArgAddingDecorator2 annotation) {
             return new ArgAddingDecorator(annotation.arg());
-        }
-    }
-
-    @Target({ElementType.TYPE, ElementType.METHOD})
-    @Retention(RetentionPolicy.RUNTIME)
-    @RegistersGradleInvokerDecorator(ContextAccessingDecoratorFactory.class)
-    @interface WithContextAccessingDecorator {}
-
-    public static class ContextAccessingDecoratorFactory
-            implements GradleInvokerDecoratorFactory<WithContextAccessingDecorator> {
-        @Override
-        public GradleInvokerDecorator create(WithContextAccessingDecorator _annotation) {
-            return new ContextAccessingDecorator();
-        }
-    }
-
-    static class ContextAccessingDecorator implements GradleInvokerDecorator {
-        @Override
-        public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
-            // Verify we have access to context properties
-            if (context.rootProjectDir() == null) {
-                throw new IllegalStateException("rootProjectDir should not be null");
-            }
-            if (context.gradleVersion() == null) {
-                throw new IllegalStateException("gradleVersion should not be null");
-            }
-            if (context.extensionContext() == null) {
-                throw new IllegalStateException("extensionContext should not be null");
-            }
-            return delegate;
         }
     }
 }

@@ -25,15 +25,14 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 
-public final class ConfigurationCacheInvoker implements GradleInvoker {
-
-    private final Path rootProjectDir;
-    private final GradleInvoker gradleInvoker;
+public record ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) implements GradleInvoker {
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) {
-        this.rootProjectDir = rootProjectDir;
-        this.gradleInvoker = gradleInvoker;
+    public ConfigurationCacheInvoker {}
+
+    @Override
+    public GradleVersion gradleVersion() {
+        return gradleInvoker.gradleVersion();
     }
 
     @Override
@@ -54,10 +53,6 @@ public final class ConfigurationCacheInvoker implements GradleInvoker {
                 .build()
                 .toArray(String[]::new));
         return new ConfigurationCacheInvocation(rootProjectDir, initialGradleInvocation, secondGradleInvocation);
-    }
-
-    public Path getRootProjectDir() {
-        return this.rootProjectDir;
     }
 
     private void cleanupConfigurationCache() {

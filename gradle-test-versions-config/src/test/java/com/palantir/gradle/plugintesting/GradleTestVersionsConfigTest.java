@@ -25,7 +25,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-public final class GradleTestVersionsConfigTest {
+public class GradleTestVersionsConfigTest {
     private GradleTestVersionsConfigTest() {}
 
     public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());

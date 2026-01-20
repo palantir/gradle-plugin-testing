@@ -71,7 +71,9 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
                     } catch (ClassNotFoundException e) {
                         return Optional.<Class<?>>empty();
                     }
-                }).<? extends Class<?>>mapMulti(Optional::ifPresent)
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 

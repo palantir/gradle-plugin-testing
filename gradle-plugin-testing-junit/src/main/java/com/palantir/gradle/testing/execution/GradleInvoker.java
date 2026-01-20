@@ -19,16 +19,15 @@ package com.palantir.gradle.testing.execution;
 import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.GradleInvokerDecoratorRegistry;
+import com.palantir.gradle.testing.project.RootProject;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public interface GradleInvoker {
 
-    Logger log = LoggerFactory.getLogger(GradleInvoker.class);
+    GradleVersion gradleVersion();
 
     GradleInvocation withArgs(String... args);
 
@@ -46,9 +45,10 @@ public interface GradleInvoker {
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker invoker = new DefaultGradleInvoker(path, gradleVersion);
 
-        DecoratorContext context = new DecoratorContext(path, gradleVersion, extensionContext);
-        List<GradleInvokerDecorator> decorators = GradleInvokerDecoratorRegistry.getDecorators(extensionContext);
+        RootProject rootProject = new RootProject(path);
 
+        DecoratorContext context = new DecoratorContext(rootProject, gradleVersion, extensionContext);
+        List<GradleInvokerDecorator> decorators = GradleInvokerDecoratorRegistry.getDecorators(extensionContext);
         for (GradleInvokerDecorator decorator : decorators) {
             invoker = decorator.decorate(context, invoker);
         }

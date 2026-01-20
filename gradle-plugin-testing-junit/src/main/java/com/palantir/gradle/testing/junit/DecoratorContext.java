@@ -17,15 +17,16 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleVersion;
-import java.nio.file.Path;
+import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * Context provided to {@link GradleInvokerDecorator#decorate} containing
  * all information needed to create a decorated invoker.
  *
- * @param rootProjectDir the root project directory for the test
+ * @param rootProject the root project directory for the test
  * @param gradleVersion the Gradle version being tested
  * @param extensionContext the JUnit extension context, providing access to stores and test metadata
  */
-public record DecoratorContext(Path rootProjectDir, GradleVersion gradleVersion, ExtensionContext extensionContext) {}
+public record DecoratorContext(
+        RootProject rootProject, GradleVersion gradleVersion, ExtensionContext extensionContext) {}

@@ -24,6 +24,7 @@ import java.util.Arrays;
 import org.gradle.testkit.runner.GradleRunner;
 
 public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
+
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public DefaultGradleInvoker {}
 
@@ -38,6 +39,8 @@ public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVers
                 .withArguments(ImmutableList.<String>builder()
                         .addAll(Arrays.asList(args))
                         .add("--stacktrace")
+                        .add("-P__TESTING=true")
+                        .add("-P__TESTING_palantir.gradle.plugin.tests=true")
                         .build());
 
         return new DefaultGradleInvocation(runner);

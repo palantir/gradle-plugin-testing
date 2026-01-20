@@ -72,11 +72,9 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
     @Inject
     public abstract ProjectLayout getProjectLayout();
 
-    @Override
     @Inject
     public abstract ProviderFactory getProviderFactory();
 
-    @Override
     @Inject
     public abstract ObjectFactory getObjectFactory();
 
