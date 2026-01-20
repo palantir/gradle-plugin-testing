@@ -57,9 +57,9 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
 
     @SuppressWarnings("unchecked")
     private void registerDecoratorFromAnnotation(
-            ExtensionContext context, Annotation annotation, RegistersGradleInvokerDecorator meta) {
+            ExtensionContext context, Annotation annotation, RegistersGradleInvokerDecorator registeringDecorator) {
         try {
-            Class<? extends GradleInvokerDecoratorFactory<?>> factoryClass = meta.value();
+            Class<? extends GradleInvokerDecoratorFactory<?>> factoryClass = registeringDecorator.value();
             GradleInvokerDecoratorFactory<Annotation> factory = (GradleInvokerDecoratorFactory<Annotation>)
                     factoryClass.getDeclaredConstructor().newInstance();
 
@@ -74,7 +74,8 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
             throw new RuntimeException(
                     String.format(
                             "Failed to instantiate decorator factory %s for annotation @%s",
-                            meta.value().getName(), annotation.annotationType().getSimpleName()),
+                            registeringDecorator.value().getName(),
+                            annotation.annotationType().getSimpleName()),
                     e);
         }
     }
