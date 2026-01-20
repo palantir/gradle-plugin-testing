@@ -39,8 +39,7 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
 
     @Override
     protected Filter<?> getFilter() {
-        List<? extends Class<? extends java.lang.annotation.Annotation>> includedClasses =
-                asAnnotationClasses(includedAnnotations);
+        List<? extends Class<? extends Annotation>> includedClasses = asAnnotationClasses(includedAnnotations);
         return new PostDiscoveryFilter() {
             @Override
             public FilterResult apply(TestDescriptor testDescriptor) {
@@ -75,7 +74,7 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
     @SuppressWarnings("BanSystemOut")
     private static Optional<Class<? extends Annotation>> getClassAnnotation(String annotationName) {
         try {
-            return Optional.of((Class<? extends Annotation>) Class.forName(annotationName));
+            return Optional.of((Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName));
         } catch (ClassNotFoundException e) {
             System.out.format(
                     "Failed to retrieve the annotation class from the string name: %s, Skipping", annotationName);
