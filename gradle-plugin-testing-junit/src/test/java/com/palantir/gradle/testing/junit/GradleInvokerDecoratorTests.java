@@ -75,6 +75,7 @@ class GradleInvokerDecoratorTests {
     @Test
     @WithArgAddingDecorator(arg = "--info")
     @WithArgAddingDecorator2(arg = "-Pname=hello")
+    @WithArgAddingDecorator3(arg = "-PclassValue=decorator4")
     void multiple_decorators_are_applied(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
