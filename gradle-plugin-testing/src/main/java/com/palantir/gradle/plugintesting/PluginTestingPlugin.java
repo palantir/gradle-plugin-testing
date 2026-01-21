@@ -196,9 +196,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                     .addAll(List.of(
                             "subClassesOf",
                             "--include",
-                            "nebula.test.IntegrationSpec,nebula.test.IntegrationTestKitSpec",
-                            "--exclude",
-                            "com.palantir.gradle.plugintesting.ConfigurationCacheSpec"));
+                            "nebula.test.IntegrationSpec,nebula.test.IntegrationTestKitSpec"));
         });
 
         project.getTasks().withType(DiscoverTestClassesTask.class, task -> {
