@@ -707,6 +707,27 @@ void file_assertions(GradleInvoker gradle, RootProject project) {
 }
 ```
 
+### Assertion Best Practices
+
+**String Comparisons with Whitespace**: Avoid `isEqualToIgnoringWhitespace()` for trimming - it normalizes ALL whitespace (treating consecutive spaces as single spaces). To match Groovy's `text.trim() == expected` behavior, use:
+
+```java
+assertThat(file.text().trim()).isEqualTo(expected);
+```
+
+**Assertion Descriptions**: Use `.as()` to provide context for assertions instead of comments:
+
+```java
+// Good - description appears in test failure messages
+externalDepsFile.assertThat().as("we generate the correct config").exists();
+
+// Avoid - comment doesn't appear in failure messages
+// we generate the correct config
+externalDepsFile.assertThat().exists();
+```
+
+When migrating Spock tests, convert `then:` block labels to `.as()` calls, but keep `when:` block labels as comments since they describe actions, not assertions.
+
 ## Error Prone Checks
 
 The `gradle-plugin-testing` plugin ships with custom Error Prone checks that are automatically enabled when the `net.ltgt.errorprone` plugin is applied to your project.
