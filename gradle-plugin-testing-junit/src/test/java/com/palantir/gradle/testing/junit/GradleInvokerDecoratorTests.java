@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
+import com.palantir.gradle.testing.junit.GradleInvokerDecoratorTests.ArgAddingDecorator;
 import com.palantir.gradle.testing.project.RootProject;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithArgAddingDecorator3(arg = "-PclassValue=decorator3")
 @GradlePluginTests
 @DisabledConfigurationCache("Testing decorator mechanism without config cache complexity")
 class GradleInvokerDecoratorTests {
@@ -41,14 +43,15 @@ class GradleInvokerDecoratorTests {
     void invoker_works_without_decorators(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
+                def hasClassValue = providers.gradleProperty("classValue")
                 doLast {
-                    println "Hello from task"
+                    println "Hello from task with class decorator " + hasClassValue.get()
                 }
             }
             """);
 
         InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
-        result.assertThat().output().contains("Hello from task");
+        result.assertThat().output().contains("Hello from task with class decorator decorator3");
     }
 
     @Test
@@ -76,15 +79,16 @@ class GradleInvokerDecoratorTests {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
                 def value = providers.gradleProperty("name")
+                def hasClassValue = providers.gradleProperty("classValue")
                 doLast {
-                    println "Hello from task " + value.get()
+                    println "Hello from task " + value.get() + " with class decorator " + hasClassValue.get()
                 }
             }
             """);
 
         // Both decorators should add their args
         InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
-        result.assertThat().output().contains("Hello from task hello");
+        result.assertThat().output().contains("Hello from task hello with class decorator decorator3");
         // --info adds verbose output
         result.assertThat().output().contains("Task :hello");
     }
@@ -110,8 +114,8 @@ class GradleInvokerDecoratorTests {
         @Override
         public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
             return args -> {
-                String[] modifiedArgs = Stream.concat(Arrays.stream(args), Stream.of(argToAdd))
-                        .toArray(String[]::new);
+                String[] modifiedArgs =
+                        Stream.concat(Arrays.stream(args), Stream.of(argToAdd)).toArray(String[]::new);
                 return delegate.withArgs(modifiedArgs);
             };
         }
@@ -129,5 +133,19 @@ class GradleInvokerDecoratorTests {
         public GradleInvokerDecorator create(WithArgAddingDecorator2 annotation) {
             return new ArgAddingDecorator(annotation.arg());
         }
+    }
+}
+
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@RegistersGradleInvokerDecorator(ArgAddingDecorator3.class)
+@interface WithArgAddingDecorator3 {
+    String arg();
+}
+
+class ArgAddingDecorator3 implements GradleInvokerDecoratorFactory<WithArgAddingDecorator3> {
+    @Override
+    public GradleInvokerDecorator create(WithArgAddingDecorator3 annotation) {
+        return new ArgAddingDecorator(annotation.arg());
     }
 }
