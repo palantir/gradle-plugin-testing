@@ -16,9 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.GradleInvocation;
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.project.RootProject;
 import java.lang.annotation.ElementType;
@@ -111,18 +109,10 @@ class GradleInvokerDecoratorTests {
 
         @Override
         public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
-            return new GradleInvoker() {
-                @Override
-                public GradleVersion gradleVersion() {
-                    return delegate.gradleVersion();
-                }
-
-                @Override
-                public GradleInvocation withArgs(String... args) {
-                    String[] modifiedArgs = Stream.concat(Arrays.stream(args), Stream.of(argToAdd))
-                            .toArray(String[]::new);
-                    return delegate.withArgs(modifiedArgs);
-                }
+            return args -> {
+                String[] modifiedArgs = Stream.concat(Arrays.stream(args), Stream.of(argToAdd))
+                        .toArray(String[]::new);
+                return delegate.withArgs(modifiedArgs);
             };
         }
     }

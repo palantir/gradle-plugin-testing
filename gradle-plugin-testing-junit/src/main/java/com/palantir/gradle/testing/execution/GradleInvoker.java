@@ -27,8 +27,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public interface GradleInvoker {
 
-    GradleVersion gradleVersion();
-
     GradleInvocation withArgs(String... args);
 
     /**

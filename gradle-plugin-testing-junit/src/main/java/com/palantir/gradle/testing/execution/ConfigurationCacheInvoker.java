@@ -31,11 +31,6 @@ public record ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradl
     public ConfigurationCacheInvoker {}
 
     @Override
-    public GradleVersion gradleVersion() {
-        return gradleInvoker.gradleVersion();
-    }
-
-    @Override
     public GradleInvocation withArgs(String... args) {
         // not reusing configuration-cache among multiple gradle invocations in a test.
         cleanupConfigurationCache();
