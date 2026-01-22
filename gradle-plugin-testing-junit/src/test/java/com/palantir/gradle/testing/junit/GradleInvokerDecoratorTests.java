@@ -51,7 +51,7 @@ class GradleInvokerDecoratorTests {
     }
 
     @Test
-    @WithArgAddingDecorator2(arg = "--info")
+    @WithArgAddingDecorator2(arg = "help")
     void decorator_is_applied_via_annotation(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
@@ -61,16 +61,14 @@ class GradleInvokerDecoratorTests {
             }
             """);
 
-        // The decorator adds --info flag, so we should see verbose output
         InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
         result.assertThat().output().contains("Hello from task");
-        // With --info, we see "Task :hello" status line
-        result.assertThat().output().contains("Task :hello");
+        result.assertThat().output().contains("Task :help");
     }
 
     @Test
-    @WithArgAddingDecorator2(arg = "-Pname=hello")
-    @WithArgAddingDecorator3(arg = "--info")
+    @WithArgAddingDecorator2(arg = "help")
+    @WithArgAddingDecorator3(arg = "-Pname=hello")
     void multiple_decorators_are_applied(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
@@ -82,10 +80,8 @@ class GradleInvokerDecoratorTests {
             }
             """);
 
-        // Multiple decorators should add their args
         InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
         result.assertThat().output().contains("Hello from task hello with class decorator classDecorator");
-        // --info adds verbose output
-        result.assertThat().output().contains("Task :hello");
+        result.assertThat().output().contains("Task :help");
     }
 }
