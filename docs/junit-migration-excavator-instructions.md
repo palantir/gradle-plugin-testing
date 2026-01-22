@@ -66,6 +66,7 @@ An example of delineator comments in a groovy file:
 These comments should be copied over to the new test files as they are created to assist human reviewers.
 
 # General Instructions
+- You MUST migrate ALL tests from the original file. Do not skip any tests or only migrate a "representative sample". Every single test method in the original Groovy file must have a corresponding test method in the new Java file.
 - Test names should be changed to a snake_case_english_sentence in all lower case.
 - Keep the comments from the original Groovy tests when writing the new tests.
 - Method name mappings from old to new framework:
