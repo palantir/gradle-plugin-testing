@@ -17,12 +17,10 @@
 package com.palantir.gradle.testing.execution;
 
 import com.palantir.gradle.testing.junit.DecoratorContext;
-import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.GradleInvokerDecoratorRegistry;
 import com.palantir.gradle.testing.project.RootProject;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
-import java.util.List;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public interface GradleInvoker {
@@ -41,15 +39,10 @@ public interface GradleInvoker {
      * @return a decorated GradleInvoker
      */
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
-        GradleInvoker invoker = new DefaultGradleInvoker(path, gradleVersion);
+        GradleInvoker baseInvoker = new DefaultGradleInvoker(path, gradleVersion);
         RootProject rootProject = new RootProject(path);
-        DecoratorContext context = new DecoratorContext(rootProject, gradleVersion, extensionContext);
-
-        List<GradleInvokerDecorator> decorators = GradleInvokerDecoratorRegistry.getDecorators(extensionContext);
-        for (GradleInvokerDecorator decorator : decorators) {
-            invoker = decorator.decorate(context, invoker);
-        }
-        return invoker;
+        DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
+        return GradleInvokerDecoratorRegistry.decorate(extensionContext, decoratorContext, baseInvoker);
     }
 
     static boolean shouldRunInTestkitDebugMode() {

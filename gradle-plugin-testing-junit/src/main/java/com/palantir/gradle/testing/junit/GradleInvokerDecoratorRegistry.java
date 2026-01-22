@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,15 +45,27 @@ public final class GradleInvokerDecoratorRegistry {
     }
 
     /**
-     * Returns all registered decorators for the given extension context, in registration order.
+     * Decorates a GradleInvoker with all registered decorators for the given extension context.
+     *
+     * <p>Decorators are applied in registration order: first-registered decorators become
+     * innermost wrappers (closest to the base invoker), while later-registered decorators
+     * become outer wrappers (executing first in the call chain).
      *
      * @param context the JUnit extension context
-     * @return an unmodifiable list of decorators in registration order
+     * @param decoratorContext the decorator context containing test metadata
+     * @param invoker the base invoker to decorate
+     * @return the decorated invoker with all registered decorators applied
      */
-    public static List<GradleInvokerDecorator> getDecorators(ExtensionContext context) {
-        return Optional.ofNullable(getDecoratorList(context))
-                .map(List::copyOf)
-                .orElseGet(List::of);
+    public static GradleInvoker decorate(
+            ExtensionContext context, DecoratorContext decoratorContext, GradleInvoker invoker) {
+        List<GradleInvokerDecorator> decorators =
+                Optional.ofNullable(getDecoratorList(context)).orElseGet(List::of);
+
+        GradleInvoker result = invoker;
+        for (GradleInvokerDecorator decorator : decorators) {
+            result = decorator.decorate(decoratorContext, result);
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")

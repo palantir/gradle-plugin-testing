@@ -19,6 +19,9 @@ package com.palantir.gradle.testing.junit;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -39,20 +42,51 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        discoverAndRegisterDecorators(context, context.getRequiredTestClass());
+        Class<?> currentClass = context.getRequiredTestClass();
+
+        Set<Class<? extends Annotation>> currentDiscoveredDecorators = discoverDecorators(currentClass);
+        Set<Class<? extends Annotation>> parentDecorators = Optional.ofNullable(currentClass.getEnclosingClass())
+                .map(enclosingClass -> DiscoveredDecoratorsByClassStore.getStoredDecorators(context, enclosingClass))
+                .orElseGet(Set::of);
+
+        throwForDuplicatedAnnotations(
+                currentDiscoveredDecorators, parentDecorators, String.format("""
+                    The same decorator annotation cannot be applied at multiple class levels. Please remove the extra annotation from the class `%s`.
+                    """, currentClass.getSimpleName()));
+
+        Set<Class<? extends Annotation>> allClassLevelDecorators = Stream.concat(
+                        parentDecorators.stream(), currentDiscoveredDecorators.stream())
+                .collect(Collectors.toSet());
+        DiscoveredDecoratorsByClassStore.storeDecorators(context, currentClass, allClassLevelDecorators);
+
+        registerDecorators(context, currentClass);
     }
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        context.getTestMethod().ifPresent(method -> discoverAndRegisterDecorators(context, method));
+        if (context.getTestMethod().isEmpty()) {
+            return;
+        }
+        Set<Class<? extends Annotation>> classLevelDecorators =
+                DiscoveredDecoratorsByClassStore.getStoredDecorators(context, context.getRequiredTestClass());
+        Set<Class<? extends Annotation>> methodDecorators =
+                discoverDecorators(context.getTestMethod().get());
+
+        throwForDuplicatedAnnotations(
+                methodDecorators,
+                classLevelDecorators,
+                String.format("""
+                    The same decorator annotation cannot be applied at both class and method level. Please remove it from the test method `%s`.
+                    """, context.getTestMethod().get().getName()));
+
+        registerDecorators(context, context.getTestMethod().get());
     }
 
-    private void discoverAndRegisterDecorators(ExtensionContext context, AnnotatedElement element) {
-        for (Annotation annotation : element.getAnnotations()) {
-            Optional.ofNullable(annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class))
-                    .ifPresent(registersGradleInvokerDecorator ->
-                            registerDecoratorFromAnnotation(context, annotation, registersGradleInvokerDecorator));
-        }
+    private void registerDecorators(ExtensionContext context, AnnotatedElement element) {
+        Stream.of(element.getAnnotations()).forEach(annotation -> Optional.ofNullable(
+                        annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class))
+                .ifPresent(registersGradleInvokerDecorator ->
+                        registerDecoratorFromAnnotation(context, annotation, registersGradleInvokerDecorator)));
     }
 
     @SuppressWarnings("unchecked")
@@ -78,5 +112,31 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
                             annotation.annotationType().getSimpleName()),
                     e);
         }
+    }
+
+    private static void throwForDuplicatedAnnotations(
+            Set<Class<? extends Annotation>> currentDiscoveredDecorators,
+            Set<Class<? extends Annotation>> parentDecorators,
+            String message) {
+        currentDiscoveredDecorators.stream()
+                .filter(parentDecorators::contains)
+                .findFirst()
+                .ifPresent(decorator -> {
+                    throw new IllegalStateException(String.format(
+                            "Decorator annotation @%s is already registered in a parent class. %s",
+                            decorator.getSimpleName(), message));
+                });
+    }
+
+    /**
+     * Discovers decorator annotation types from an annotated element without registering them.
+     */
+    private Set<Class<? extends Annotation>> discoverDecorators(AnnotatedElement element) {
+        return Stream.of(element.getAnnotations())
+                .map(Annotation::annotationType)
+                .filter(annotationType -> Optional.ofNullable(
+                                annotationType.getAnnotation(RegistersGradleInvokerDecorator.class))
+                        .isPresent())
+                .collect(Collectors.toSet());
     }
 }
