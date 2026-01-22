@@ -23,30 +23,38 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 
-record ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) implements GradleInvoker {
+final class ConfigurationCacheInvoker extends GradleInvoker {
+
+    private final Path rootProjectDir;
+    private final GradleInvoker delegate;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public ConfigurationCacheInvoker {}
+    ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker delegate) {
+        this.rootProjectDir = rootProjectDir;
+        this.delegate = delegate;
+    }
 
     @Override
-    public GradleInvocation withArgs(String... args) {
+    public GradleInvocation with(Options options) {
         // not reusing configuration-cache among multiple gradle invocations in a test.
         cleanupConfigurationCache();
 
-        String[] withConfigurationCacheEnabled = ImmutableList.<String>builder()
-                .add(args)
+        List<String> withConfigurationCacheEnabled = ImmutableList.<String>builder()
+                .addAll(options.args())
                 .add("--configuration-cache")
-                .build()
-                .toArray(String[]::new);
-        GradleInvocation initialGradleInvocation = gradleInvoker.withArgs(withConfigurationCacheEnabled);
+                .build();
+        GradleInvocation initialGradleInvocation = delegate.with(
+                Options.from(options).args(withConfigurationCacheEnabled).build());
 
-        GradleInvocation secondGradleInvocation = gradleInvoker.withArgs(ImmutableList.<String>builder()
-                .add(withConfigurationCacheEnabled)
-                .add("--dry-run")
-                .build()
-                .toArray(String[]::new));
+        GradleInvocation secondGradleInvocation = delegate.with(Options.from(options)
+                .args(ImmutableList.<String>builder()
+                        .addAll(withConfigurationCacheEnabled)
+                        .add("--dry-run")
+                        .build())
+                .build());
         return new ConfigurationCacheInvocation(rootProjectDir, initialGradleInvocation, secondGradleInvocation);
     }
 

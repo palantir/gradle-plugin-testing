@@ -16,12 +16,14 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.GradleInvocation;
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.execution.Options;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class TestDecorators {
@@ -45,11 +47,24 @@ public class TestDecorators {
 
         @Override
         public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
-            return args -> {
-                String[] modifiedArgs =
-                        Stream.concat(Arrays.stream(args), Stream.of(argToAdd)).toArray(String[]::new);
-                return delegate.withArgs(modifiedArgs);
-            };
+            return new ExtraArgsGradleInvoker(delegate, argToAdd);
+        }
+
+        static final class ExtraArgsGradleInvoker extends GradleInvoker {
+            private final GradleInvoker delegate;
+            private final String argToAdd;
+
+            ExtraArgsGradleInvoker(GradleInvoker delegate, String argToAdd) {
+                this.delegate = delegate;
+                this.argToAdd = argToAdd;
+            }
+
+            @Override
+            public GradleInvocation with(Options options) {
+                List<String> modifiedArgs = Stream.concat(options.args().stream(), Stream.of(argToAdd))
+                        .toList();
+                return delegate.with(Options.from(options).args(modifiedArgs).build());
+            }
         }
     }
 

@@ -21,11 +21,16 @@ import com.palantir.gradle.testing.junit.GradleInvokerDecoratorRegistry;
 import com.palantir.gradle.testing.project.RootProject;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-public interface GradleInvoker {
+public abstract class GradleInvoker {
 
-    GradleInvocation withArgs(String... args);
+    public final GradleInvocation withArgs(String... args) {
+        return with(Options.builder().args(Arrays.stream(args).toList()).build());
+    }
+
+    public abstract GradleInvocation with(Options options);
 
     /**
      * Creates a GradleInvoker with all registered decorators applied.
@@ -38,14 +43,14 @@ public interface GradleInvoker {
      * @param extensionContext the JUnit extension context containing registered decorators
      * @return a decorated GradleInvoker
      */
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
+    public static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker baseInvoker = new DefaultGradleInvoker(path, gradleVersion);
         RootProject rootProject = new RootProject(path);
         DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
         return GradleInvokerDecoratorRegistry.decorate(extensionContext, decoratorContext, baseInvoker);
     }
 
-    static boolean shouldRunInTestkitDebugMode() {
+    public static boolean shouldRunInTestkitDebugMode() {
         // `withDebug(true)` will run the Gradle daemon inside the same JVM as the test, whereas
         // `withDebug(false)` will run Gradle in a new daemon.
         // When running tests from IntelliJ with debug or coverage, they only work when the Gradle daemon
