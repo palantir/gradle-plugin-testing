@@ -47,19 +47,16 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
         Class<?> currentClass = context.getRequiredTestClass();
 
         Set<Class<? extends Annotation>> currentDiscoveredDecorators = discoverDecorators(currentClass);
-        Set<Class<? extends Annotation>> parentDecorators = Optional.ofNullable(currentClass.getEnclosingClass())
-                .map(enclosingClass -> DiscoveredDecoratorsByClassStore.getStoredDecorators(context, enclosingClass))
-                .orElseGet(Set::of);
 
         throwForDuplicatedAnnotations(
-                currentDiscoveredDecorators, parentDecorators, String.format("""
+                context, currentDiscoveredDecorators, String.format("""
                     The same decorator annotation cannot be applied at multiple class levels. Please remove the extra annotation from the class `%s`.
                     """, currentClass.getSimpleName()));
 
         Set<Class<? extends Annotation>> allClassLevelDecorators = Stream.concat(
-                        parentDecorators.stream(), currentDiscoveredDecorators.stream())
+                        getParentDecorators(context).stream(), currentDiscoveredDecorators.stream())
                 .collect(Collectors.toSet());
-        DiscoveredDecoratorsByClassStore.storeDecorators(context, currentClass, allClassLevelDecorators);
+        DiscoveredDecoratorsByClassStore.storeDecorators(context, allClassLevelDecorators);
 
         registerDecorators(context, currentClass);
     }
@@ -69,14 +66,13 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
         if (context.getTestMethod().isEmpty()) {
             return;
         }
-        Set<Class<? extends Annotation>> classLevelDecorators =
-                DiscoveredDecoratorsByClassStore.getStoredDecorators(context, context.getRequiredTestClass());
+
         Set<Class<? extends Annotation>> methodDecorators =
                 discoverDecorators(context.getTestMethod().get());
 
         throwForDuplicatedAnnotations(
+                context,
                 methodDecorators,
-                classLevelDecorators,
                 String.format("""
                     The same decorator annotation cannot be applied at both class and method level. Please remove it from the test method `%s`.
                     """, context.getTestMethod().get().getName()));
@@ -117,9 +113,8 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
     }
 
     private static void throwForDuplicatedAnnotations(
-            Set<Class<? extends Annotation>> currentDiscoveredDecorators,
-            Set<Class<? extends Annotation>> parentDecorators,
-            String message) {
+            ExtensionContext context, Set<Class<? extends Annotation>> currentDiscoveredDecorators, String message) {
+        Set<Class<? extends Annotation>> parentDecorators = getParentDecorators(context);
         currentDiscoveredDecorators.stream()
                 .filter(parentDecorators::contains)
                 .findFirst()
@@ -128,6 +123,12 @@ public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAll
                             "Decorator annotation @%s is already registered in a parent class. %s",
                             decorator.getSimpleName(), message));
                 });
+    }
+
+    private static Set<Class<? extends Annotation>> getParentDecorators(ExtensionContext context) {
+        return context.getParent()
+                .map(enclosingClass -> DiscoveredDecoratorsByClassStore.getStoredDecorators(context))
+                .orElseGet(Set::of);
     }
 
     /**

@@ -17,8 +17,6 @@
 package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
@@ -28,30 +26,22 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
  */
 public final class DiscoveredDecoratorsByClassStore {
     private static final Namespace NAMESPACE = Namespace.create(DiscoveredDecoratorsByClassStore.class);
-    private static final String DISCOVERED_DECORATORS_BY_CLASS = "discoveredDecoratorsByClass";
+    private static final String DISCOVERED_DECORATORS = "discoveredDecorators";
 
     /**
      * Stores discovered decorators for a class in the extension context.
      */
-    public static void storeDecorators(
-            ExtensionContext context, Class<?> clazz, Set<Class<? extends Annotation>> decorators) {
-        getDecoratorMap(context).put(clazz, decorators);
+    public static void storeDecorators(ExtensionContext context, Set<Class<? extends Annotation>> decorators) {
+        context.getStore(NAMESPACE).put(DISCOVERED_DECORATORS, decorators);
     }
 
     /**
      * Retrieves stored decorators for a class from the extension context.
      */
-    public static Set<Class<? extends Annotation>> getStoredDecorators(ExtensionContext context, Class<?> clazz) {
-        return getDecoratorMap(context).getOrDefault(clazz, Set.of());
-    }
-
-    /**
-     * Gets or creates the decorator map from the extension context store.
-     */
     @SuppressWarnings("unchecked")
-    private static Map<Class<?>, Set<Class<? extends Annotation>>> getDecoratorMap(ExtensionContext context) {
-        return (Map<Class<?>, Set<Class<? extends Annotation>>>) context.getStore(NAMESPACE)
-                .getOrComputeIfAbsent(DISCOVERED_DECORATORS_BY_CLASS, _key -> new HashMap<>());
+    public static Set<Class<? extends Annotation>> getStoredDecorators(ExtensionContext context) {
+        return (Set<Class<? extends Annotation>>)
+                context.getStore(NAMESPACE).getOrComputeIfAbsent(DISCOVERED_DECORATORS, Set::of);
     }
 
     private DiscoveredDecoratorsByClassStore() {}
