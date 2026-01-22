@@ -50,4 +50,6 @@ public final class DiscoveredDecoratorsByClassStore {
         return (Map<Class<?>, Set<Class<? extends Annotation>>>) context.getStore(NAMESPACE)
                 .getOrComputeIfAbsent(DISCOVERED_DECORATORS_BY_CLASS, _key -> new HashMap<>());
     }
+
+    private DiscoveredDecoratorsByClassStore() {}
 }

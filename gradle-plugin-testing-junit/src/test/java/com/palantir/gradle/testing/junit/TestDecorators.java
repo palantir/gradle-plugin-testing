@@ -25,19 +25,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class TestDecorators {
-    @Target({ElementType.TYPE, ElementType.METHOD})
-    @Retention(RetentionPolicy.RUNTIME)
-    @RegistersGradleInvokerDecorator(ArgAddingDecorator3.class)
-    @interface WithArgAddingDecorator3 {
-        String arg();
-    }
-
-    public static class ArgAddingDecorator3 implements GradleInvokerDecoratorFactory<WithArgAddingDecorator3> {
-        @Override
-        public GradleInvokerDecorator create(WithArgAddingDecorator3 annotation) {
-            return new ArgAddingDecorator(annotation.arg());
-        }
-    }
 
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
@@ -46,7 +33,8 @@ public class TestDecorators {
         String arg();
     }
 
-    public static class ArgAddingDecoratorFactory implements GradleInvokerDecoratorFactory<WithArgAddingDecorator> {
+    public static final class ArgAddingDecoratorFactory
+            implements GradleInvokerDecoratorFactory<WithArgAddingDecorator> {
         @Override
         public GradleInvokerDecorator create(WithArgAddingDecorator annotation) {
             return new ArgAddingDecorator(annotation.arg());
@@ -72,9 +60,24 @@ public class TestDecorators {
         String arg();
     }
 
-    public static class ArgAddingDecoratorFactory2 implements GradleInvokerDecoratorFactory<WithArgAddingDecorator2> {
+    public static final class ArgAddingDecoratorFactory2
+            implements GradleInvokerDecoratorFactory<WithArgAddingDecorator2> {
         @Override
         public GradleInvokerDecorator create(WithArgAddingDecorator2 annotation) {
+            return new ArgAddingDecorator(annotation.arg());
+        }
+    }
+
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @RegistersGradleInvokerDecorator(ArgAddingDecorator3.class)
+    @interface WithArgAddingDecorator3 {
+        String arg();
+    }
+
+    public static final class ArgAddingDecorator3 implements GradleInvokerDecoratorFactory<WithArgAddingDecorator3> {
+        @Override
+        public GradleInvokerDecorator create(WithArgAddingDecorator3 annotation) {
             return new ArgAddingDecorator(annotation.arg());
         }
     }

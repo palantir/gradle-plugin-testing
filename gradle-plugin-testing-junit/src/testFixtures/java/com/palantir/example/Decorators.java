@@ -32,7 +32,7 @@ public class Decorators {
     @RegistersGradleInvokerDecorator(DecoratorFactory.class)
     public @interface WithDecorator {}
 
-    public static class DecoratorFactory implements GradleInvokerDecoratorFactory<WithDecorator> {
+    public static final class DecoratorFactory implements GradleInvokerDecoratorFactory<WithDecorator> {
         @Override
         public GradleInvokerDecorator create(WithDecorator annotation) {
             return new NoopDecorator();
