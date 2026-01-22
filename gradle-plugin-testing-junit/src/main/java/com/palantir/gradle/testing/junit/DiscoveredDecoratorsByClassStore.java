@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 /**
- * Store that maintains the mapping between test classes and their associated decorator annotations in JUnit extension context.
+ * Stores the mapping between test classes and their associated decorator annotations in JUnit extension context.
  */
 public final class DiscoveredDecoratorsByClassStore {
     private static final Namespace NAMESPACE = Namespace.create(DiscoveredDecoratorsByClassStore.class);
