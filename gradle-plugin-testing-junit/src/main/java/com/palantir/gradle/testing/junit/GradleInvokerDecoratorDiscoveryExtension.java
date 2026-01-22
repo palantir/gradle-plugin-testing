@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
  * <p>This extension scans the test class and method for annotations that have the
  * {@code @RegistersGradleInvokerDecorator} meta-annotation, instantiates the specified factory,
  * and registers the created decorator.
+ *
+ * Throws an IllegalStateException if the same discovered annotation is duplicated from one of the parent classes.
  */
 public final class GradleInvokerDecoratorDiscoveryExtension implements BeforeAllCallback, BeforeEachCallback {
 

@@ -25,7 +25,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 
-public record ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) implements GradleInvoker {
+record ConfigurationCacheInvoker(Path rootProjectDir, GradleInvoker gradleInvoker) implements GradleInvoker {
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public ConfigurationCacheInvoker {}
