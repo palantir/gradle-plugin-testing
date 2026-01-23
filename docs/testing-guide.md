@@ -37,6 +37,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
 - [Error Prone Checks](#error-prone-checks)
     - [Why We Ship Error Prone Checks](#why-we-ship-error-prone-checks)
     - [Configuring Error Prone](#configuring-error-prone)
+    - [Common Migration Gotchas](#common-migration-gotchas)
 
 ## Quick Start
 
@@ -256,7 +257,7 @@ Use the structured `plugins()` API to add plugins:
 ```java
 @Test
 void add_plugins(RootProject project) {
-    // Add plugins individually
+    // Chain multiple plugins together for readability
     project.buildGradle()
         .plugins()
         .add("java")
@@ -269,17 +270,29 @@ void add_plugins(RootProject project) {
 }
 ```
 
+When adding multiple plugins, chain the `.add()` calls rather than calling `.plugins()` multiple times:
+
+```java
+// Preferred - chain the calls
+rootProject.buildGradle().plugins().add("com.palantir.failure-reports").add("java");
+
+// Avoid - unnecessary repetition
+rootProject.buildGradle().plugins().add("com.palantir.failure-reports");
+rootProject.buildGradle().plugins().add("java");
+```
+
 #### Testing with External Plugins
 
-To test your plugin alongside external Gradle plugins, use the `gradlePluginForTesting` configuration in your projects `build.gradle`. This makes external plugins available in your test's Gradle runtime:
+The `gradlePluginForTesting` configuration is automatically created by the gradle-plugin-testing plugin. Use it to make external Gradle plugins available in your test's Gradle runtime:
 
 ```gradle
 dependencies {
-    gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging:<version>'
+    gradlePluginForTesting 'com.palantir.baseline:gradle-baseline-java'
+    gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging'
 }
 ```
 
-The plugin is then available in your tests:
+The plugin is then available in your tests using the standard `.plugins().add()` API:
 
 ```java
 @Test
@@ -289,6 +302,24 @@ void test_with_external_plugin(GradleInvoker gradle, RootProject project) {
     gradle.withArgs("tasks").buildsSuccessfully();
 }
 ```
+
+> **Common Mistake**: Do not use `buildscript { }` blocks with `classpath` dependencies to load external plugins. This bypasses TestKit and makes plugins unavailable to the `.plugins().add()` API:
+>
+> ```java
+> // WRONG - Don't do this
+> rootProject.buildGradle().append("""
+>     buildscript {
+>         repositories { mavenCentral() }
+>         dependencies {
+>             classpath 'com.palantir.baseline:gradle-baseline-java:5.38.0'
+>         }
+>     }
+>     apply plugin: 'com.palantir.baseline'
+>     """);
+>
+> // CORRECT - Add to gradlePluginForTesting in build.gradle, then use:
+> rootProject.buildGradle().plugins().add("com.palantir.baseline");
+> ```
 
 **Note:** If you forget to add a plugin to `gradlePluginForTesting`, your test will fail with an error like:
 ```
@@ -751,3 +782,37 @@ plugins {
 ```
 
 The framework's Error Prone checks will be automatically registered and applied to your test code, catching issues at compile time and offering automated fixes where possible.
+
+### Common Migration Gotchas
+
+When migrating from Nebula/Spock tests to this framework, avoid these common mistakes:
+
+#### Don't Access Framework Internals
+
+The framework isolates each test run into its own directory, namespaced by Gradle version. You should never need to know which Gradle version is running.
+
+```java
+// WRONG - Accessing implementation details
+String version = ((DefaultGradleInvoker) gradle).gradleVersion().version();
+Path outputFile = rootProject.buildDir().path()
+    .resolve(String.format("reports/output-%s.xml", version));
+
+// CORRECT - Use simple paths; the framework handles isolation
+Path outputFile = rootProject.buildDir().path().resolve("reports/output.xml");
+```
+
+If you find yourself casting `GradleInvoker` to `DefaultGradleInvoker`, the approach is probably wrong.
+
+#### Use Full Task Paths for Explicit Assertions
+
+When asserting on specific task outcomes, use the full task path including the project name for subproject tasks:
+
+```java
+// WRONG - Task is in subproject, not root
+assertThat(result).task(":checkstyleMain").succeeded();
+
+// CORRECT - Include subproject in path
+assertThat(result).task(":myProject:checkstyleMain").succeeded();
+```
+
+This only matters for explicit task assertions. Running tasks by name (e.g., `gradle.withArgs("checkstyleMain")`) works without the full path since Gradle resolves the task across all projects.
