@@ -110,6 +110,27 @@ record PomProject(
 - Follow the instructions in the test-guide.md under "Assertions" for how to use fluent assertions built into the framework.
 - Use chained assertions when checking multiple things on the same value.
 
+# Common Migration Pitfalls
+
+## Plugin Application
+- Do not use `apply plugin: 'foo'` in `build.gradle` text blocks
+- Use the structured `rootProject.buildGradle().plugins().add("plugin-id")` API instead
+
+## Parameterized Tests
+- The framework injects `GradleInvoker`, `RootProject`, etc. as test method parameters
+- `@ParameterizedTest` works with the framework, but the parameterized test parameters must come first
+- Example: `void my_test(String param, GradleInvoker gradle, RootProject rootProject)` - the `String param` from `@MethodSource` comes before the injected parameters
+
+## Helper Methods
+- Helper methods that need gradle/project access should take `GradleInvoker` and/or `RootProject` as parameters
+- Do not store these as instance fields (injection happens per-test)
+
+## Java Text Blocks vs Groovy Triple-Quoted Strings
+- Java text blocks do not preserve a leading newline like Groovy `'''` strings
+- Groovy: `def s = '''\nfoo'''` starts with a newline
+- Java: `String s = """\nfoo"""` also starts with a newline, but `String s = """\n    foo"""` has different indentation behavior
+- When migrating assertions that compare source content, be aware of these differences
+
 # Final Instructions
 - Make sure the migrated tests compile by running `./gradlew compileTestJava`.
 - As you discover errors in your work, write out what the error was and what you did to find the information to fix it to a file called "test-migration-errors.md".
