@@ -74,6 +74,7 @@ These comments should be copied over to the new test files as they are created t
     - `.buildAndFail()` → `.buildsWithFailure()`
     - `with('task').build()` → `gradle.withArgs('task').buildsSuccessfully()`
 - When an external plugin is used ensure the correct `gradlePluginForTesting` configuration is added to the projects `build.gradle` file
+- Do NOT add `com.palantir.gradle.plugintesting:gradle-plugin-testing-junit` to `versions.props`. The gradle-plugin-testing plugin automatically provides the correct version of this dependency.
 - When migrating ONLY use the `standardBuildFile` pattern if it was used in the old groovy test
 - If you need to parse a POM / xml file use `jackson` with `records` e.g.
 ```java
