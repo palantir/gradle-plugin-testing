@@ -131,6 +131,53 @@ record PomProject(
 - Java: `String s = """\nfoo"""` also starts with a newline, but `String s = """\n    foo"""` has different indentation behavior
 - When migrating assertions that compare source content, be aware of these differences
 
+## Don't Use buildscript Blocks for External Plugins
+Do not use `buildscript { }` blocks with `classpath` dependencies to load external plugins. This bypasses TestKit and makes plugins unavailable to the `.plugins().add()` API:
+
+```java
+// WRONG - Don't do this
+rootProject.buildGradle().append("""
+    buildscript {
+        repositories { mavenCentral() }
+        dependencies {
+            classpath 'com.palantir.baseline:gradle-baseline-java:5.38.0'
+        }
+    }
+    apply plugin: 'com.palantir.baseline'
+    """);
+
+// CORRECT - Add to gradlePluginForTesting in build.gradle, then use:
+rootProject.buildGradle().plugins().add("com.palantir.baseline");
+```
+
+## Don't Access Framework Internals
+The framework isolates each test run into its own directory, namespaced by Gradle version. You should never need to know which Gradle version is running.
+
+```java
+// WRONG - Accessing implementation details
+String version = ((DefaultGradleInvoker) gradle).gradleVersion().version();
+Path outputFile = rootProject.buildDir().path()
+    .resolve(String.format("reports/output-%s.xml", version));
+
+// CORRECT - Use simple paths; the framework handles isolation
+Path outputFile = rootProject.buildDir().path().resolve("reports/output.xml");
+```
+
+If you find yourself casting `GradleInvoker` to `DefaultGradleInvoker`, the approach is probably wrong.
+
+## Use Full Task Paths for Explicit Assertions
+When asserting on specific task outcomes, use the full task path including the project name for subproject tasks:
+
+```java
+// WRONG - Task is in subproject, not root
+assertThat(result).task(":checkstyleMain").succeeded();
+
+// CORRECT - Include subproject in path
+assertThat(result).task(":myProject:checkstyleMain").succeeded();
+```
+
+This only matters for explicit task assertions. Running tasks by name (e.g., `gradle.withArgs("checkstyleMain")`) works without the full path since Gradle resolves the task across all projects.
+
 # Final Instructions
 - Make sure the migrated tests compile by running `./gradlew compileTestJava`.
 - As you discover errors in your work, write out what the error was and what you did to find the information to fix it to a file called "test-migration-errors.md".
