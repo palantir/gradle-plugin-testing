@@ -24,6 +24,7 @@ import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -396,11 +397,22 @@ class GradleAssertionsUsageTest {
     @Nested
     class FromCache {
 
-        @Test
-        void can_check_task_fromCache(GradleInvoker gradle, RootProject rootProject) {
+        @BeforeEach
+        void beforeEach(RootProject rootProject) {
+            // Configure a project-local build cache to avoid interference from other tests
+            rootProject.settingsGradle().append("""
+                buildCache {
+                    local {
+                        directory = file('.build-cache')
+                    }
+                }
+                """);
             rootProject.buildGradle().plugins().add("java");
             rootProject.sourceSet("main").java().writeClass("public class Foo {}");
+        }
 
+        @Test
+        void can_check_task_fromCache(GradleInvoker gradle) {
             // --build-cache enables the local on-disk build cache
             gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
 
@@ -415,10 +427,7 @@ class GradleAssertionsUsageTest {
         }
 
         @Test
-        void can_check_task_fromCache_via_outcome(GradleInvoker gradle, RootProject rootProject) {
-            rootProject.buildGradle().plugins().add("java");
-            rootProject.sourceSet("main").java().writeClass("public class Bar {}");
-
+        void can_check_task_fromCache_via_outcome(GradleInvoker gradle) {
             gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
             gradle.withArgs("clean").buildsSuccessfully();
 
