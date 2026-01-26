@@ -395,6 +395,36 @@ class GradleAssertionsUsageTest {
     class FromCache {
 
         @Test
+        void can_check_task_fromCache(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().plugins().add("java");
+            rootProject.sourceSet("main").java().writeClass("public class Foo {}");
+
+            // Enable build cache and run compileJava
+            gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+
+            // Clean the outputs but keep the cache
+            gradle.withArgs("clean").buildsSuccessfully();
+
+            // Run again - should be from cache
+            InvocationResult result = gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").fromCache();
+        }
+
+        @Test
+        void can_check_task_fromCache_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().plugins().add("java");
+            rootProject.sourceSet("main").java().writeClass("public class Bar {}");
+
+            gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+            gradle.withArgs("clean").buildsSuccessfully();
+
+            InvocationResult result = gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").outcome().fromCache();
+        }
+
+        @Test
         void fromCache_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
             rootProject.buildGradle().append("""
                 tasks.register('foo') {
