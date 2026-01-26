@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 class GradleAssertionsUsageTest {
 
     @Nested
-    class TaskOutcomeAssertions {
+    class Outcome {
 
         @Test
         void can_check_task_outcome(GradleInvoker gradle, RootProject rootProject) {
@@ -105,35 +105,10 @@ class GradleAssertionsUsageTest {
                             .outcome())
                     .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
         }
-
-        @Test
-        void can_check_task_is_notOnTaskGraph(GradleInvoker gradle) {
-            InvocationResult result = gradle.withArgs().buildsSuccessfully();
-
-            result.assertThat()
-                    .task(":nonexistent")
-                    .as("Non-existent task should be empty")
-                    .notOnTaskGraph();
-        }
-
-        @Test
-        void notOnTaskGraph_fails_when_task_exists(GradleInvoker gradle, RootProject rootProject) {
-            rootProject.buildGradle().append("""
-                tasks.register('foo') {
-                    doLast {}
-                }
-                """);
-
-            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
-
-            assertThatExceptionOfType(AssertionError.class)
-                    .isThrownBy(() -> result.assertThat().task(":foo").notOnTaskGraph())
-                    .withMessageContaining("Task ':foo' was found on task graph");
-        }
     }
 
     @Nested
-    class SucceededAssertions {
+    class Succeeded {
 
         @Test
         void can_check_task_succeeded(GradleInvoker gradle, RootProject rootProject) {
@@ -193,7 +168,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class FailedAssertions {
+    class Failed {
 
         @Test
         void can_check_task_failed(GradleInvoker gradle, RootProject rootProject) {
@@ -247,7 +222,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class UpToDateAssertions {
+    class UpToDate {
 
         @Test
         void can_check_task_upToDate(GradleInvoker gradle, RootProject rootProject) {
@@ -304,7 +279,36 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class SkippedAssertions {
+    class NotOnTaskGraph {
+
+        @Test
+        void can_check_task_is_notOnTaskGraph(GradleInvoker gradle) {
+            InvocationResult result = gradle.withArgs().buildsSuccessfully();
+
+            result.assertThat()
+                    .task(":nonexistent")
+                    .as("Non-existent task should be empty")
+                    .notOnTaskGraph();
+        }
+
+        @Test
+        void notOnTaskGraph_fails_when_task_exists(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").notOnTaskGraph())
+                    .withMessageContaining("Task ':foo' was found on task graph");
+        }
+    }
+
+    @Nested
+    class Skipped {
 
         @Test
         void can_check_task_skipped(GradleInvoker gradle, RootProject rootProject) {
@@ -351,7 +355,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class NoSourceAssertions {
+    class NoSource {
 
         @Test
         void can_check_task_noSource(GradleInvoker gradle, RootProject rootProject) {
@@ -388,7 +392,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class FromCacheAssertions {
+    class FromCache {
 
         @Test
         void fromCache_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
@@ -407,7 +411,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class OutputAssertions {
+    class Output {
 
         @Test
         void can_check_output(GradleInvoker gradle, RootProject rootProject) {
@@ -425,7 +429,7 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
-    class FluentApiUsage {
+    class FluentApi {
 
         @Test
         void can_use_satisfies_and_extracting_on_invocation_result(GradleInvoker gradle, RootProject rootProject) {
