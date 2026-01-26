@@ -103,7 +103,8 @@ class GradleAssertionsUsageTest {
                             .task(":nonexistent")
                             .as("Task should not be present")
                             .outcome())
-                    .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+                    .withMessageContaining(
+                            "Expected to find a task result for task ':nonexistent' but there was none.");
         }
     }
 
@@ -142,7 +143,8 @@ class GradleAssertionsUsageTest {
 
             assertThatExceptionOfType(AssertionError.class)
                     .isThrownBy(() -> result.assertThat().task(":nonexistent").succeeded())
-                    .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+                    .withMessageContaining(
+                            "Expected to find a task result for task ':nonexistent' but there was none.");
         }
 
         @Test
@@ -406,7 +408,8 @@ class GradleAssertionsUsageTest {
             gradle.withArgs("clean").buildsSuccessfully();
 
             // Run again - should be from cache
-            InvocationResult result = gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+            InvocationResult result =
+                    gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
 
             assertThat(result).task(":compileJava").fromCache();
         }
@@ -419,7 +422,8 @@ class GradleAssertionsUsageTest {
             gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
             gradle.withArgs("clean").buildsSuccessfully();
 
-            InvocationResult result = gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+            InvocationResult result =
+                    gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
 
             assertThat(result).task(":compileJava").outcome().fromCache();
         }
