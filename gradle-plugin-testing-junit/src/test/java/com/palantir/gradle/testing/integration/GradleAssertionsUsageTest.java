@@ -103,7 +103,8 @@ class GradleAssertionsUsageTest {
                             .task(":nonexistent")
                             .as("Task should not be present")
                             .outcome())
-                    .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+                    .withMessageContaining(
+                            "Expected to find a task result for task ':nonexistent' but there was none.");
         }
     }
 
@@ -142,7 +143,8 @@ class GradleAssertionsUsageTest {
 
             assertThatExceptionOfType(AssertionError.class)
                     .isThrownBy(() -> result.assertThat().task(":nonexistent").succeeded())
-                    .withMessageContaining("Expected to find a task result for task ':nonexistent' but there was none.");
+                    .withMessageContaining(
+                            "Expected to find a task result for task ':nonexistent' but there was none.");
         }
 
         @Test
