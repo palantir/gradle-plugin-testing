@@ -79,6 +79,39 @@ public final class TaskResultAssert extends AbstractOptionalAssert<TaskResultAss
     }
 
     /**
+     * Asserts that the task was skipped.
+     * <p>
+     * This is equivalent to {@code outcome().skipped()}.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
+    public TaskOutcomeAssert skipped() {
+        return outcome().skipped();
+    }
+
+    /**
+     * Asserts that the task result was retrieved from the build cache.
+     * <p>
+     * This is equivalent to {@code outcome().fromCache()}.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
+    public TaskOutcomeAssert fromCache() {
+        return outcome().fromCache();
+    }
+
+    /**
+     * Asserts that the task had no source files to process.
+     * <p>
+     * This is equivalent to {@code outcome().noSource()}.
+     *
+     * @return a {@link TaskOutcomeAssert} for fluent assertion chaining
+     */
+    public TaskOutcomeAssert noSource() {
+        return outcome().noSource();
+    }
+
+    /**
      * Asserts that the task was not on the task graph.
      *
      * @return this assertion object for method chaining

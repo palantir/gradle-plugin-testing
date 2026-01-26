@@ -304,6 +304,109 @@ class GradleAssertionsUsageTest {
     }
 
     @Nested
+    class SkippedAssertions {
+
+        @Test
+        void can_check_task_skipped(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    onlyIf { false }
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThat(result).task(":foo").skipped();
+        }
+
+        @Test
+        void can_check_task_skipped_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    onlyIf { false }
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThat(result).task(":foo").outcome().skipped();
+        }
+
+        @Test
+        void skipped_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").skipped())
+                    .withMessageContaining("Expected task outcome to be SKIPPED but was SUCCESS");
+        }
+    }
+
+    @Nested
+    class NoSourceAssertions {
+
+        @Test
+        void can_check_task_noSource(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().plugins().add("java");
+
+            InvocationResult result = gradle.withArgs("compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").noSource();
+        }
+
+        @Test
+        void can_check_task_noSource_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().plugins().add("java");
+
+            InvocationResult result = gradle.withArgs("compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").outcome().noSource();
+        }
+
+        @Test
+        void noSource_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").noSource())
+                    .withMessageContaining("Expected task outcome to be NO_SOURCE but was SUCCESS");
+        }
+    }
+
+    @Nested
+    class FromCacheAssertions {
+
+        @Test
+        void fromCache_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").fromCache())
+                    .withMessageContaining("Expected task outcome to be FROM_CACHE but was SUCCESS");
+        }
+    }
+
+    @Nested
     class OutputAssertions {
 
         @Test

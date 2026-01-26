@@ -649,10 +649,19 @@ void task_assertions(GradleInvoker gradle, RootProject project) {
     InvocationResult failure = gradle.withArgs("failingTask").buildsWithFailure();
     assertThat(failure).task(":failingTask").failed();
 
+    // Check task was skipped
+    assertThat(result).task(":skippedTask").skipped();
+
+    // Check task had no source files
+    assertThat(result).task(":compileTestJava").noSource();
+
+    // Check task result was from build cache
+    assertThat(result).task(":compileJava").fromCache();
+
     // Check task was not executed
     assertThat(result).task(":nonExistentTask").notOnTaskGraph();
 
-    // Check specific outcome
+    // Check specific outcome via outcome()
     assertThat(result).task(":compileJava").outcome().isEqualTo(TaskOutcome.FROM_CACHE);
 }
 ```

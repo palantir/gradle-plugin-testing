@@ -55,6 +55,36 @@ public final class TaskOutcomeAssert extends AbstractObjectAssert<TaskOutcomeAss
         return this;
     }
 
+    /**
+     * Asserts that the task outcome is {@link TaskOutcome#SKIPPED}.
+     *
+     * @return this assertion object for method chaining
+     */
+    public TaskOutcomeAssert skipped() {
+        assertTaskOutcome(TaskOutcome.SKIPPED);
+        return this;
+    }
+
+    /**
+     * Asserts that the task outcome is {@link TaskOutcome#FROM_CACHE}.
+     *
+     * @return this assertion object for method chaining
+     */
+    public TaskOutcomeAssert fromCache() {
+        assertTaskOutcome(TaskOutcome.FROM_CACHE);
+        return this;
+    }
+
+    /**
+     * Asserts that the task outcome is {@link TaskOutcome#NO_SOURCE}.
+     *
+     * @return this assertion object for method chaining
+     */
+    public TaskOutcomeAssert noSource() {
+        assertTaskOutcome(TaskOutcome.NO_SOURCE);
+        return this;
+    }
+
     private void assertTaskOutcome(TaskOutcome expected) {
         as("Expected task outcome to be %s but was %s", expected, actual).isEqualTo(expected);
     }
