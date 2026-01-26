@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 class GradleAssertionsUsageTest {
 
     @Nested
-    class TaskOutcome {
+    class Outcome {
 
         @Test
         void can_check_task_outcome(GradleInvoker gradle, RootProject rootProject) {
@@ -47,7 +47,7 @@ class GradleAssertionsUsageTest {
                     .task(":foo")
                     .as("Task should have SUCCESS outcome")
                     .outcome()
-                    .isEqualTo(com.palantir.gradle.testing.execution.TaskOutcome.SUCCESS);
+                    .isEqualTo(TaskOutcome.SUCCESS);
         }
 
         @Test
@@ -71,7 +71,7 @@ class GradleAssertionsUsageTest {
                     .task(":foo")
                     .as("Second run should be up to date")
                     .outcome()
-                    .isEqualTo(com.palantir.gradle.testing.execution.TaskOutcome.UP_TO_DATE);
+                    .isEqualTo(TaskOutcome.UP_TO_DATE);
         }
 
         @Test
@@ -89,7 +89,7 @@ class GradleAssertionsUsageTest {
                             .task(":foo")
                             .as("Task outcome should match")
                             .outcome()
-                            .isEqualTo(com.palantir.gradle.testing.execution.TaskOutcome.UP_TO_DATE))
+                            .isEqualTo(TaskOutcome.UP_TO_DATE))
                     .withMessageContaining("UP_TO_DATE")
                     .withMessageContaining("SUCCESS");
         }
