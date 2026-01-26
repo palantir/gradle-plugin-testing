@@ -399,7 +399,7 @@ class GradleAssertionsUsageTest {
             rootProject.buildGradle().plugins().add("java");
             rootProject.sourceSet("main").java().writeClass("public class Foo {}");
 
-            // Enable build cache and run compileJava
+            // --build-cache enables the local on-disk build cache
             gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
 
             // Clean the outputs but keep the cache
