@@ -24,6 +24,7 @@ import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.execution.TaskOutcome;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -306,6 +307,149 @@ class GradleAssertionsUsageTest {
             assertThatExceptionOfType(AssertionError.class)
                     .isThrownBy(() -> result.assertThat().task(":foo").notOnTaskGraph())
                     .withMessageContaining("Task ':foo' was found on task graph");
+        }
+    }
+
+    @Nested
+    class Skipped {
+
+        @Test
+        void can_check_task_skipped(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    onlyIf { false }
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThat(result).task(":foo").skipped();
+        }
+
+        @Test
+        void can_check_task_skipped_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    onlyIf { false }
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThat(result).task(":foo").outcome().skipped();
+        }
+
+        @Test
+        void skipped_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").skipped())
+                    .withMessageContaining("Expected task outcome to be SKIPPED but was SUCCESS");
+        }
+    }
+
+    @Nested
+    class NoSource {
+
+        @Test
+        void can_check_task_noSource(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().plugins().add("java");
+
+            InvocationResult result = gradle.withArgs("compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").noSource();
+        }
+
+        @Test
+        void can_check_task_noSource_via_outcome(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().plugins().add("java");
+
+            InvocationResult result = gradle.withArgs("compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").outcome().noSource();
+        }
+
+        @Test
+        void noSource_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").noSource())
+                    .withMessageContaining("Expected task outcome to be NO_SOURCE but was SUCCESS");
+        }
+    }
+
+    @Nested
+    class FromCache {
+
+        @BeforeEach
+        void beforeEach(RootProject rootProject) {
+            // Configure a project-local build cache to avoid interference from other tests
+            rootProject.settingsGradle().append("""
+                buildCache {
+                    local {
+                        directory = file('.build-cache')
+                    }
+                }
+                """);
+            rootProject.buildGradle().plugins().add("java");
+            rootProject.sourceSet("main").java().writeClass("public class Foo {}");
+        }
+
+        @Test
+        void can_check_task_fromCache(GradleInvoker gradle) {
+            // --build-cache enables the local on-disk build cache
+            gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+
+            // Clean the outputs but keep the cache
+            gradle.withArgs("clean").buildsSuccessfully();
+
+            // Run again - should be from cache
+            InvocationResult result =
+                    gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").fromCache();
+        }
+
+        @Test
+        void can_check_task_fromCache_via_outcome(GradleInvoker gradle) {
+            gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+            gradle.withArgs("clean").buildsSuccessfully();
+
+            InvocationResult result =
+                    gradle.withArgs("--build-cache", "compileJava").buildsSuccessfully();
+
+            assertThat(result).task(":compileJava").outcome().fromCache();
+        }
+
+        @Test
+        void fromCache_fails_when_outcome_is_different(GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                tasks.register('foo') {
+                    doLast {}
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("foo").buildsSuccessfully();
+
+            assertThatExceptionOfType(AssertionError.class)
+                    .isThrownBy(() -> result.assertThat().task(":foo").fromCache())
+                    .withMessageContaining("Expected task outcome to be FROM_CACHE but was SUCCESS");
         }
     }
 
