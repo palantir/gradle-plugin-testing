@@ -269,17 +269,31 @@ void add_plugins(RootProject project) {
 }
 ```
 
+When adding multiple plugins, chain the `.add()` calls rather than calling `.plugins()` multiple times:
+
+```java
+// Preferred - chain the calls
+rootProject.buildGradle().plugins()
+    .add("com.palantir.failure-reports")
+    .add("java");
+
+// Avoid - unnecessary repetition
+rootProject.buildGradle().plugins().add("com.palantir.failure-reports");
+rootProject.buildGradle().plugins().add("java");
+```
+
 #### Testing with External Plugins
 
-To test your plugin alongside external Gradle plugins, use the `gradlePluginForTesting` configuration in your projects `build.gradle`. This makes external plugins available in your test's Gradle runtime:
+The `gradlePluginForTesting` configuration is automatically created by the gradle-plugin-testing plugin. Use it to make external Gradle plugins available in your test's Gradle runtime:
 
 ```gradle
 dependencies {
-    gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging:<version>'
+    gradlePluginForTesting 'com.palantir.baseline:gradle-baseline-java'
+    gradlePluginForTesting 'com.palantir.sls-packaging:gradle-sls-packaging'
 }
 ```
 
-The plugin is then available in your tests:
+The plugin is then available in your tests using the standard `.plugins().add()` API:
 
 ```java
 @Test
