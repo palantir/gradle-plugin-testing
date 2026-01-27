@@ -31,8 +31,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
  * Provides test template invocation contexts for methods annotated with {@link GradleParameter}.
  *
  * <p>This extension generates multiple test invocations for a single test method, one for each
- * combination of parameter values that apply to the current Gradle version. Only invocations
- * that will actually run are created - no skipped tests are generated.
+ * combination of parameter values that apply to the current Gradle version.
  */
 final class GradleParameterTestTemplateProvider implements TestTemplateInvocationContextProvider {
 

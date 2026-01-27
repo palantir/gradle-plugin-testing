@@ -28,28 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * Defines a test parameter whose value varies based on the Gradle version being tested.
  *
  * <p>This annotation allows test methods to receive different parameter values depending on which
- * Gradle version the test is running against. Unlike JUnit's {@code @ParameterizedTest} which creates
- * test instances that may be skipped, this annotation only creates test invocations that will actually run.
- *
- * <p>Example usage:
- * <pre>{@code
- * @GradlePluginTests
- * class MyTest {
- *     @GradleParameter(
- *             name = "behavior",
- *             otherwiseStrings = "default",
- *             value = {
- *                 @ForVersion(lessThan = "9.0", strings = {"legacy1", "legacy2"}),
- *                 @ForVersion(equalTo = "8.14.3", strings = "special")
- *             })
- *     void test_behavior(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
- *         // Test code using the behavior parameter
- *     }
- * }
- * }</pre>
- *
- * <p><b>Important:</b> All {@link ForVersion} conditions must use the same type (either all strings or all ints),
- * and this type must match the otherwise type used.
+ * Gradle version the test is running against.
  *
  * <p><b>Note:</b> This annotation includes {@code @TestTemplate}, so methods annotated with {@code @GradleParameter}
  * should not also be annotated with {@code @Test}.
