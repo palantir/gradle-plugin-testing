@@ -56,7 +56,10 @@ public final class GradleParameterWithDisabledConfigurationCacheFixtureTest {
             println "Behavior: %s"
             """, behavior);
 
-        String output = gradleInvoker.withArgs("checkConfigurationCache").buildsSuccessfully().output();
+        String output = gradleInvoker
+                .withArgs("checkConfigurationCache")
+                .buildsSuccessfully()
+                .output();
         throw new RuntimeException("behavior=" + behavior + "|output=" + output);
     }
 }
