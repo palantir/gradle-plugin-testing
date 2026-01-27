@@ -18,26 +18,26 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
-import com.palantir.gradle.testing.junit.ForVersion;
-import com.palantir.gradle.testing.junit.GradleParameter;
+import com.palantir.gradle.testing.junit.WhenVersion;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 
 /**
- * Fixture test for verifying GradleParameter works with @DisabledConfigurationCache.
+ * Fixture test for verifying ParameterizedByGradleVersion works with @DisabledConfigurationCache.
  *
  * <p>This test verifies that:
  * 1. Tests run with configuration cache disabled
- * 2. GradleParameter values are correctly resolved
+ * 2. ParameterizedByGradleVersion values are correctly resolved
  */
 @GradlePluginTests
-public final class GradleParameterWithDisabledConfigurationCacheFixtureTest {
+public final class ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest {
 
-    @GradleParameter(
+    @ParameterizedByGradleVersion(
             name = "behavior",
             otherwiseStrings = "new",
-            value = {@ForVersion(lessThan = "8.0", strings = "old")})
-    @DisabledConfigurationCache("Testing compatibility with @GradleParameter")
+            value = {@WhenVersion(lessThan = "8.0", strings = "old")})
+    @DisabledConfigurationCache("Testing compatibility with @ParameterizedByGradleVersion")
     void test_with_parameter(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

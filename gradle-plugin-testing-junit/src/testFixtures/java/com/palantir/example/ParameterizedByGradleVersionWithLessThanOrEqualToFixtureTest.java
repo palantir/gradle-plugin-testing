@@ -17,28 +17,27 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
-import com.palantir.gradle.testing.junit.ForVersion;
-import com.palantir.gradle.testing.junit.GradleParameter;
+import com.palantir.gradle.testing.junit.WhenVersion;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 
 /**
- * Fixture test for verifying GradleParameter works with @AdditionallyRunWithGradle.
+ * Fixture test for verifying ParameterizedByGradleVersion lessThanOrEqualTo functionality.
  *
- * <p>This test verifies that:
- * 1. Tests run with both base versions and additional versions
- * 2. GradleParameter values are correctly resolved for each version
+ * <p>This test is executed by the end-to-end test ParameterizedByGradleVersionTest using JUnit Platform TestKit.
+ * The test throws RuntimeException with the parameter values to communicate them back to the E2E test.
  */
 @GradlePluginTests
-@AdditionallyRunWithGradle("8.5")
-public final class GradleParameterWithAdditionalVersionFixtureTest {
+public final class ParameterizedByGradleVersionWithLessThanOrEqualToFixtureTest {
 
-    @GradleParameter(
+    @ParameterizedByGradleVersion(
             name = "behavior",
-            otherwiseStrings = "new",
-            value = {@ForVersion(lessThan = "8.0", strings = "old")})
-    void test_with_parameter(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
+            otherwiseStrings = "otherwise",
+            value = {
+                @WhenVersion(lessThanOrEqualTo = "8.14.3", strings = "lessThanOrEqualTo"),
+            })
+    void test_lessThanOrEqualTo(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"

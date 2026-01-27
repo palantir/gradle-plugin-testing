@@ -21,17 +21,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies values for a specific Gradle version condition within a {@link GradleParameter}.
+ * Specifies values for a specific Gradle version condition within a {@link ParameterizedByGradleVersion}.
  *
  * <p>Version conditions can be specified using exactly one of {@code lessThan}, {@code lessThanOrEqualTo},
  * or {@code equalTo}.
  *
  * <p>Exactly one of the value arrays must be non-empty and match the type used in the containing
- * {@link GradleParameter}'s otherwise value.
+ * {@link ParameterizedByGradleVersion}'s otherwise value.
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ForVersion {
+public @interface WhenVersion {
 
     /**
      * The Gradle version that must be matched exactly for this condition to apply.

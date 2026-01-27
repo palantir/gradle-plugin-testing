@@ -29,16 +29,17 @@ import java.util.stream.IntStream;
 /**
  * Computes parameter values for a test method based on the current Gradle version.
  */
-final class GradleParameterValues {
+final class ParameterizedByGradleVersionValues {
 
     public static List<Map<String, Object>> computeInvocations(Method method, GradleVersion gradleVersion) {
-        List<GradleParameter> parameters = Arrays.asList(method.getAnnotationsByType(GradleParameter.class));
+        List<ParameterizedByGradleVersion> parameters =
+                Arrays.asList(method.getAnnotationsByType(ParameterizedByGradleVersion.class));
 
         if (parameters.isEmpty()) {
             return List.of();
         }
 
-        List<String> names = parameters.stream().map(GradleParameter::name).toList();
+        List<String> names = parameters.stream().map(ParameterizedByGradleVersion::name).toList();
         List<List<Object>> valueLists = parameters.stream()
                 .map(param -> computeValuesForParameter(param, gradleVersion))
                 .toList();
@@ -49,7 +50,7 @@ final class GradleParameterValues {
     }
 
     public static boolean hasGradleParameters(Method method) {
-        return method.getAnnotationsByType(GradleParameter.class).length > 0;
+        return method.getAnnotationsByType(ParameterizedByGradleVersion.class).length > 0;
     }
 
     private static Map<String, Object> toMap(List<String> names, List<Object> values) {
@@ -58,12 +59,13 @@ final class GradleParameterValues {
         return map;
     }
 
-    private static List<Object> computeValuesForParameter(GradleParameter param, GradleVersion gradleVersion) {
+    private static List<Object> computeValuesForParameter(
+            ParameterizedByGradleVersion param, GradleVersion gradleVersion) {
         ValueType type = determineAndValidateType(param);
 
         List<Object> values = Arrays.stream(param.value())
-                .filter(fv -> matchesVersion(fv, gradleVersion))
-                .flatMap(fv -> type.fromForVersion(fv).stream())
+                .filter(wv -> matchesVersion(wv, gradleVersion))
+                .flatMap(wv -> type.fromWhenVersion(wv).stream())
                 .toList();
 
         if (values.isEmpty()) {
@@ -81,22 +83,23 @@ final class GradleParameterValues {
         return values;
     }
 
-    private static boolean matchesVersion(ForVersion fv, GradleVersion current) {
-        String equalTo = fv.equalTo();
-        String lessThan = fv.lessThan();
-        String lessThanOrEqualTo = fv.lessThanOrEqualTo();
+    private static boolean matchesVersion(WhenVersion wv, GradleVersion current) {
+        String equalTo = wv.equalTo();
+        String lessThan = wv.lessThan();
+        String lessThanOrEqualTo = wv.lessThanOrEqualTo();
 
         long specifiedCount = java.util.stream.Stream.of(equalTo, lessThan, lessThanOrEqualTo)
                 .filter(s -> !s.isEmpty())
                 .count();
 
         if (specifiedCount == 0) {
-            throw new IllegalStateException("ForVersion must specify exactly one of equalTo, lessThan, or lessThanOrEqualTo");
+            throw new IllegalStateException(
+                    "WhenVersion must specify exactly one of equalTo, lessThan, or lessThanOrEqualTo");
         }
 
         if (specifiedCount > 1) {
             throw new IllegalStateException(
-                    "ForVersion cannot specify multiple version conditions. Found equalTo='%s', lessThan='%s', lessThanOrEqualTo='%s'"
+                    "WhenVersion cannot specify multiple version conditions. Found equalTo='%s', lessThan='%s', lessThanOrEqualTo='%s'"
                             .formatted(equalTo, lessThan, lessThanOrEqualTo));
         }
 
@@ -109,14 +112,14 @@ final class GradleParameterValues {
         }
     }
 
-    private static ValueType determineAndValidateType(GradleParameter param) {
+    private static ValueType determineAndValidateType(ParameterizedByGradleVersion param) {
         Optional<ValueType> otherwiseType = ValueType.detectFromOtherwise(param);
 
-        for (ForVersion fv : param.value()) {
-            Optional<ValueType> fvType = ValueType.detectFromForVersion(fv);
-            if (fvType.isPresent() && otherwiseType.isPresent() && fvType.get() != otherwiseType.get()) {
-                throw new IllegalStateException("Parameter '%s' uses %s for otherwise but ForVersion specifies %s"
-                        .formatted(param.name(), otherwiseType.get().name, fvType.get().name));
+        for (WhenVersion wv : param.value()) {
+            Optional<ValueType> wvType = ValueType.detectFromWhenVersion(wv);
+            if (wvType.isPresent() && otherwiseType.isPresent() && wvType.get() != otherwiseType.get()) {
+                throw new IllegalStateException("Parameter '%s' uses %s for otherwise but WhenVersion specifies %s"
+                        .formatted(param.name(), otherwiseType.get().name, wvType.get().name));
             }
         }
 
@@ -124,10 +127,10 @@ final class GradleParameterValues {
             return otherwiseType.get();
         }
 
-        for (ForVersion fv : param.value()) {
-            Optional<ValueType> fvType = ValueType.detectFromForVersion(fv);
-            if (fvType.isPresent()) {
-                return fvType.get();
+        for (WhenVersion wv : param.value()) {
+            Optional<ValueType> wvType = ValueType.detectFromWhenVersion(wv);
+            if (wvType.isPresent()) {
+                return wvType.get();
             }
         }
 
@@ -148,17 +151,17 @@ final class GradleParameterValues {
             this.name = name;
         }
 
-        List<Object> fromForVersion(ForVersion fv) {
+        List<Object> fromWhenVersion(WhenVersion wv) {
             return switch (this) {
-                case STRING -> Arrays.asList((Object[]) fv.strings());
-                case INT -> IntStream.of(fv.ints()).boxed().map(i -> (Object) i).toList();
-                case LONG -> Arrays.stream(fv.longs()).boxed().map(l -> (Object) l).toList();
-                case DOUBLE -> Arrays.stream(fv.doubles()).boxed().map(d -> (Object) d).toList();
-                case BOOLEAN -> boxBooleans(fv.booleans());
+                case STRING -> Arrays.asList((Object[]) wv.strings());
+                case INT -> IntStream.of(wv.ints()).boxed().map(i -> (Object) i).toList();
+                case LONG -> Arrays.stream(wv.longs()).boxed().map(l -> (Object) l).toList();
+                case DOUBLE -> Arrays.stream(wv.doubles()).boxed().map(d -> (Object) d).toList();
+                case BOOLEAN -> boxBooleans(wv.booleans());
             };
         }
 
-        List<Object> fromOtherwise(GradleParameter p) {
+        List<Object> fromOtherwise(ParameterizedByGradleVersion p) {
             return switch (this) {
                 case STRING -> Arrays.asList((Object[]) p.otherwiseStrings());
                 case INT -> IntStream.of(p.otherwiseInt()).boxed().map(i -> (Object) i).toList();
@@ -168,17 +171,17 @@ final class GradleParameterValues {
             };
         }
 
-        boolean hasForVersionValue(ForVersion fv) {
+        boolean hasWhenVersionValue(WhenVersion wv) {
             return switch (this) {
-                case STRING -> fv.strings().length > 0;
-                case INT -> fv.ints().length > 0;
-                case LONG -> fv.longs().length > 0;
-                case DOUBLE -> fv.doubles().length > 0;
-                case BOOLEAN -> fv.booleans().length > 0;
+                case STRING -> wv.strings().length > 0;
+                case INT -> wv.ints().length > 0;
+                case LONG -> wv.longs().length > 0;
+                case DOUBLE -> wv.doubles().length > 0;
+                case BOOLEAN -> wv.booleans().length > 0;
             };
         }
 
-        boolean hasOtherwiseValue(GradleParameter p) {
+        boolean hasOtherwiseValue(ParameterizedByGradleVersion p) {
             return switch (this) {
                 case STRING -> p.otherwiseStrings().length > 0;
                 case INT -> p.otherwiseInt().length > 0;
@@ -188,21 +191,22 @@ final class GradleParameterValues {
             };
         }
 
-        static Optional<ValueType> detectFromForVersion(ForVersion fv) {
+        static Optional<ValueType> detectFromWhenVersion(WhenVersion wv) {
             List<ValueType> types =
-                    Arrays.stream(values()).filter(t -> t.hasForVersionValue(fv)).toList();
+                    Arrays.stream(values()).filter(t -> t.hasWhenVersionValue(wv)).toList();
             if (types.size() > 1) {
-                throw new IllegalStateException("ForVersion cannot specify multiple value types");
+                throw new IllegalStateException("WhenVersion cannot specify multiple value types");
             }
             return types.isEmpty() ? Optional.empty() : Optional.of(types.get(0));
         }
 
-        static Optional<ValueType> detectFromOtherwise(GradleParameter param) {
+        static Optional<ValueType> detectFromOtherwise(ParameterizedByGradleVersion param) {
             List<ValueType> types =
                     Arrays.stream(values()).filter(t -> t.hasOtherwiseValue(param)).toList();
             if (types.size() > 1) {
                 throw new IllegalStateException(
-                        "GradleParameter '%s' cannot specify multiple otherwise value types".formatted(param.name()));
+                        "ParameterizedByGradleVersion '%s' cannot specify multiple otherwise value types"
+                                .formatted(param.name()));
             }
             return types.isEmpty() ? Optional.empty() : Optional.of(types.get(0));
         }
@@ -216,5 +220,5 @@ final class GradleParameterValues {
         }
     }
 
-    private GradleParameterValues() {}
+    private ParameterizedByGradleVersionValues() {}
 }

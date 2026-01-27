@@ -23,16 +23,16 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
 /**
- * Resolves parameters for test methods annotated with {@link GradleParameter}.
+ * Resolves parameters for test methods annotated with {@link ParameterizedByGradleVersion}.
  *
  * <p>This resolver is instantiated for each test invocation with the specific parameter values
  * for that invocation.
  */
-final class GradleParameterResolver implements TerseParameterResolver {
+final class ParameterizedByGradleVersionResolver implements TerseParameterResolver {
 
     private final Map<String, Object> parameterValues;
 
-    GradleParameterResolver(Map<String, Object> parameterValues) {
+    ParameterizedByGradleVersionResolver(Map<String, Object> parameterValues) {
         this.parameterValues = parameterValues;
     }
 

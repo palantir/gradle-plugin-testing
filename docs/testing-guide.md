@@ -11,6 +11,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [The @GradlePluginTests Annotation](#the-gradleplugintests-annotation)
     - [Parameter Injection](#parameter-injection)
     - [Multi-Version Testing](#multi-version-testing)
+    - [Version-Conditional Parameters](#version-conditional-parameters)
 - [File Operations](#file-operations)
     - [Working with Files](#working-with-files)
     - [Build Gradle](#build-gradle)
@@ -170,6 +171,55 @@ class CompatibilityTest {
 ```
 
 The versions from `@AdditionallyRunWithGradle` are merged with the globally configured versions. When applied to both a class and a method, all versions are combined. Duplicate versions are automatically deduplicated.
+
+#### Version-Conditional Parameters
+
+Use `@ParameterizedByGradleVersion` when test behavior needs to vary based on the Gradle version. This is similar to JUnit's `@ParameterizedTest`, but parameter values are selected based on Gradle version conditions.
+
+```java
+@GradlePluginTests
+class VersionDependentBehaviorTest {
+
+    @ParameterizedByGradleVersion(
+            name = "configOption",
+            otherwiseStrings = "newStyle",
+            value = {
+                @WhenVersion(lessThan = "8.0", strings = "legacyStyle")
+            })
+    void plugin_uses_version_appropriate_config(
+            GradleInvoker gradle, RootProject project, String configOption) {
+        // configOption is "legacyStyle" for Gradle < 8.0, "newStyle" otherwise
+        project.buildGradle().append("myPlugin.style = '%s'", configOption);
+        gradle.withArgs("myTask").buildsSuccessfully();
+    }
+}
+```
+
+**Version conditions** - Use exactly one per `@WhenVersion`:
+- `lessThan = "8.0"` - matches versions below 8.0
+- `lessThanOrEqualTo = "8.0"` - matches versions up to and including 8.0
+- `equalTo = "8.0"` - matches exactly version 8.0
+
+**Supported types**: `strings`, `ints`, `longs`, `doubles`, `booleans`
+
+**Multiple parameters** create a cartesian product of all values:
+
+```java
+@ParameterizedByGradleVersion(
+        name = "feature",
+        otherwiseStrings = "new",
+        value = @WhenVersion(lessThan = "8.0", strings = "legacy"))
+@ParameterizedByGradleVersion(
+        name = "maxWorkers",
+        otherwiseInt = 4,
+        value = @WhenVersion(lessThan = "8.0", ints = {1, 2}))
+void test_combinations(GradleInvoker gradle, RootProject project, String feature, int maxWorkers) {
+    // For Gradle < 8.0: runs with (legacy, 1), (legacy, 2)
+    // For Gradle >= 8.0: runs with (new, 4)
+}
+```
+
+> **Note:** Methods with `@ParameterizedByGradleVersion` should not also have `@Test` - the annotation already includes `@TestTemplate`.
 
 ## File Operations
 

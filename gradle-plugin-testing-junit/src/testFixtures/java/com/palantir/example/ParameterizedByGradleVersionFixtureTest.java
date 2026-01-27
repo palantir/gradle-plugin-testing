@@ -17,47 +17,54 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.ForVersion;
-import com.palantir.gradle.testing.junit.GradleParameter;
+import com.palantir.gradle.testing.junit.WhenVersion;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Fixture test for verifying multiple stacked GradleParameter annotations.
+ * Fixture test for verifying ParameterizedByGradleVersion functionality.
  *
- * <p>This test is executed by the end-to-end test GradleParameterTest using JUnit Platform TestKit.
+ * <p>This test is executed by the end-to-end test ParameterizedByGradleVersionTest using JUnit Platform TestKit.
+ * The test throws RuntimeException with the parameter values to communicate them back to the E2E test.
  */
 @GradlePluginTests
-public final class GradleParameterMultipleFixtureTest {
+public final class ParameterizedByGradleVersionFixtureTest {
 
-    @GradleParameter(
+    @ParameterizedByGradleVersion(
             name = "behavior",
             otherwiseStrings = "otherwise",
             value = {
-                @ForVersion(
+                @WhenVersion(
                         lessThan = "9.3.0",
                         strings = {"lessThan1", "lessThan2"}),
-                @ForVersion(equalTo = "8.14.3", strings = "equal")
+                @WhenVersion(equalTo = "8.14.3", strings = "equal")
             })
-    @GradleParameter(
-            name = "maxInt",
-            otherwiseInt = {3, 4},
-            value = {
-                @ForVersion(
-                        lessThan = "9.3.0",
-                        ints = {1, 2})
-            })
-    void test_one(GradleInvoker gradleInvoker, RootProject rootProject, String behavior, int maxInt) {
+    void test_one(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"
             println "Behavior: %s"
-            println "MaxInt: %d"
-            """, behavior, maxInt);
+            """, behavior);
 
         String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-        throw new RuntimeException("behavior=" + behavior + "|maxInt=" + maxInt + "|output=" + output);
+        throw new RuntimeException("behavior=" + behavior + "|output=" + output);
+    }
+
+    @ParameterizedByGradleVersion(
+            name = "behavior",
+            otherwiseInt = 1,
+            value = {@WhenVersion(lessThan = "9.3.0", ints = 2)})
+    void test_two(GradleInvoker gradleInvoker, RootProject rootProject, int behavior) {
+        rootProject.buildGradle().append("""
+            import org.gradle.util.GradleVersion
+            println "GradleVersion: ${GradleVersion.current().version}"
+            println "Behavior: %d"
+            """, behavior);
+
+        String output = gradleInvoker.withArgs().buildsSuccessfully().output();
+        throw new RuntimeException("behavior=" + behavior + "|output=" + output);
     }
 
     @Test

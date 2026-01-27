@@ -18,26 +18,26 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
-import com.palantir.gradle.testing.junit.ForVersion;
-import com.palantir.gradle.testing.junit.GradleParameter;
+import com.palantir.gradle.testing.junit.WhenVersion;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 
 /**
- * Fixture test for verifying GradleParameter works with method-level @AdditionallyRunWithGradle.
+ * Fixture test for verifying ParameterizedByGradleVersion works with @AdditionallyRunWithGradle.
  *
  * <p>This test verifies that:
- * 1. Tests run with both base versions and method-level additional versions
- * 2. GradleParameter values are correctly resolved for each version
+ * 1. Tests run with both base versions and additional versions
+ * 2. ParameterizedByGradleVersion values are correctly resolved for each version
  */
 @GradlePluginTests
-public final class GradleParameterWithMethodLevelAdditionalVersionFixtureTest {
+@AdditionallyRunWithGradle("8.5")
+public final class ParameterizedByGradleVersionWithAdditionalVersionFixtureTest {
 
-    @GradleParameter(
+    @ParameterizedByGradleVersion(
             name = "behavior",
             otherwiseStrings = "new",
-            value = {@ForVersion(lessThan = "8.0", strings = "old")})
-    @AdditionallyRunWithGradle("8.5")
+            value = {@WhenVersion(lessThan = "8.0", strings = "old")})
     void test_with_parameter(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

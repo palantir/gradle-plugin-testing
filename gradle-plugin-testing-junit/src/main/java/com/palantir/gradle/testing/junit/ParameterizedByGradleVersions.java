@@ -24,28 +24,28 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Container annotation for multiple {@link GradleParameter} annotations.
+ * Container annotation for multiple {@link ParameterizedByGradleVersion} annotations.
  *
- * <p>When multiple {@link GradleParameter} annotations are applied to a method, the test framework
+ * <p>When multiple {@link ParameterizedByGradleVersion} annotations are applied to a method, the test framework
  * generates test invocations for the Cartesian product of all parameter values. For example, if one
  * parameter has 2 values and another has 3 values, 6 test invocations will be generated (for each
  * Gradle version).
  *
- * <p>This annotation is automatically applied when multiple {@link GradleParameter} annotations
+ * <p>This annotation is automatically applied when multiple {@link ParameterizedByGradleVersion} annotations
  * are present on a method.
  *
- * @see GradleParameter
+ * @see ParameterizedByGradleVersion
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @TestTemplate
-@ExtendWith(GradleParameterTestTemplateProvider.class)
-public @interface GradleParameters {
+@ExtendWith(ParameterizedByGradleVersionTestTemplateProvider.class)
+public @interface ParameterizedByGradleVersions {
 
     /**
-     * The array of {@link GradleParameter} annotations.
+     * The array of {@link ParameterizedByGradleVersion} annotations.
      *
-     * @return the contained GradleParameter annotations
+     * @return the contained ParameterizedByGradleVersion annotations
      */
-    GradleParameter[] value();
+    ParameterizedByGradleVersion[] value();
 }

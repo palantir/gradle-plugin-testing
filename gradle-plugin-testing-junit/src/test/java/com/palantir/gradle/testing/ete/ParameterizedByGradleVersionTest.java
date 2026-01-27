@@ -18,12 +18,12 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.GradleParameterFixtureTest;
-import com.palantir.example.GradleParameterMultipleFixtureTest;
-import com.palantir.example.GradleParameterWithAdditionalVersionFixtureTest;
-import com.palantir.example.GradleParameterWithDisabledConfigurationCacheFixtureTest;
-import com.palantir.example.GradleParameterWithLessThanOrEqualToFixtureTest;
-import com.palantir.example.GradleParameterWithMethodLevelAdditionalVersionFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionMultipleFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionWithAdditionalVersionFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionWithLessThanOrEqualToFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionWithMethodLevelAdditionalVersionFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Nested;
@@ -35,13 +35,13 @@ import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import org.junit.platform.testkit.engine.Event;
 
-final class GradleParameterTest {
+final class ParameterizedByGradleVersionTest {
 
     @Nested
     class SingleParameter {
         @Test
         void gradle_7_6_4_runs_lessThan_values() {
-            EngineExecutionResults results = runFixture(GradleParameterFixtureTest.class, "7.6.4");
+            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -57,7 +57,7 @@ final class GradleParameterTest {
 
         @Test
         void gradle_8_14_3_runs_lessThan_and_equalTo_values() {
-            EngineExecutionResults results = runFixture(GradleParameterFixtureTest.class, "8.14.3");
+            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionFixtureTest.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -74,7 +74,7 @@ final class GradleParameterTest {
 
         @Test
         void gradle_9_3_0_runs_otherwise_values() {
-            EngineExecutionResults results = runFixture(GradleParameterFixtureTest.class, "9.3.0");
+            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionFixtureTest.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -92,7 +92,8 @@ final class GradleParameterTest {
     class WithAdditionalVersion {
         @Test
         void runs_with_correct_values_for_each_version() {
-            EngineExecutionResults results = runFixture(GradleParameterWithAdditionalVersionFixtureTest.class, "7.6.4");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionWithAdditionalVersionFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -106,7 +107,7 @@ final class GradleParameterTest {
         @Test
         void runs_with_correct_values_for_method_level_additional_version() {
             EngineExecutionResults results =
-                    runFixture(GradleParameterWithMethodLevelAdditionalVersionFixtureTest.class, "7.6.4");
+                    runFixture(ParameterizedByGradleVersionWithMethodLevelAdditionalVersionFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -122,8 +123,8 @@ final class GradleParameterTest {
     class WithDisabledConfigurationCache {
         @Test
         void runs_with_configuration_cache_disabled() {
-            EngineExecutionResults results =
-                    runFixture(GradleParameterWithDisabledConfigurationCacheFixtureTest.class, "7.6.4", "true");
+            EngineExecutionResults results = runFixture(
+                    ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest.class, "7.6.4", "true");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -140,7 +141,7 @@ final class GradleParameterTest {
         @Test
         void gradle_7_6_4_matches_lessThanOrEqualTo_8_14_3() {
             EngineExecutionResults results =
-                    runFixture(GradleParameterWithLessThanOrEqualToFixtureTest.class, "7.6.4");
+                    runFixture(ParameterizedByGradleVersionWithLessThanOrEqualToFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -153,7 +154,7 @@ final class GradleParameterTest {
         @Test
         void gradle_8_14_3_matches_lessThanOrEqualTo_8_14_3() {
             EngineExecutionResults results =
-                    runFixture(GradleParameterWithLessThanOrEqualToFixtureTest.class, "8.14.3");
+                    runFixture(ParameterizedByGradleVersionWithLessThanOrEqualToFixtureTest.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -166,7 +167,7 @@ final class GradleParameterTest {
         @Test
         void gradle_9_3_0_uses_otherwise() {
             EngineExecutionResults results =
-                    runFixture(GradleParameterWithLessThanOrEqualToFixtureTest.class, "9.3.0");
+                    runFixture(ParameterizedByGradleVersionWithLessThanOrEqualToFixtureTest.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -180,7 +181,8 @@ final class GradleParameterTest {
     class MultipleParameters {
         @Test
         void gradle_7_6_4_creates_cartesian_product() {
-            EngineExecutionResults results = runFixture(GradleParameterMultipleFixtureTest.class, "7.6.4");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -197,7 +199,8 @@ final class GradleParameterTest {
 
         @Test
         void gradle_8_14_3_creates_cartesian_product_with_equalTo() {
-            EngineExecutionResults results = runFixture(GradleParameterMultipleFixtureTest.class, "8.14.3");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -216,7 +219,8 @@ final class GradleParameterTest {
 
         @Test
         void gradle_9_3_0_creates_cartesian_product_with_otherwise() {
-            EngineExecutionResults results = runFixture(GradleParameterMultipleFixtureTest.class, "9.3.0");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 

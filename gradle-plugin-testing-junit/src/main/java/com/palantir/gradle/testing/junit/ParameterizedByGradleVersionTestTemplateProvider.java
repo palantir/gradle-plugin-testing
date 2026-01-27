@@ -28,12 +28,12 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
 /**
- * Provides test template invocation contexts for methods annotated with {@link GradleParameter}.
+ * Provides test template invocation contexts for methods annotated with {@link ParameterizedByGradleVersion}.
  *
  * <p>This extension generates multiple test invocations for a single test method, one for each
  * combination of parameter values that apply to the current Gradle version.
  */
-final class GradleParameterTestTemplateProvider implements TestTemplateInvocationContextProvider {
+final class ParameterizedByGradleVersionTestTemplateProvider implements TestTemplateInvocationContextProvider {
 
     @Override
     public boolean supportsTestTemplate(ExtensionContext context) {
@@ -43,7 +43,7 @@ final class GradleParameterTestTemplateProvider implements TestTemplateInvocatio
             return false;
         }
         return context.getTestMethod()
-                .map(GradleParameterValues::hasGradleParameters)
+                .map(ParameterizedByGradleVersionValues::hasGradleParameters)
                 .orElse(false);
     }
 
@@ -52,7 +52,8 @@ final class GradleParameterTestTemplateProvider implements TestTemplateInvocatio
         Method method = context.getRequiredTestMethod();
         GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
 
-        List<Map<String, Object>> invocations = GradleParameterValues.computeInvocations(method, gradleVersion);
+        List<Map<String, Object>> invocations =
+                ParameterizedByGradleVersionValues.computeInvocations(method, gradleVersion);
 
         if (invocations.isEmpty()) {
             // No parameter values for this Gradle version - this shouldn't happen
@@ -60,10 +61,10 @@ final class GradleParameterTestTemplateProvider implements TestTemplateInvocatio
             return Stream.empty();
         }
 
-        return invocations.stream().map(GradleParameterInvocationContext::new);
+        return invocations.stream().map(ParameterizedByGradleVersionInvocationContext::new);
     }
 
-    private record GradleParameterInvocationContext(Map<String, Object> parameterValues)
+    private record ParameterizedByGradleVersionInvocationContext(Map<String, Object> parameterValues)
             implements TestTemplateInvocationContext {
 
         @Override
@@ -80,7 +81,7 @@ final class GradleParameterTestTemplateProvider implements TestTemplateInvocatio
 
         @Override
         public List<Extension> getAdditionalExtensions() {
-            return List.of(new GradleParameterResolver(parameterValues));
+            return List.of(new ParameterizedByGradleVersionResolver(parameterValues));
         }
     }
 }

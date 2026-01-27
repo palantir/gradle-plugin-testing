@@ -28,20 +28,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * Defines a test parameter whose value varies based on the Gradle version being tested.
  *
  * <p>This annotation allows test methods to receive different parameter values depending on which
- * Gradle version the test is running against.
+ * Gradle version the test is running against. Similar to JUnit's {@code @ParameterizedTest}, but
+ * the parameter values are selected based on Gradle version conditions.
  *
- * <p><b>Note:</b> This annotation includes {@code @TestTemplate}, so methods annotated with {@code @GradleParameter}
- * should not also be annotated with {@code @Test}.
+ * <p><b>Note:</b> This annotation includes {@code @TestTemplate}, so methods annotated with
+ * {@code @ParameterizedByGradleVersion} should not also be annotated with {@code @Test}.
  *
- * @see ForVersion
- * @see GradleParameters
+ * @see WhenVersion
+ * @see ParameterizedByGradleVersions
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(GradleParameters.class)
+@Repeatable(ParameterizedByGradleVersions.class)
 @TestTemplate
-@ExtendWith(GradleParameterTestTemplateProvider.class)
-public @interface GradleParameter {
+@ExtendWith(ParameterizedByGradleVersionTestTemplateProvider.class)
+public @interface ParameterizedByGradleVersion {
 
     /**
      * The name of the parameter. This must match the name of a method parameter.
@@ -55,7 +56,7 @@ public @interface GradleParameter {
      *
      * @return array of version conditions with their associated values
      */
-    ForVersion[] value();
+    WhenVersion[] value();
 
     /**
      * Default string values when no version condition matches.
