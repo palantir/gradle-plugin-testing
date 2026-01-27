@@ -23,7 +23,8 @@ import java.lang.annotation.Target;
 /**
  * Specifies values for a specific Gradle version condition within a {@link GradleParameter}.
  *
- * <p>Version conditions can be specified using either {@code lessThan} or {@code equalTo}, but not both.
+ * <p>Version conditions can be specified using exactly one of {@code lessThan}, {@code lessThanOrEqualTo},
+ * or {@code equalTo}.
  *
  * <p>Exactly one of the value arrays must be non-empty and match the type used in the containing
  * {@link GradleParameter}'s otherwise value.
@@ -34,7 +35,7 @@ public @interface ForVersion {
 
     /**
      * The Gradle version that must be matched exactly for this condition to apply.
-     * Mutually exclusive with {@link #lessThan()}.
+     * Mutually exclusive with {@link #lessThan()} and {@link #lessThanOrEqualTo()}.
      *
      * @return the exact version to match (e.g., "8.14.3"), or empty string if not used
      */
@@ -42,11 +43,19 @@ public @interface ForVersion {
 
     /**
      * The Gradle version that the current version must be less than for this condition to apply.
-     * Mutually exclusive with {@link #equalTo()}.
+     * Mutually exclusive with {@link #equalTo()} and {@link #lessThanOrEqualTo()}.
      *
      * @return the version to compare against (e.g., "9.3.0"), or empty string if not used
      */
     String lessThan() default "";
+
+    /**
+     * The Gradle version that the current version must be less than or equal to for this condition to apply.
+     * Mutually exclusive with {@link #equalTo()} and {@link #lessThan()}.
+     *
+     * @return the version to compare against (e.g., "8.14.3"), or empty string if not used
+     */
+    String lessThanOrEqualTo() default "";
 
     /**
      * String values to use when this version condition matches.

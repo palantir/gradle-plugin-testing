@@ -22,6 +22,7 @@ import com.palantir.example.GradleParameterFixtureTest;
 import com.palantir.example.GradleParameterMultipleFixtureTest;
 import com.palantir.example.GradleParameterWithAdditionalVersionFixtureTest;
 import com.palantir.example.GradleParameterWithDisabledConfigurationCacheFixtureTest;
+import com.palantir.example.GradleParameterWithLessThanOrEqualToFixtureTest;
 import com.palantir.example.GradleParameterWithMethodLevelAdditionalVersionFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
@@ -130,6 +131,47 @@ final class GradleParameterTest {
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
                             forEvent("7.6.4", "old", "behavior=old", "isConfigurationCacheRequested=false"));
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+    }
+
+    @Nested
+    class WithLessThanOrEqualTo {
+        @Test
+        void gradle_7_6_4_matches_lessThanOrEqualTo_8_14_3() {
+            EngineExecutionResults results =
+                    runFixture(GradleParameterWithLessThanOrEqualToFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(finished).hasSize(1);
+            assertThat(finished)
+                    .satisfiesExactlyInAnyOrder(forEvent("7.6.4", "lessThanOrEqualTo", "behavior=lessThanOrEqualTo"));
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        @Test
+        void gradle_8_14_3_matches_lessThanOrEqualTo_8_14_3() {
+            EngineExecutionResults results =
+                    runFixture(GradleParameterWithLessThanOrEqualToFixtureTest.class, "8.14.3");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(finished).hasSize(1);
+            assertThat(finished)
+                    .satisfiesExactlyInAnyOrder(forEvent("8.14.3", "lessThanOrEqualTo", "behavior=lessThanOrEqualTo"));
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        @Test
+        void gradle_9_3_0_uses_otherwise() {
+            EngineExecutionResults results =
+                    runFixture(GradleParameterWithLessThanOrEqualToFixtureTest.class, "9.3.0");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(finished).hasSize(1);
+            assertThat(finished).satisfiesExactlyInAnyOrder(forEvent("9.3.0", "otherwise", "behavior=otherwise"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
     }

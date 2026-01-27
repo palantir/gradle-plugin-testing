@@ -84,18 +84,29 @@ final class GradleParameterValues {
     private static boolean matchesVersion(ForVersion fv, GradleVersion current) {
         String equalTo = fv.equalTo();
         String lessThan = fv.lessThan();
+        String lessThanOrEqualTo = fv.lessThanOrEqualTo();
 
-        if (!equalTo.isEmpty() && !lessThan.isEmpty()) {
+        long specifiedCount = java.util.stream.Stream.of(equalTo, lessThan, lessThanOrEqualTo)
+                .filter(s -> !s.isEmpty())
+                .count();
+
+        if (specifiedCount == 0) {
+            throw new IllegalStateException("ForVersion must specify exactly one of equalTo, lessThan, or lessThanOrEqualTo");
+        }
+
+        if (specifiedCount > 1) {
             throw new IllegalStateException(
-                    "ForVersion cannot specify both equalTo and lessThan. Found equalTo='%s' and lessThan='%s'"
-                            .formatted(equalTo, lessThan));
+                    "ForVersion cannot specify multiple version conditions. Found equalTo='%s', lessThan='%s', lessThanOrEqualTo='%s'"
+                            .formatted(equalTo, lessThan, lessThanOrEqualTo));
         }
 
-        if (equalTo.isEmpty() && lessThan.isEmpty()) {
-            throw new IllegalStateException("ForVersion must specify either equalTo or lessThan");
+        if (!equalTo.isEmpty()) {
+            return current.isEqualTo(equalTo);
+        } else if (!lessThan.isEmpty()) {
+            return current.isLessThan(lessThan);
+        } else {
+            return current.isLessThanOrEqualTo(lessThanOrEqualTo);
         }
-
-        return !equalTo.isEmpty() ? current.isEqualTo(equalTo) : current.isLessThan(lessThan);
     }
 
     private static ValueType determineAndValidateType(GradleParameter param) {
