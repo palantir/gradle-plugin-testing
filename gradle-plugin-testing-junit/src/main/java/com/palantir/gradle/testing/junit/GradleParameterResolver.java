@@ -52,6 +52,15 @@ final class GradleParameterResolver implements TerseParameterResolver {
             if ((parameterType == int.class || parameterType == Integer.class) && value instanceof Integer) {
                 return Optional.of(value);
             }
+            if ((parameterType == long.class || parameterType == Long.class) && value instanceof Long) {
+                return Optional.of(value);
+            }
+            if ((parameterType == double.class || parameterType == Double.class) && value instanceof Double) {
+                return Optional.of(value);
+            }
+            if ((parameterType == boolean.class || parameterType == Boolean.class) && value instanceof Boolean) {
+                return Optional.of(value);
+            }
 
             throw new ParameterResolutionException("Parameter '%s' has type %s but value is of type %s"
                     .formatted(

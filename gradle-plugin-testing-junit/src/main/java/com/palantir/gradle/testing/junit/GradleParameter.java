@@ -80,7 +80,7 @@ public @interface GradleParameter {
 
     /**
      * Default string values when no version condition matches.
-     * Mutually exclusive with {@link #otherwiseInt()}.
+     * Mutually exclusive with other otherwise* attributes.
      *
      * @return array of default string values
      */
@@ -88,9 +88,33 @@ public @interface GradleParameter {
 
     /**
      * Default integer values when no version condition matches.
-     * Mutually exclusive with {@link #otherwiseStrings()}.
+     * Mutually exclusive with other otherwise* attributes.
      *
      * @return array of default integer values
      */
     int[] otherwiseInt() default {};
+
+    /**
+     * Default long values when no version condition matches.
+     * Mutually exclusive with other otherwise* attributes.
+     *
+     * @return array of default long values
+     */
+    long[] otherwiseLong() default {};
+
+    /**
+     * Default double values when no version condition matches.
+     * Mutually exclusive with other otherwise* attributes.
+     *
+     * @return array of default double values
+     */
+    double[] otherwiseDouble() default {};
+
+    /**
+     * Default boolean values when no version condition matches.
+     * Mutually exclusive with other otherwise* attributes.
+     *
+     * @return array of default boolean values
+     */
+    boolean[] otherwiseBoolean() default {};
 }

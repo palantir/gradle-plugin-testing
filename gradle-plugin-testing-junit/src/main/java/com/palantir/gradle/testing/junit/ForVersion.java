@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
  *
  * <p>Version conditions can be specified using either {@code lessThan} or {@code equalTo}, but not both.
  *
- * <p>Exactly one of the value arrays ({@code strings} or {@code ints}) must be non-empty and match
- * the type used in the containing {@link GradleParameter}'s otherwise value.
+ * <p>Exactly one of the value arrays must be non-empty and match the type used in the containing
+ * {@link GradleParameter}'s otherwise value.
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)
@@ -61,4 +61,25 @@ public @interface ForVersion {
      * @return array of integer values
      */
     int[] ints() default {};
+
+    /**
+     * Long values to use when this version condition matches.
+     *
+     * @return array of long values
+     */
+    long[] longs() default {};
+
+    /**
+     * Double values to use when this version condition matches.
+     *
+     * @return array of double values
+     */
+    double[] doubles() default {};
+
+    /**
+     * Boolean values to use when this version condition matches.
+     *
+     * @return array of boolean values
+     */
+    boolean[] booleans() default {};
 }

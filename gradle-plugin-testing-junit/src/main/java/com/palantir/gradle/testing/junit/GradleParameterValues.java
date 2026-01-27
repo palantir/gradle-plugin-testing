@@ -19,14 +19,15 @@ package com.palantir.gradle.testing.junit;
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Locale;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 /**
  * Computes parameter values for a test method based on the current Gradle version.
@@ -157,73 +158,128 @@ final class GradleParameterValues {
         ParameterType type = determineParameterType(param);
 
         for (ForVersion forVersion : param.value()) {
-            boolean hasStrings = forVersion.strings().length > 0;
-            boolean hasInts = forVersion.ints().length > 0;
-
-            if (hasStrings && hasInts) {
-                throw new IllegalStateException("ForVersion cannot specify both strings and ints values");
-            }
-
-            if (type == ParameterType.STRING && hasInts) {
+            ParameterType forVersionType = getForVersionType(forVersion);
+            if (forVersionType != null && forVersionType != type) {
                 throw new IllegalStateException(
-                        "Parameter '%s' uses strings for otherwise but ForVersion specifies ints"
-                                .formatted(param.name()));
-            }
-
-            if (type == ParameterType.INT && hasStrings) {
-                throw new IllegalStateException(
-                        "Parameter '%s' uses ints for otherwise but ForVersion specifies strings"
-                                .formatted(param.name()));
+                        "Parameter '%s' uses %s for otherwise but ForVersion specifies %s"
+                                .formatted(
+                                        param.name(),
+                                        type.name().toLowerCase(Locale.ROOT),
+                                        forVersionType.name().toLowerCase(Locale.ROOT)));
             }
         }
     }
 
+    private static ParameterType getForVersionType(ForVersion forVersion) {
+        int typesSpecified = 0;
+        ParameterType type = null;
+
+        if (forVersion.strings().length > 0) {
+            typesSpecified++;
+            type = ParameterType.STRING;
+        }
+        if (forVersion.ints().length > 0) {
+            typesSpecified++;
+            type = ParameterType.INT;
+        }
+        if (forVersion.longs().length > 0) {
+            typesSpecified++;
+            type = ParameterType.LONG;
+        }
+        if (forVersion.doubles().length > 0) {
+            typesSpecified++;
+            type = ParameterType.DOUBLE;
+        }
+        if (forVersion.booleans().length > 0) {
+            typesSpecified++;
+            type = ParameterType.BOOLEAN;
+        }
+
+        if (typesSpecified > 1) {
+            throw new IllegalStateException("ForVersion cannot specify multiple value types");
+        }
+
+        return type;
+    }
+
     private static ParameterType determineParameterType(GradleParameter param) {
-        boolean hasOtherwiseStrings = param.otherwiseStrings().length > 0;
-        boolean hasOtherwiseInt = param.otherwiseInt().length > 0;
+        int otherwiseTypesSpecified = 0;
+        ParameterType otherwiseType = null;
 
-        if (hasOtherwiseStrings && hasOtherwiseInt) {
-            throw new IllegalStateException("GradleParameter '%s' cannot specify both otherwiseStrings and otherwiseInt"
-                    .formatted(param.name()));
+        if (param.otherwiseStrings().length > 0) {
+            otherwiseTypesSpecified++;
+            otherwiseType = ParameterType.STRING;
+        }
+        if (param.otherwiseInt().length > 0) {
+            otherwiseTypesSpecified++;
+            otherwiseType = ParameterType.INT;
+        }
+        if (param.otherwiseLong().length > 0) {
+            otherwiseTypesSpecified++;
+            otherwiseType = ParameterType.LONG;
+        }
+        if (param.otherwiseDouble().length > 0) {
+            otherwiseTypesSpecified++;
+            otherwiseType = ParameterType.DOUBLE;
+        }
+        if (param.otherwiseBoolean().length > 0) {
+            otherwiseTypesSpecified++;
+            otherwiseType = ParameterType.BOOLEAN;
         }
 
-        if (hasOtherwiseStrings) {
-            return ParameterType.STRING;
+        if (otherwiseTypesSpecified > 1) {
+            throw new IllegalStateException(
+                    "GradleParameter '%s' cannot specify multiple otherwise value types".formatted(param.name()));
         }
-        if (hasOtherwiseInt) {
-            return ParameterType.INT;
+
+        if (otherwiseType != null) {
+            return otherwiseType;
         }
 
         // Infer from ForVersion values
         for (ForVersion forVersion : param.value()) {
-            if (forVersion.strings().length > 0) {
-                return ParameterType.STRING;
-            }
-            if (forVersion.ints().length > 0) {
-                return ParameterType.INT;
+            ParameterType forVersionType = getForVersionType(forVersion);
+            if (forVersionType != null) {
+                return forVersionType;
             }
         }
 
         throw new IllegalStateException(
-                "Cannot determine parameter type for '%s'. Specify otherwiseStrings or otherwiseInt."
+                "Cannot determine parameter type for '%s'. Specify an otherwise value."
                         .formatted(param.name()));
     }
 
     private static List<Object> extractValues(ForVersion forVersion, ParameterType type) {
         return switch (type) {
-            case STRING ->
-                Arrays.stream(forVersion.strings()).map(s -> (Object) s).toList();
-            case INT ->
-                IntStream.of(forVersion.ints()).boxed().map(i -> (Object) i).toList();
+            case STRING -> Arrays.stream(forVersion.strings()).map(s -> (Object) s).toList();
+            case INT -> IntStream.of(forVersion.ints()).boxed().map(i -> (Object) i).toList();
+            case LONG -> LongStream.of(forVersion.longs()).boxed().map(l -> (Object) l).toList();
+            case DOUBLE -> DoubleStream.of(forVersion.doubles()).boxed().map(d -> (Object) d).toList();
+            case BOOLEAN -> {
+                boolean[] booleans = forVersion.booleans();
+                List<Object> result = new ArrayList<>(booleans.length);
+                for (boolean b : booleans) {
+                    result.add(b);
+                }
+                yield result;
+            }
         };
     }
 
     private static List<Object> extractOtherwiseValues(GradleParameter param, ParameterType type) {
         return switch (type) {
-            case STRING ->
-                Arrays.stream(param.otherwiseStrings()).map(s -> (Object) s).toList();
-            case INT ->
-                IntStream.of(param.otherwiseInt()).boxed().map(i -> (Object) i).toList();
+            case STRING -> Arrays.stream(param.otherwiseStrings()).map(s -> (Object) s).toList();
+            case INT -> IntStream.of(param.otherwiseInt()).boxed().map(i -> (Object) i).toList();
+            case LONG -> LongStream.of(param.otherwiseLong()).boxed().map(l -> (Object) l).toList();
+            case DOUBLE -> DoubleStream.of(param.otherwiseDouble()).boxed().map(d -> (Object) d).toList();
+            case BOOLEAN -> {
+                boolean[] booleans = param.otherwiseBoolean();
+                List<Object> result = new ArrayList<>(booleans.length);
+                for (boolean b : booleans) {
+                    result.add(b);
+                }
+                yield result;
+            }
         };
     }
 
@@ -252,22 +308,12 @@ final class GradleParameterValues {
         return result;
     }
 
-    /**
-     * Finds the index of a parameter by name in a method's parameter list.
-     */
-    public static Optional<Integer> findParameterIndex(Method method, String parameterName) {
-        Parameter[] parameters = method.getParameters();
-        for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].isNamePresent() && parameters[i].getName().equals(parameterName)) {
-                return Optional.of(i);
-            }
-        }
-        return Optional.empty();
-    }
-
     private enum ParameterType {
         STRING,
-        INT
+        INT,
+        LONG,
+        DOUBLE,
+        BOOLEAN
     }
 
     private record ParameterWithValues(String name, List<Object> values) {}

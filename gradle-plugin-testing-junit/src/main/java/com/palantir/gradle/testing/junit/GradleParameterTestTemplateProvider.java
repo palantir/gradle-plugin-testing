@@ -20,6 +20,7 @@ import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -37,6 +38,11 @@ final class GradleParameterTestTemplateProvider implements TestTemplateInvocatio
 
     @Override
     public boolean supportsTestTemplate(ExtensionContext context) {
+        // Only support if we have a GradleVersion in the store (set by @GradlePluginTests)
+        // This prevents fixture classes without the proper test context from being discovered
+        if (GradleVersionStore.gradleVersion(context) == null) {
+            return false;
+        }
         return context.getTestMethod()
                 .map(GradleParameterValues::hasGradleParameters)
                 .orElse(false);
@@ -70,8 +76,7 @@ final class GradleParameterTestTemplateProvider implements TestTemplateInvocatio
             // Multiple parameters: show name=value pairs
             return parameterValues.entrySet().stream()
                     .map(e -> e.getKey() + "=" + e.getValue())
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
+                    .collect(Collectors.joining(", "));
         }
 
         @Override

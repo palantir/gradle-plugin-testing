@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.GradleParameterFixtureTest;
 import com.palantir.example.GradleParameterMultipleFixtureTest;
+import com.palantir.example.GradleParameterWithAdditionalVersionFixtureTest;
+import com.palantir.example.GradleParameterWithDisabledConfigurationCacheFixtureTest;
+import com.palantir.example.GradleParameterWithMethodLevelAdditionalVersionFixtureTest;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Nested;
@@ -122,6 +125,114 @@ final class GradleParameterTest {
     }
 
     @Nested
+    class WithAdditionalVersion {
+        /**
+         * Tests that @GradleParameter works correctly with @AdditionallyRunWithGradle.
+         * The fixture uses @AdditionallyRunWithGradle("8.5") and has:
+         * - test_with_parameter: behavior = "old" for lessThan 8.0, "new" otherwise
+         *
+         * When run with base version 7.6.4 and additional 8.5:
+         * - Gradle 7.6.4 (< 8.0): behavior = "old"
+         * - Gradle 8.5 (>= 8.0): behavior = "new"
+         */
+        @Test
+        void runs_with_correct_values_for_each_version() {
+            EngineExecutionResults results =
+                    runFixtureWithAdditionalVersions(GradleParameterWithAdditionalVersionFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            // test_with_parameter runs twice (once per Gradle version)
+            assertThat(finished).hasSize(2);
+
+            assertThat(finished)
+                    .satisfiesExactlyInAnyOrder(
+                            eventWithBehaviorForAdditionalVersion("old", "7.6.4"),
+                            eventWithBehaviorForAdditionalVersion("new", "8.5"));
+
+            // Verify no skipped tests
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        /**
+         * Tests that @GradleParameter works correctly with method-level @AdditionallyRunWithGradle.
+         * The fixture has @AdditionallyRunWithGradle("8.5") directly on the test method with:
+         * - test_with_parameter: behavior = "old" for lessThan 8.0, "new" otherwise
+         *
+         * When run with base version 7.6.4 and method-level additional 8.5:
+         * - Gradle 7.6.4 (< 8.0): behavior = "old"
+         * - Gradle 8.5 (>= 8.0): behavior = "new"
+         */
+        @Test
+        void runs_with_correct_values_for_method_level_additional_version() {
+            EngineExecutionResults results = runFixtureWithAdditionalVersions(
+                    GradleParameterWithMethodLevelAdditionalVersionFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            // test_with_parameter runs twice (once per Gradle version)
+            assertThat(finished).hasSize(2);
+
+            assertThat(finished)
+                    .satisfiesExactlyInAnyOrder(
+                            eventWithBehaviorForAdditionalVersion("old", "7.6.4"),
+                            eventWithBehaviorForAdditionalVersion("new", "8.5"));
+
+            // Verify no skipped tests
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        private Consumer<Event> eventWithBehaviorForAdditionalVersion(String behavior, String gradleVersion) {
+            return event -> {
+                assertThat(event.getTestDescriptor().getDisplayName()).isEqualTo(behavior);
+                assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
+                    assertThat(result.getStatus()).isEqualTo(Status.FAILED);
+                    assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
+                        assertThat(throwable.getMessage()).contains("behavior=" + behavior);
+                        assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
+                    });
+                });
+                assertGradleVersionParent(event, gradleVersion);
+            };
+        }
+    }
+
+    @Nested
+    class WithDisabledConfigurationCache {
+        /**
+         * Tests that @GradleParameter works correctly with @DisabledConfigurationCache.
+         * The fixture has @DisabledConfigurationCache on a method with @GradleParameter.
+         */
+        @Test
+        void runs_with_configuration_cache_disabled() {
+            EngineExecutionResults results =
+                    runFixtureWithCC(GradleParameterWithDisabledConfigurationCacheFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            // test_with_parameter runs once with behavior = "old" (< 8.0)
+            assertThat(finished).hasSize(1);
+
+            assertThat(finished).satisfiesExactlyInAnyOrder(event -> {
+                assertThat(event.getTestDescriptor().getDisplayName()).isEqualTo("old");
+                assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
+                    assertThat(result.getStatus()).isEqualTo(Status.FAILED);
+                    assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
+                        assertThat(throwable.getMessage()).contains("behavior=old");
+                        assertThat(throwable.getMessage()).contains("GradleVersion: 7.6.4");
+                        // Verify configuration cache is actually disabled
+                        assertThat(throwable.getMessage()).contains("isConfigurationCacheRequested=false");
+                    });
+                });
+                assertGradleVersionParent(event, "7.6.4");
+            });
+
+            // Verify no skipped tests
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+    }
+
+    @Nested
     class MultipleParameters {
         /**
          * Tests with Gradle 7.6.4:
@@ -210,6 +321,24 @@ final class GradleParameterTest {
                 .selectors(DiscoverySelectors.selectClass(fixtureClass))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .execute();
+    }
+
+    private static EngineExecutionResults runFixtureWithCC(Class<?> fixtureClass, String gradleVersion) {
+        return EngineTestKit.engine("junit-jupiter")
+                .selectors(DiscoverySelectors.selectClass(fixtureClass))
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "true")
+                .execute();
+    }
+
+    private static EngineExecutionResults runFixtureWithAdditionalVersions(
+            Class<?> fixtureClass, String gradleVersion) {
+        return EngineTestKit.engine("junit-jupiter")
+                .selectors(DiscoverySelectors.selectClass(fixtureClass))
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter("com.palantir.gradle.testing.additional_versions_enabled", "true")
                 .execute();
     }
 

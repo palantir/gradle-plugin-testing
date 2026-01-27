@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
 
@@ -88,7 +89,8 @@ final class GradleVersions {
     }
 
     private static boolean isTestMethod(Method method) {
-        return AnnotationSupport.isAnnotated(method, Test.class);
+        return AnnotationSupport.isAnnotated(method, Test.class)
+                || AnnotationSupport.isAnnotated(method, TestTemplate.class);
     }
 
     private GradleVersions() {}
