@@ -26,11 +26,9 @@ import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-@DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
 final class GradleParameterValuesTest {
 
     @Nested
