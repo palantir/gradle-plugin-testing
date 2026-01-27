@@ -37,38 +37,9 @@ final class GradleParameterResolver implements TerseParameterResolver {
     }
 
     @Override
-    public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+    public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext _extensionContext)
             throws ParameterResolutionException {
         String parameterName = parameterContext.getParameter().getName();
-
-        if (parameterValues.containsKey(parameterName)) {
-            Object value = parameterValues.get(parameterName);
-            Class<?> parameterType = parameterContext.getParameter().getType();
-
-            // Handle type conversion
-            if (parameterType == String.class && value instanceof String) {
-                return Optional.of(value);
-            }
-            if ((parameterType == int.class || parameterType == Integer.class) && value instanceof Integer) {
-                return Optional.of(value);
-            }
-            if ((parameterType == long.class || parameterType == Long.class) && value instanceof Long) {
-                return Optional.of(value);
-            }
-            if ((parameterType == double.class || parameterType == Double.class) && value instanceof Double) {
-                return Optional.of(value);
-            }
-            if ((parameterType == boolean.class || parameterType == Boolean.class) && value instanceof Boolean) {
-                return Optional.of(value);
-            }
-
-            throw new ParameterResolutionException("Parameter '%s' has type %s but value is of type %s"
-                    .formatted(
-                            parameterName,
-                            parameterType.getName(),
-                            value.getClass().getName()));
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(parameterValues.get(parameterName));
     }
 }

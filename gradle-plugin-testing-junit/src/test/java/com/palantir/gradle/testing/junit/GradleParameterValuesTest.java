@@ -183,9 +183,9 @@ final class GradleParameterValuesTest {
         void version_comparison_handles_different_segment_counts() throws Exception {
             Method method = VersionComparisonFixture.class.getDeclaredMethod("lessthan_test", String.class);
 
-            // 8 (interpreted as 8.0.0) < 9.0
+            // 8.5 (two segments) compared against 9.0 (two segments)
             List<Map<String, Object>> invocations =
-                    GradleParameterValues.computeInvocations(method, new GradleVersion("8"));
+                    GradleParameterValues.computeInvocations(method, new GradleVersion("8.5"));
 
             assertThat(invocations).hasSize(1);
             assertThat(invocations.get(0)).containsEntry("value", "old");
