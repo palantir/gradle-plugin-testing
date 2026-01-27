@@ -23,8 +23,10 @@ import com.palantir.example.GradleParameterMultipleFixtureTest;
 import com.palantir.example.GradleParameterWithAdditionalVersionFixtureTest;
 import com.palantir.example.GradleParameterWithDisabledConfigurationCacheFixtureTest;
 import com.palantir.example.GradleParameterWithMethodLevelAdditionalVersionFixtureTest;
+import com.palantir.gradle.testing.junit.GradlePluginTestingDisplayNameGenerator;
 import java.util.List;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.TestDescriptor;
@@ -35,6 +37,7 @@ import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import org.junit.platform.testkit.engine.Event;
 
+@DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
 final class GradleParameterTest {
 
     @Nested
