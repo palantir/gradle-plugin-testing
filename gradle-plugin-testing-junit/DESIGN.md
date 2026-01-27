@@ -145,3 +145,9 @@ Gradle 9.3.0:
 ```
 
 Again no skipped tests created
+
+Overlapping is supported, we only have lessThan or Equals, newer versions are covered by otherwise.
+If no matching case then we should throw an error
+If empty strings = {} then we don't creat invocations for that condition
+Within a single `GradleParameter` all types must be the same for all `ForVersion` and `otherwise` - if not throw
+
