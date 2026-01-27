@@ -23,6 +23,7 @@ import com.palantir.example.GradleParameterMultipleFixtureTest;
 import com.palantir.example.GradleParameterWithAdditionalVersionFixtureTest;
 import com.palantir.example.GradleParameterWithDisabledConfigurationCacheFixtureTest;
 import com.palantir.example.GradleParameterWithMethodLevelAdditionalVersionFixtureTest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Nested;
@@ -51,19 +52,22 @@ final class GradleParameterTest {
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_one: 2 invocations (lessThan1, lessThan2)
-            // test_two: 1 invocation (2)
-            // other_test: 1 invocation
             assertThat(finished).hasSize(4);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehavior("test_one", "lessThan1", "7.6.4"),
-                            eventWithBehavior("test_one", "lessThan2", "7.6.4"),
-                            eventWithIntBehavior("test_two", 2, "7.6.4"),
-                            eventForOtherTest("7.6.4"));
-
-            // Verify no skipped tests
+                            eventFor("7.6.4")
+                                    .displayName("lessThan1")
+                                    .parentContains("test one")
+                                    .messageContains("behavior=lessThan1"),
+                            eventFor("7.6.4")
+                                    .displayName("lessThan2")
+                                    .parentContains("test one")
+                                    .messageContains("behavior=lessThan2"),
+                            eventFor("7.6.4")
+                                    .displayName("2")
+                                    .parentContains("test two")
+                                    .messageContains("behavior=2"),
+                            eventFor("7.6.4").displayNameContains("other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
 
@@ -79,20 +83,26 @@ final class GradleParameterTest {
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_one: 3 invocations (lessThan1, lessThan2, equal)
-            // test_two: 1 invocation (2)
-            // other_test: 1 invocation
             assertThat(finished).hasSize(5);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehavior("test_one", "lessThan1", "8.14.3"),
-                            eventWithBehavior("test_one", "lessThan2", "8.14.3"),
-                            eventWithBehavior("test_one", "equal", "8.14.3"),
-                            eventWithIntBehavior("test_two", 2, "8.14.3"),
-                            eventForOtherTest("8.14.3"));
-
-            // Verify no skipped tests
+                            eventFor("8.14.3")
+                                    .displayName("lessThan1")
+                                    .parentContains("test one")
+                                    .messageContains("behavior=lessThan1"),
+                            eventFor("8.14.3")
+                                    .displayName("lessThan2")
+                                    .parentContains("test one")
+                                    .messageContains("behavior=lessThan2"),
+                            eventFor("8.14.3")
+                                    .displayName("equal")
+                                    .parentContains("test one")
+                                    .messageContains("behavior=equal"),
+                            eventFor("8.14.3")
+                                    .displayName("2")
+                                    .parentContains("test two")
+                                    .messageContains("behavior=2"),
+                            eventFor("8.14.3").displayNameContains("other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
 
@@ -108,322 +118,242 @@ final class GradleParameterTest {
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_one: 1 invocation (otherwise)
-            // test_two: 1 invocation (1)
-            // other_test: 1 invocation
             assertThat(finished).hasSize(3);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehavior("test_one", "otherwise", "9.3.0"),
-                            eventWithIntBehavior("test_two", 1, "9.3.0"),
-                            eventForOtherTest("9.3.0"));
-
-            // Verify no skipped tests
+                            eventFor("9.3.0")
+                                    .displayName("otherwise")
+                                    .parentContains("test one")
+                                    .messageContains("behavior=otherwise"),
+                            eventFor("9.3.0")
+                                    .displayName("1")
+                                    .parentContains("test two")
+                                    .messageContains("behavior=1"),
+                            eventFor("9.3.0").displayNameContains("other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
     }
 
     @Nested
     class WithAdditionalVersion {
-        /**
-         * Tests that @GradleParameter works correctly with @AdditionallyRunWithGradle.
-         * The fixture uses @AdditionallyRunWithGradle("8.5") and has:
-         * - test_with_parameter: behavior = "old" for lessThan 8.0, "new" otherwise
-         *
-         * When run with base version 7.6.4 and additional 8.5:
-         * - Gradle 7.6.4 (< 8.0): behavior = "old"
-         * - Gradle 8.5 (>= 8.0): behavior = "new"
-         */
         @Test
         void runs_with_correct_values_for_each_version() {
-            EngineExecutionResults results =
-                    runFixtureWithAdditionalVersions(GradleParameterWithAdditionalVersionFixtureTest.class, "7.6.4");
+            EngineExecutionResults results = runFixture(GradleParameterWithAdditionalVersionFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_with_parameter runs twice (once per Gradle version)
             assertThat(finished).hasSize(2);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehaviorForAdditionalVersion("old", "7.6.4"),
-                            eventWithBehaviorForAdditionalVersion("new", "8.5"));
-
-            // Verify no skipped tests
+                            eventFor("7.6.4").displayName("old").messageContains("behavior=old"),
+                            eventFor("8.5").displayName("new").messageContains("behavior=new"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
 
-        /**
-         * Tests that @GradleParameter works correctly with method-level @AdditionallyRunWithGradle.
-         * The fixture has @AdditionallyRunWithGradle("8.5") directly on the test method with:
-         * - test_with_parameter: behavior = "old" for lessThan 8.0, "new" otherwise
-         *
-         * When run with base version 7.6.4 and method-level additional 8.5:
-         * - Gradle 7.6.4 (< 8.0): behavior = "old"
-         * - Gradle 8.5 (>= 8.0): behavior = "new"
-         */
         @Test
         void runs_with_correct_values_for_method_level_additional_version() {
-            EngineExecutionResults results = runFixtureWithAdditionalVersions(
-                    GradleParameterWithMethodLevelAdditionalVersionFixtureTest.class, "7.6.4");
+            EngineExecutionResults results =
+                    runFixture(GradleParameterWithMethodLevelAdditionalVersionFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_with_parameter runs twice (once per Gradle version)
             assertThat(finished).hasSize(2);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehaviorForAdditionalVersion("old", "7.6.4"),
-                            eventWithBehaviorForAdditionalVersion("new", "8.5"));
-
-            // Verify no skipped tests
+                            eventFor("7.6.4").displayName("old").messageContains("behavior=old"),
+                            eventFor("8.5").displayName("new").messageContains("behavior=new"));
             assertThat(results.testEvents().skipped().count()).isZero();
-        }
-
-        private Consumer<Event> eventWithBehaviorForAdditionalVersion(String behavior, String gradleVersion) {
-            return event -> {
-                assertThat(event.getTestDescriptor().getDisplayName()).isEqualTo(behavior);
-                assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
-                    assertThat(result.getStatus()).isEqualTo(Status.FAILED);
-                    assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
-                        assertThat(throwable.getMessage()).contains("behavior=" + behavior);
-                        assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
-                    });
-                });
-                assertGradleVersionParent(event, gradleVersion);
-            };
         }
     }
 
     @Nested
     class WithDisabledConfigurationCache {
-        /**
-         * Tests that @GradleParameter works correctly with @DisabledConfigurationCache.
-         * The fixture has @DisabledConfigurationCache on a method with @GradleParameter.
-         */
         @Test
         void runs_with_configuration_cache_disabled() {
             EngineExecutionResults results =
-                    runFixtureWithCC(GradleParameterWithDisabledConfigurationCacheFixtureTest.class, "7.6.4");
+                    runFixture(GradleParameterWithDisabledConfigurationCacheFixtureTest.class, "7.6.4", "true");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_with_parameter runs once with behavior = "old" (< 8.0)
             assertThat(finished).hasSize(1);
-
-            assertThat(finished).satisfiesExactlyInAnyOrder(event -> {
-                assertThat(event.getTestDescriptor().getDisplayName()).isEqualTo("old");
-                assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
-                    assertThat(result.getStatus()).isEqualTo(Status.FAILED);
-                    assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
-                        assertThat(throwable.getMessage()).contains("behavior=old");
-                        assertThat(throwable.getMessage()).contains("GradleVersion: 7.6.4");
-                        // Verify configuration cache is actually disabled
-                        assertThat(throwable.getMessage()).contains("isConfigurationCacheRequested=false");
-                    });
-                });
-                assertGradleVersionParent(event, "7.6.4");
-            });
-
-            // Verify no skipped tests
+            assertThat(finished)
+                    .satisfiesExactlyInAnyOrder(eventFor("7.6.4")
+                            .displayName("old")
+                            .messageContains("behavior=old", "isConfigurationCacheRequested=false"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
     }
 
     @Nested
     class MultipleParameters {
-        /**
-         * Tests with Gradle 7.6.4:
-         * - test_one: Cartesian product of {lessThan1, lessThan2} x {1, 2} = 4 invocations
-         * - other_test: 1 invocation
-         */
         @Test
         void gradle_7_6_4_creates_cartesian_product() {
             EngineExecutionResults results = runFixture(GradleParameterMultipleFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_one: 4 invocations (2 behaviors x 2 maxInts)
-            // other_test: 1 invocation
             assertThat(finished).hasSize(5);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehaviorAndMaxInt("lessThan1", 1, "7.6.4"),
-                            eventWithBehaviorAndMaxInt("lessThan1", 2, "7.6.4"),
-                            eventWithBehaviorAndMaxInt("lessThan2", 1, "7.6.4"),
-                            eventWithBehaviorAndMaxInt("lessThan2", 2, "7.6.4"),
-                            eventForOtherTest("7.6.4"));
-
-            // Verify no skipped tests
+                            eventFor("7.6.4")
+                                    .displayName("behavior=lessThan1, maxInt=1")
+                                    .messageContains("behavior=lessThan1", "maxInt=1"),
+                            eventFor("7.6.4")
+                                    .displayName("behavior=lessThan1, maxInt=2")
+                                    .messageContains("behavior=lessThan1", "maxInt=2"),
+                            eventFor("7.6.4")
+                                    .displayName("behavior=lessThan2, maxInt=1")
+                                    .messageContains("behavior=lessThan2", "maxInt=1"),
+                            eventFor("7.6.4")
+                                    .displayName("behavior=lessThan2, maxInt=2")
+                                    .messageContains("behavior=lessThan2", "maxInt=2"),
+                            eventFor("7.6.4").displayNameContains("other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
 
-        /**
-         * Tests with Gradle 8.14.3:
-         * - test_one: Cartesian product of {lessThan1, lessThan2, equal} x {1, 2} = 6 invocations
-         * - other_test: 1 invocation
-         */
         @Test
         void gradle_8_14_3_creates_cartesian_product_with_equalTo() {
             EngineExecutionResults results = runFixture(GradleParameterMultipleFixtureTest.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_one: 6 invocations (3 behaviors x 2 maxInts)
-            // other_test: 1 invocation
             assertThat(finished).hasSize(7);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehaviorAndMaxInt("lessThan1", 1, "8.14.3"),
-                            eventWithBehaviorAndMaxInt("lessThan1", 2, "8.14.3"),
-                            eventWithBehaviorAndMaxInt("lessThan2", 1, "8.14.3"),
-                            eventWithBehaviorAndMaxInt("lessThan2", 2, "8.14.3"),
-                            eventWithBehaviorAndMaxInt("equal", 1, "8.14.3"),
-                            eventWithBehaviorAndMaxInt("equal", 2, "8.14.3"),
-                            eventForOtherTest("8.14.3"));
-
-            // Verify no skipped tests
+                            eventFor("8.14.3")
+                                    .displayName("behavior=lessThan1, maxInt=1")
+                                    .messageContains("behavior=lessThan1", "maxInt=1"),
+                            eventFor("8.14.3")
+                                    .displayName("behavior=lessThan1, maxInt=2")
+                                    .messageContains("behavior=lessThan1", "maxInt=2"),
+                            eventFor("8.14.3")
+                                    .displayName("behavior=lessThan2, maxInt=1")
+                                    .messageContains("behavior=lessThan2", "maxInt=1"),
+                            eventFor("8.14.3")
+                                    .displayName("behavior=lessThan2, maxInt=2")
+                                    .messageContains("behavior=lessThan2", "maxInt=2"),
+                            eventFor("8.14.3")
+                                    .displayName("behavior=equal, maxInt=1")
+                                    .messageContains("behavior=equal", "maxInt=1"),
+                            eventFor("8.14.3")
+                                    .displayName("behavior=equal, maxInt=2")
+                                    .messageContains("behavior=equal", "maxInt=2"),
+                            eventFor("8.14.3").displayNameContains("other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
 
-        /**
-         * Tests with Gradle 9.3.0:
-         * - test_one: Cartesian product of {otherwise} x {3, 4} = 2 invocations
-         * - other_test: 1 invocation
-         */
         @Test
         void gradle_9_3_0_creates_cartesian_product_with_otherwise() {
             EngineExecutionResults results = runFixture(GradleParameterMultipleFixtureTest.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
-            // test_one: 2 invocations (1 behavior x 2 maxInts)
-            // other_test: 1 invocation
             assertThat(finished).hasSize(3);
-
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            eventWithBehaviorAndMaxInt("otherwise", 3, "9.3.0"),
-                            eventWithBehaviorAndMaxInt("otherwise", 4, "9.3.0"),
-                            eventForOtherTest("9.3.0"));
-
-            // Verify no skipped tests
+                            eventFor("9.3.0")
+                                    .displayName("behavior=otherwise, maxInt=3")
+                                    .messageContains("behavior=otherwise", "maxInt=3"),
+                            eventFor("9.3.0")
+                                    .displayName("behavior=otherwise, maxInt=4")
+                                    .messageContains("behavior=otherwise", "maxInt=4"),
+                            eventFor("9.3.0").displayNameContains("other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
     }
 
     private static EngineExecutionResults runFixture(Class<?> fixtureClass, String gradleVersion) {
+        return runFixture(fixtureClass, gradleVersion, "false");
+    }
+
+    private static EngineExecutionResults runFixture(
+            Class<?> fixtureClass, String gradleVersion, String configurationCacheEnabled) {
         return EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(fixtureClass))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
-                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter(
+                        "com.palantir.gradle.testing.configuration_cache_enabled", configurationCacheEnabled)
                 .execute();
     }
 
-    private static EngineExecutionResults runFixtureWithCC(Class<?> fixtureClass, String gradleVersion) {
-        return EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(fixtureClass))
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
-                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "true")
-                .execute();
+    private static EventMatcher eventFor(String gradleVersion) {
+        return new EventMatcher(gradleVersion);
     }
 
-    private static EngineExecutionResults runFixtureWithAdditionalVersions(
-            Class<?> fixtureClass, String gradleVersion) {
-        return EngineTestKit.engine("junit-jupiter")
-                .selectors(DiscoverySelectors.selectClass(fixtureClass))
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
-                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
-                .configurationParameter("com.palantir.gradle.testing.additional_versions_enabled", "true")
-                .execute();
-    }
+    private static final class EventMatcher implements Consumer<Event> {
+        private final String gradleVersion;
+        private String exactDisplayName;
+        private String displayNameContains;
+        private String parentContains;
+        private final List<String> messageContains = new ArrayList<>();
 
-    private static Consumer<Event> eventWithBehavior(String testName, String behavior, String gradleVersion) {
-        return event -> {
-            // For test template invocations, the display name is the parameter value
-            // The test name is in the parent descriptor
-            assertThat(event.getTestDescriptor().getDisplayName()).isEqualTo(behavior);
-            event.getTestDescriptor().getParent().ifPresent(parent -> assertThat(parent.getDisplayName())
-                    .contains(testName.replace("_", " ")));
-            assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
-                assertThat(result.getStatus()).isEqualTo(Status.FAILED);
-                assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
-                    assertThat(throwable.getMessage()).contains("behavior=" + behavior);
-                    assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
-                });
-            });
-            assertGradleVersionParent(event, gradleVersion);
-        };
-    }
-
-    private static Consumer<Event> eventWithIntBehavior(String testName, int behavior, String gradleVersion) {
-        return event -> {
-            // For test template invocations, the display name is the parameter value
-            assertThat(event.getTestDescriptor().getDisplayName()).isEqualTo(String.valueOf(behavior));
-            event.getTestDescriptor().getParent().ifPresent(parent -> assertThat(parent.getDisplayName())
-                    .contains(testName.replace("_", " ")));
-            assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
-                assertThat(result.getStatus()).isEqualTo(Status.FAILED);
-                assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
-                    assertThat(throwable.getMessage()).contains("behavior=" + behavior);
-                    assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
-                });
-            });
-            assertGradleVersionParent(event, gradleVersion);
-        };
-    }
-
-    private static Consumer<Event> eventWithBehaviorAndMaxInt(String behavior, int maxInt, String gradleVersion) {
-        return event -> {
-            // For multiple parameters, display name is "behavior=X, maxInt=Y"
-            assertThat(event.getTestDescriptor().getDisplayName())
-                    .isEqualTo("behavior=" + behavior + ", maxInt=" + maxInt);
-            event.getTestDescriptor().getParent().ifPresent(parent -> assertThat(parent.getDisplayName())
-                    .contains("test one"));
-            assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
-                assertThat(result.getStatus()).isEqualTo(Status.FAILED);
-                assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
-                    assertThat(throwable.getMessage()).contains("behavior=" + behavior);
-                    assertThat(throwable.getMessage()).contains("maxInt=" + maxInt);
-                    assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
-                });
-            });
-            assertGradleVersionParent(event, gradleVersion);
-        };
-    }
-
-    private static Consumer<Event> eventForOtherTest(String gradleVersion) {
-        return event -> {
-            assertThat(event.getTestDescriptor().getDisplayName()).contains("other test");
-            assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
-                assertThat(result.getStatus()).isEqualTo(Status.FAILED);
-                assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
-                    assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
-                });
-            });
-            assertGradleVersionParent(event, gradleVersion);
-        };
-    }
-
-    private static void assertGradleVersionParent(Event event, String gradleVersion) {
-        // Walk up the parent hierarchy to find "Gradle X.Y.Z"
-        TestDescriptor descriptor = event.getTestDescriptor();
-        boolean foundGradleVersion = false;
-        StringBuilder hierarchy = new StringBuilder();
-        while (descriptor.getParent().isPresent()) {
-            descriptor = descriptor.getParent().get();
-            hierarchy.append(" -> ").append(descriptor.getDisplayName());
-            if (descriptor.getDisplayName().equals("Gradle " + gradleVersion)) {
-                foundGradleVersion = true;
-                break;
-            }
+        EventMatcher(String gradleVersion) {
+            this.gradleVersion = gradleVersion;
         }
-        assertThat(foundGradleVersion)
-                .as("Expected to find 'Gradle %s' in parent hierarchy: %s", gradleVersion, hierarchy)
-                .isTrue();
+
+        EventMatcher displayName(String name) {
+            this.exactDisplayName = name;
+            return this;
+        }
+
+        EventMatcher displayNameContains(String substring) {
+            this.displayNameContains = substring;
+            return this;
+        }
+
+        EventMatcher parentContains(String substring) {
+            this.parentContains = substring;
+            return this;
+        }
+
+        EventMatcher messageContains(String... substrings) {
+            this.messageContains.addAll(List.of(substrings));
+            return this;
+        }
+
+        @Override
+        public void accept(Event event) {
+            String displayName = event.getTestDescriptor().getDisplayName();
+
+            if (exactDisplayName != null) {
+                assertThat(displayName).isEqualTo(exactDisplayName);
+            }
+            if (displayNameContains != null) {
+                assertThat(displayName).contains(displayNameContains);
+            }
+            if (parentContains != null) {
+                event.getTestDescriptor().getParent().ifPresent(parent -> assertThat(parent.getDisplayName())
+                        .contains(parentContains));
+            }
+
+            assertThat(event.getPayload(TestExecutionResult.class)).hasValueSatisfying(result -> {
+                assertThat(result.getStatus()).isEqualTo(Status.FAILED);
+                if (!messageContains.isEmpty()) {
+                    assertThat(result.getThrowable()).hasValueSatisfying(throwable -> {
+                        for (String substring : messageContains) {
+                            assertThat(throwable.getMessage()).contains(substring);
+                        }
+                        assertThat(throwable.getMessage()).contains("GradleVersion: " + gradleVersion);
+                    });
+                }
+            });
+
+            assertGradleVersionInParentHierarchy(event, gradleVersion);
+        }
+
+        private static void assertGradleVersionInParentHierarchy(Event event, String gradleVersion) {
+            TestDescriptor descriptor = event.getTestDescriptor();
+            StringBuilder hierarchy = new StringBuilder();
+            while (descriptor.getParent().isPresent()) {
+                descriptor = descriptor.getParent().get();
+                hierarchy.append(" -> ").append(descriptor.getDisplayName());
+                if (descriptor.getDisplayName().equals("Gradle " + gradleVersion)) {
+                    return;
+                }
+            }
+            assertThat(false)
+                    .as("Expected to find 'Gradle %s' in parent hierarchy: %s", gradleVersion, hierarchy)
+                    .isTrue();
+        }
     }
 }
