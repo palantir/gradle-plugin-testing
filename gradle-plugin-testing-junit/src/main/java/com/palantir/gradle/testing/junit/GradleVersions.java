@@ -36,11 +36,12 @@ final class GradleVersions {
     private static final String GRADLE_VERSIONS_CONFIG_PARAM = "com.palantir.gradle.testing.gradle_versions_to_test";
 
     /**
-     * Returns all Gradle versions for the test class, including versions from all methods.
+     * Returns all Gradle versions for the test class, including versions from all methods,
+     * with the class-level {@link RestrictToGradleVersionsEqualTo} filter applied.
      *
      * <p>This is used to build the complete test matrix for the class.
      */
-    static Set<GradleVersion> allVersions(ExtensionContext context) {
+    static Set<GradleVersion> allFilteredVersions(ExtensionContext context) {
         Set<GradleVersion> versions = configuredVersions(context);
 
         context.getTestClass().ifPresent(clazz -> {
@@ -49,23 +50,27 @@ final class GradleVersions {
             Arrays.stream(clazz.getDeclaredMethods())
                     .filter(GradleVersions::isTestMethod)
                     .forEach(method -> versions.addAll(versionsFromAnnotation(method)));
+
+            applyFilter(versions, clazz);
         });
 
         return versions;
     }
 
     /**
-     * Returns all Gradle versions for a specific method, including class-level versions.
+     * Returns all Gradle versions for a specific method, including class-level versions,
+     * with the method-level {@link RestrictToGradleVersionsEqualTo} filter applied.
      *
      * <p>This is used to determine if a method should run for a given Gradle version.
      */
-    static Set<GradleVersion> versionsForMethod(ExtensionContext context) {
+    static Set<GradleVersion> filteredVersionsForMethod(ExtensionContext context) {
         Set<GradleVersion> versions = configuredVersions(context);
 
         context.getTestClass().ifPresent(clazz -> versions.addAll(versionsFromAnnotation(clazz)));
 
         context.getTestMethod().ifPresent(method -> {
             versions.addAll(versionsFromAnnotation(method));
+            applyFilter(versions, method);
         });
 
         return versions;
@@ -85,6 +90,16 @@ final class GradleVersions {
                 .flatMap(annotation -> Arrays.stream(annotation.value()))
                 .map(GradleVersion::new)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static void applyFilter(Set<GradleVersion> versions, AnnotatedElement element) {
+        AnnotationSupport.findAnnotation(element, RestrictToGradleVersionsEqualTo.class)
+                .ifPresent(annotation -> {
+                    Set<GradleVersion> allowed = Arrays.stream(annotation.value())
+                            .map(GradleVersion::new)
+                            .collect(Collectors.toSet());
+                    versions.retainAll(allowed);
+                });
     }
 
     private static boolean isTestMethod(Method method) {

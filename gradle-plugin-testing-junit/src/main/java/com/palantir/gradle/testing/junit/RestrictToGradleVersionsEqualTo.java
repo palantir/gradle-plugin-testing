@@ -1,0 +1,49 @@
+/*
+ * (c) Copyright 2025 Palantir Technologies Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.palantir.gradle.testing.junit;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Annotation for restricting Gradle versions to only run the specified versions.
+ *
+ * <p>Unlike {@link AdditionallyRunWithGradle} which adds versions to the test matrix, this annotation filters the
+ * available versions to only include the specified ones. If a specified version is not in the test matrix
+ * (from configuration or {@code @AdditionallyRunWithGradle}), it will simply not run.
+ *
+ * <p>To run a specific version that isn't in the matrix, use both annotations:
+ * {@code @AdditionallyRunWithGradle("8.5")} and {@code @RestrictToGradleVersionsEqualTo("8.5")}.
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RestrictToGradleVersionsEqualTo {
+
+    /**
+     * The Gradle versions to restrict to.
+     * @return an array of Gradle version strings (e.g., "7.6.5", "8.0")
+     */
+    String[] value();
+
+    /**
+     * Optional reason explaining why this test is restricted to these specific Gradle versions.
+     * @return the reason for restricting to these specific versions
+     */
+    String reason() default "";
+}
