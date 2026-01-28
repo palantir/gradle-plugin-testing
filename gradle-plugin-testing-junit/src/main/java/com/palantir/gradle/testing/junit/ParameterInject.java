@@ -16,28 +16,16 @@
 
 package com.palantir.gradle.testing.junit;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A version condition with associated values for {@link ParameterizedByGradleVersion}.
+ * Marks a String parameter to receive the value from {@link ParameterizedByGradleVersion}.
  *
- * <p>Specify exactly one of: {@code lessThan}, {@code lessThanOrEqualTo}, or {@code equalTo}.
+ * @see ParameterizedByGradleVersion
  */
-@Target({})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WhenVersion {
-
-    /** Matches exactly this version (e.g., "8.14.3"). */
-    String equalTo() default "";
-
-    /** Matches versions below this (e.g., "9.0" matches 8.x). */
-    String lessThan() default "";
-
-    /** Matches versions up to and including this. */
-    String lessThanOrEqualTo() default "";
-
-    /** Values to use when this condition matches. */
-    String[] value() default {};
-}
+public @interface ParameterInject {}

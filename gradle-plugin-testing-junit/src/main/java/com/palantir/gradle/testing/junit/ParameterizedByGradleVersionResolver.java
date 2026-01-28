@@ -16,38 +16,27 @@
 
 package com.palantir.gradle.testing.junit;
 
-import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
+/** Resolves {@link ParameterInject} parameters based on {@link ParameterizedByGradleVersion} annotations. */
 final class ParameterizedByGradleVersionResolver implements TerseParameterResolver {
 
-    private final List<String> parameterValues;
-
-    ParameterizedByGradleVersionResolver(List<String> parameterValues) {
-        this.parameterValues = parameterValues;
-    }
-
     @Override
-    public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext _extensionContext)
+    public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
         if (parameterContext.getParameter().getType() != String.class) {
             return Optional.empty();
         }
 
-        int stringIndex = countPrecedingStringParams(parameterContext);
+        if (!parameterContext.isAnnotated(ParameterInject.class)) {
+            return Optional.empty();
+        }
 
-        return stringIndex < parameterValues.size() ? Optional.of(parameterValues.get(stringIndex)) : Optional.empty();
-    }
-
-    private static int countPrecedingStringParams(ParameterContext ctx) {
-        Parameter[] params = ctx.getDeclaringExecutable().getParameters();
-        return (int) Arrays.stream(params, 0, ctx.getIndex())
-                .filter(p -> p.getType() == String.class)
-                .count();
+        return extensionContext
+                .getTestMethod()
+                .flatMap(method -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersionStore.gradleVersion(extensionContext)));
     }
 }

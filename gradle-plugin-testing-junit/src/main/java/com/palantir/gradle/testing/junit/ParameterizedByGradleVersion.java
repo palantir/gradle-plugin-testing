@@ -21,28 +21,34 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.junit.jupiter.api.TestTemplate;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Injects a String parameter based on the Gradle version under test.
  *
- * <p>Values are injected positionally into String parameters. Multiple annotations inject values in order.
+ * <p>Ranges use inclusive lower bounds and exclusive upper bounds. Annotations must cover
+ * the entire version space with no gaps (first has no lowerBound, last has no upperBound,
+ * each upperBound equals the next lowerBound).
  *
- * <p>Includes {@code @TestTemplate} - do not combine with {@code @Test}.
+ * <pre>{@code
+ * @Test
+ * @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
+ * @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
+ * void test(GradleInvoker invoker, RootProject project, @ParameterInject String behaviour) { }
+ * }</pre>
  *
- * @see WhenVersion
+ * @see ParameterInject
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(ParameterizedByGradleVersions.class)
-@TestTemplate
-@ExtendWith(ParameterizedByGradleVersionTestTemplateProvider.class)
 public @interface ParameterizedByGradleVersion {
 
-    /** Version-specific value conditions. */
-    WhenVersion[] value();
+    /** Inclusive lower bound. Empty means minimum */
+    String lowerBound() default "";
 
-    /** Default value(s) when no version condition matches. */
-    String[] otherwise() default {};
+    /** Exclusive upper bound. Empty means unbounded. */
+    String upperBound() default "";
+
+    /** Value to inject when the Gradle version is in this range. */
+    String stringValue();
 }

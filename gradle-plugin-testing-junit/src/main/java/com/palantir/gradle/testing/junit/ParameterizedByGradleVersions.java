@@ -20,18 +20,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.junit.jupiter.api.TestTemplate;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-/**
- * Container for repeatable {@link ParameterizedByGradleVersion} annotations.
- *
- * <p>Multiple annotations produce a Cartesian product of test invocations.
- */
+/** Container for repeatable {@link ParameterizedByGradleVersion} annotations. */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@TestTemplate
-@ExtendWith(ParameterizedByGradleVersionTestTemplateProvider.class)
 public @interface ParameterizedByGradleVersions {
 
     ParameterizedByGradleVersion[] value();
