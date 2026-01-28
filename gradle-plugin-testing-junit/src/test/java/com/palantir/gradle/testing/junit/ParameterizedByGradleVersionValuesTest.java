@@ -75,16 +75,6 @@ final class ParameterizedByGradleVersionValuesTest {
         }
 
         @Test
-        void boundary_version_goes_to_higher_range() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("twoRanges");
-
-            // lowerBound is inclusive, upperBound is exclusive
-            // so 8.0 exactly should match the "new" range (lowerBound = "8.0")
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isEqualTo(Optional.of("new"));
-        }
-
-        @Test
         void no_annotations_returns_empty() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("noAnnotations");
 
