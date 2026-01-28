@@ -19,24 +19,12 @@ package com.palantir.gradle.testing.junit;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 
 /**
- * A decorator that wraps a {@link GradleInvoker} to add additional behavior.
- *
- * <p>Decorators are applied in registration order. First registered decorators become
- * the innermost wrappers (closest to the base invoker), while later registered decorators
- * become outer wrappers (executing first).
- *
- * <p>To create a decorator that is automatically registered via annotation, implement
+ * A decorator that wraps a {@link GradleInvoker} to add additional behavior.*
+ * To create a decorator that is automatically registered via annotation, implement
  * {@link GradleInvokerDecoratorFactory} and use the {@link RegistersGradleInvokerDecorator}
  * meta-annotation on your test annotation.
  */
 public interface GradleInvokerDecorator {
 
-    /**
-     * Decorates the given invoker.
-     *
-     * @param context provides access to the root project directory, Gradle version, and JUnit extension context
-     * @param delegate the invoker to decorate
-     * @return the decorated invoker
-     */
     GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate);
 }

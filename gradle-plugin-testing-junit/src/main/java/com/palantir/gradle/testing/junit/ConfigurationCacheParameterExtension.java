@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * Extension that handles the configuration cache setting.
  * This is used by the {@link GradlePluginTests} annotation to set up the default configuration cache behavior.
  *
- * <p>When configuration cache is enabled (and not disabled by {@link DisabledConfigurationCache}),
+ * When configuration cache is enabled (and not disabled by {@link DisabledConfigurationCache}),
  * this extension registers a {@link ConfigurationCacheDecorator} that wraps Gradle invocations
  * to test configuration cache compatibility.
  */
@@ -62,7 +62,6 @@ public final class ConfigurationCacheParameterExtension implements BeforeAllCall
                         "Could not configure whether to run the tests with configuration-cache. Have you"
                                 + " applied the latest `com.palantir.gradle-plugin-testing` plugin to this"
                                 + " project?"));
-
         if (GradleInvoker.shouldRunInTestkitDebugMode()) {
             log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
                     + " configuration cache cannot be used together. See"
@@ -70,7 +69,6 @@ public final class ConfigurationCacheParameterExtension implements BeforeAllCall
             configurationCacheEnabled = false;
         }
 
-        // Store the value so other extensions can check it
         ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
     }
 }

@@ -41,16 +41,10 @@ public interface GradleInvoker {
     GradleInvocation withArgs(String... args);
 
     /**
-     * Creates a GradleInvoker with all registered decorators applied.
-     *
-     * <p>Decorators are collected from the test extension context hierarchy, starting from the test method
+     * Creates a GradleInvoker with all discovered decorators applied.
+     * Decorators are collected from the test extension context hierarchy, starting from the test method
      * and moving up through parent classes. They are applied in registration order: first-registered decorators become
      * innermost wrappers, while later-registered decorators become outer wrappers.
-     *
-     * @param path the root project directory
-     * @param gradleVersion the Gradle version to use
-     * @param extensionContext the JUnit extension context containing registered decorators
-     * @return a decorated GradleInvoker
      */
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker baseInvoker = new DefaultGradleInvoker(path, gradleVersion);
