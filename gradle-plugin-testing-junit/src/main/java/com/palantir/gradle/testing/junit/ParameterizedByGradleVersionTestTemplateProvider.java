@@ -54,13 +54,7 @@ final class ParameterizedByGradleVersionTestTemplateProvider implements TestTemp
     private record ParameterizedByGradleVersionInvocationContext(List<String> parameterValues)
             implements TestTemplateInvocationContext {
 
-        @Override
         public String getDisplayName(int invocationIndex) {
-            if (parameterValues.size() == 1) {
-                // Single parameter: just show the value
-                return parameterValues.get(0);
-            }
-            // Multiple parameters: show comma-separated values
             return String.join(", ", parameterValues);
         }
 
