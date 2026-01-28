@@ -63,19 +63,14 @@ public final class ConfigurationCacheParameterExtension implements BeforeAllCall
                                 + " applied the latest `com.palantir.gradle-plugin-testing` plugin to this"
                                 + " project?"));
 
-        // Store the value so other extensions can check it
-        ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
-
-        if (!configurationCacheEnabled) {
-            return;
-        }
         if (GradleInvoker.shouldRunInTestkitDebugMode()) {
             log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
                     + " configuration cache cannot be used together. See"
                     + " https://github.com/gradle/gradle/issues/25846 for details.");
-            return;
+            configurationCacheEnabled = false;
         }
-        log.debug("Registering ConfigurationCacheDecorator");
-        GradleInvokerDecoratorRegistry.register(context, new ConfigurationCacheDecorator());
+
+        // Store the value so other extensions can check it
+        ConfigurationCacheStore.setConfigurationCache(context, configurationCacheEnabled);
     }
 }

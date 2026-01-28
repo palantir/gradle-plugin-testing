@@ -81,4 +81,28 @@ public class TestDecorators {
             return new ArgAddingDecorator(annotation.arg());
         }
     }
+
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @RegistersGradleInvokerDecorator(DecoratorFactory.class)
+    public @interface WithCountingDecorator {}
+
+    public static final class DecoratorFactory implements GradleInvokerDecoratorFactory<WithCountingDecorator> {
+        @Override
+        public GradleInvokerDecorator create(WithCountingDecorator annotation) {
+            return new CountingDecorator();
+        }
+    }
+
+    public record CountingDecorator() implements GradleInvokerDecorator {
+        @Override
+        public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
+            return args -> {
+                String decoratorId = String.format("-PdecoratorId%d=%s", System.currentTimeMillis(), true);
+                String[] modifiedArgs = Stream.concat(Arrays.stream(args), Stream.of(decoratorId))
+                        .toArray(String[]::new);
+                return delegate.withArgs(modifiedArgs);
+            };
+        }
+    }
 }
