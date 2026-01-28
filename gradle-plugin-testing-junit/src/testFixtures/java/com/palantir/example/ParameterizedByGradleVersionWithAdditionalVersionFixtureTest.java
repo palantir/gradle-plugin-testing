@@ -18,9 +18,9 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
-import com.palantir.gradle.testing.junit.WhenVersion;
-import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
+import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
 
 /**
@@ -34,10 +34,7 @@ import com.palantir.gradle.testing.project.RootProject;
 @AdditionallyRunWithGradle("8.5")
 public final class ParameterizedByGradleVersionWithAdditionalVersionFixtureTest {
 
-    @ParameterizedByGradleVersion(
-            name = "behavior",
-            otherwiseStrings = "new",
-            value = {@WhenVersion(lessThan = "8.0", strings = "old")})
+    @ParameterizedByGradleVersion(otherwise = "new", value = @WhenVersion(lessThan = "8.0", value = "old"))
     void test_with_parameter(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

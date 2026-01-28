@@ -174,52 +174,35 @@ The versions from `@AdditionallyRunWithGradle` are merged with the globally conf
 
 #### Version-Conditional Parameters
 
-Use `@ParameterizedByGradleVersion` when test behavior needs to vary based on the Gradle version. This is similar to JUnit's `@ParameterizedTest`, but parameter values are selected based on Gradle version conditions.
-
-```java
-@GradlePluginTests
-class VersionDependentBehaviorTest {
-
-    @ParameterizedByGradleVersion(
-            name = "configOption",
-            otherwiseStrings = "newStyle",
-            value = {
-                @WhenVersion(lessThan = "8.0", strings = "legacyStyle")
-            })
-    void plugin_uses_version_appropriate_config(
-            GradleInvoker gradle, RootProject project, String configOption) {
-        // configOption is "legacyStyle" for Gradle < 8.0, "newStyle" otherwise
-        project.buildGradle().append("myPlugin.style = '%s'", configOption);
-        gradle.withArgs("myTask").buildsSuccessfully();
-    }
-}
-```
-
-**Version conditions** - Use exactly one per `@WhenVersion`:
-- `lessThan = "8.0"` - matches versions below 8.0
-- `lessThanOrEqualTo = "8.0"` - matches versions up to and including 8.0
-- `equalTo = "8.0"` - matches exactly version 8.0
-
-**Supported types**: `strings`, `ints`, `longs`, `doubles`, `booleans`
-
-**Multiple parameters** create a cartesian product of all values:
+Use `@ParameterizedByGradleVersion` to inject different String values based on the Gradle version under test:
 
 ```java
 @ParameterizedByGradleVersion(
-        name = "feature",
-        otherwiseStrings = "new",
-        value = @WhenVersion(lessThan = "8.0", strings = "legacy"))
-@ParameterizedByGradleVersion(
-        name = "maxWorkers",
-        otherwiseInt = 4,
-        value = @WhenVersion(lessThan = "8.0", ints = {1, 2}))
-void test_combinations(GradleInvoker gradle, RootProject project, String feature, int maxWorkers) {
-    // For Gradle < 8.0: runs with (legacy, 1), (legacy, 2)
-    // For Gradle >= 8.0: runs with (new, 4)
+    value = @WhenVersion(lessThan = "8.0", value = "legacyStyle"),
+    otherwise = "newStyle")
+void test(GradleInvoker gradle, RootProject project, String configOption) {
+    // configOption is "legacyStyle" for Gradle < 8.0, "newStyle" otherwise
+    project.buildGradle().append("myPlugin.style = '%s'", configOption);
 }
 ```
 
-> **Note:** Methods with `@ParameterizedByGradleVersion` should not also have `@Test` - the annotation already includes `@TestTemplate`.
+**Version conditions** (use exactly one per `@WhenVersion`):
+- `lessThan = "8.0"` - versions below 8.0
+- `lessThanOrEqualTo = "8.0"` - versions up to and including 8.0
+- `equalTo = "8.0"` - exactly version 8.0
+
+**Multiple annotations** create a Cartesian product. Values inject positionally into String parameters:
+
+```java
+@ParameterizedByGradleVersion(value = @WhenVersion(lessThan = "8.0", value = "legacy"), otherwise = "new")
+@ParameterizedByGradleVersion(value = @WhenVersion(lessThan = "8.0", value = {"1", "2"}), otherwise = "4")
+void test(GradleInvoker gradle, RootProject project, String feature, String maxWorkers) {
+    // Gradle < 8.0: (legacy, 1), (legacy, 2)
+    // Gradle >= 8.0: (new, 4)
+}
+```
+
+> **Note:** Do not combine with `@Test` - the annotation includes `@TestTemplate`.
 
 ## File Operations
 

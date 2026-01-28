@@ -17,9 +17,9 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.WhenVersion;
-import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
+import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
 
 /**
@@ -32,11 +32,8 @@ import com.palantir.gradle.testing.project.RootProject;
 public final class ParameterizedByGradleVersionWithLessThanOrEqualToFixtureTest {
 
     @ParameterizedByGradleVersion(
-            name = "behavior",
-            otherwiseStrings = "otherwise",
-            value = {
-                @WhenVersion(lessThanOrEqualTo = "8.14.3", strings = "lessThanOrEqualTo"),
-            })
+            otherwise = "otherwise",
+            value = @WhenVersion(lessThanOrEqualTo = "8.14.3", value = "lessThanOrEqualTo"))
     void test_lessThanOrEqualTo(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

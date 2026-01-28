@@ -25,17 +25,13 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Defines a test parameter whose value varies based on the Gradle version being tested.
+ * Injects a String parameter based on the Gradle version under test.
  *
- * <p>This annotation allows test methods to receive different parameter values depending on which
- * Gradle version the test is running against. Similar to JUnit's {@code @ParameterizedTest}, but
- * the parameter values are selected based on Gradle version conditions.
+ * <p>Values are injected positionally into String parameters. Multiple annotations inject values in order.
  *
- * <p><b>Note:</b> This annotation includes {@code @TestTemplate}, so methods annotated with
- * {@code @ParameterizedByGradleVersion} should not also be annotated with {@code @Test}.
+ * <p>Includes {@code @TestTemplate} - do not combine with {@code @Test}.
  *
  * @see WhenVersion
- * @see ParameterizedByGradleVersions
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -44,57 +40,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ParameterizedByGradleVersionTestTemplateProvider.class)
 public @interface ParameterizedByGradleVersion {
 
-    /**
-     * The name of the parameter. This must match the name of a method parameter.
-     *
-     * @return the parameter name
-     */
-    String name();
-
-    /**
-     * Version-specific value conditions.
-     *
-     * @return array of version conditions with their associated values
-     */
+    /** Version-specific value conditions. */
     WhenVersion[] value();
 
-    /**
-     * Default string values when no version condition matches.
-     * Mutually exclusive with other otherwise* attributes.
-     *
-     * @return array of default string values
-     */
-    String[] otherwiseStrings() default {};
-
-    /**
-     * Default integer values when no version condition matches.
-     * Mutually exclusive with other otherwise* attributes.
-     *
-     * @return array of default integer values
-     */
-    int[] otherwiseInt() default {};
-
-    /**
-     * Default long values when no version condition matches.
-     * Mutually exclusive with other otherwise* attributes.
-     *
-     * @return array of default long values
-     */
-    long[] otherwiseLong() default {};
-
-    /**
-     * Default double values when no version condition matches.
-     * Mutually exclusive with other otherwise* attributes.
-     *
-     * @return array of default double values
-     */
-    double[] otherwiseDouble() default {};
-
-    /**
-     * Default boolean values when no version condition matches.
-     * Mutually exclusive with other otherwise* attributes.
-     *
-     * @return array of default boolean values
-     */
-    boolean[] otherwiseBoolean() default {};
+    /** Default value(s) when no version condition matches. */
+    String[] otherwise() default {};
 }

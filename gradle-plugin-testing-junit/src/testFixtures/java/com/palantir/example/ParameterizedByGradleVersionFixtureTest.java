@@ -17,9 +17,9 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.WhenVersion;
-import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
+import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
@@ -33,13 +33,12 @@ import org.junit.jupiter.api.Test;
 public final class ParameterizedByGradleVersionFixtureTest {
 
     @ParameterizedByGradleVersion(
-            name = "behavior",
-            otherwiseStrings = "otherwise",
+            otherwise = "otherwise",
             value = {
                 @WhenVersion(
                         lessThan = "9.3.0",
-                        strings = {"lessThan1", "lessThan2"}),
-                @WhenVersion(equalTo = "8.14.3", strings = "equal")
+                        value = {"lessThan1", "lessThan2"}),
+                @WhenVersion(equalTo = "8.14.3", value = "equal")
             })
     void test_one(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
@@ -52,15 +51,12 @@ public final class ParameterizedByGradleVersionFixtureTest {
         throw new RuntimeException("behavior=" + behavior + "|output=" + output);
     }
 
-    @ParameterizedByGradleVersion(
-            name = "behavior",
-            otherwiseInt = 1,
-            value = {@WhenVersion(lessThan = "9.3.0", ints = 2)})
-    void test_two(GradleInvoker gradleInvoker, RootProject rootProject, int behavior) {
+    @ParameterizedByGradleVersion(otherwise = "1", value = @WhenVersion(lessThan = "9.3.0", value = "2"))
+    void test_two(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"
-            println "Behavior: %d"
+            println "Behavior: %s"
             """, behavior);
 
         String output = gradleInvoker.withArgs().buildsSuccessfully().output();

@@ -21,74 +21,23 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies values for a specific Gradle version condition within a {@link ParameterizedByGradleVersion}.
+ * A version condition with associated values for {@link ParameterizedByGradleVersion}.
  *
- * <p>Version conditions can be specified using exactly one of {@code lessThan}, {@code lessThanOrEqualTo},
- * or {@code equalTo}.
- *
- * <p>Exactly one of the value arrays must be non-empty and match the type used in the containing
- * {@link ParameterizedByGradleVersion}'s otherwise value.
+ * <p>Specify exactly one of: {@code lessThan}, {@code lessThanOrEqualTo}, or {@code equalTo}.
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WhenVersion {
 
-    /**
-     * The Gradle version that must be matched exactly for this condition to apply.
-     * Mutually exclusive with {@link #lessThan()} and {@link #lessThanOrEqualTo()}.
-     *
-     * @return the exact version to match (e.g., "8.14.3"), or empty string if not used
-     */
+    /** Matches exactly this version (e.g., "8.14.3"). */
     String equalTo() default "";
 
-    /**
-     * The Gradle version that the current version must be less than for this condition to apply.
-     * Mutually exclusive with {@link #equalTo()} and {@link #lessThanOrEqualTo()}.
-     *
-     * @return the version to compare against (e.g., "9.3.0"), or empty string if not used
-     */
+    /** Matches versions below this (e.g., "9.0" matches 8.x). */
     String lessThan() default "";
 
-    /**
-     * The Gradle version that the current version must be less than or equal to for this condition to apply.
-     * Mutually exclusive with {@link #equalTo()} and {@link #lessThan()}.
-     *
-     * @return the version to compare against (e.g., "8.14.3"), or empty string if not used
-     */
+    /** Matches versions up to and including this. */
     String lessThanOrEqualTo() default "";
 
-    /**
-     * String values to use when this version condition matches.
-     *
-     * @return array of string values
-     */
-    String[] strings() default {};
-
-    /**
-     * Integer values to use when this version condition matches.
-     *
-     * @return array of integer values
-     */
-    int[] ints() default {};
-
-    /**
-     * Long values to use when this version condition matches.
-     *
-     * @return array of long values
-     */
-    long[] longs() default {};
-
-    /**
-     * Double values to use when this version condition matches.
-     *
-     * @return array of double values
-     */
-    double[] doubles() default {};
-
-    /**
-     * Boolean values to use when this version condition matches.
-     *
-     * @return array of boolean values
-     */
-    boolean[] booleans() default {};
+    /** Values to use when this condition matches. */
+    String[] value() default {};
 }

@@ -16,11 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
-import com.palantir.gradle.testing.execution.GradleVersion;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -49,34 +45,23 @@ final class ParameterizedByGradleVersionTestTemplateProvider implements TestTemp
 
     @Override
     public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
-        Method method = context.getRequiredTestMethod();
-        GradleVersion gradleVersion = GradleVersionStore.gradleVersion(context);
-
-        List<Map<String, Object>> invocations =
-                ParameterizedByGradleVersionValues.computeInvocations(method, gradleVersion);
-
-        if (invocations.isEmpty()) {
-            // No parameter values for this Gradle version - this shouldn't happen
-            // if the annotation is properly configured, but return empty to be safe
-            return Stream.empty();
-        }
-
-        return invocations.stream().map(ParameterizedByGradleVersionInvocationContext::new);
+        return ParameterizedByGradleVersionValues.computeInvocations(
+                        context.getRequiredTestMethod(), GradleVersionStore.gradleVersion(context))
+                .stream()
+                .map(ParameterizedByGradleVersionInvocationContext::new);
     }
 
-    private record ParameterizedByGradleVersionInvocationContext(Map<String, Object> parameterValues)
+    private record ParameterizedByGradleVersionInvocationContext(List<String> parameterValues)
             implements TestTemplateInvocationContext {
 
         @Override
         public String getDisplayName(int invocationIndex) {
             if (parameterValues.size() == 1) {
                 // Single parameter: just show the value
-                return parameterValues.values().iterator().next().toString();
+                return parameterValues.get(0);
             }
-            // Multiple parameters: show name=value pairs
-            return parameterValues.entrySet().stream()
-                    .map(e -> e.getKey() + "=" + e.getValue())
-                    .collect(Collectors.joining(", "));
+            // Multiple parameters: show comma-separated values
+            return String.join(", ", parameterValues);
         }
 
         @Override

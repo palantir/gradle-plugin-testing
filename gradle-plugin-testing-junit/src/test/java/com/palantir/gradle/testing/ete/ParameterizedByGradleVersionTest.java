@@ -181,18 +181,17 @@ final class ParameterizedByGradleVersionTest {
     class MultipleParameters {
         @Test
         void gradle_7_6_4_creates_cartesian_product() {
-            EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "7.6.4");
+            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
             assertThat(finished).hasSize(5);
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            forEvent("7.6.4", "behavior=lessThan1, maxInt=1", "behavior=lessThan1", "maxInt=1"),
-                            forEvent("7.6.4", "behavior=lessThan1, maxInt=2", "behavior=lessThan1", "maxInt=2"),
-                            forEvent("7.6.4", "behavior=lessThan2, maxInt=1", "behavior=lessThan2", "maxInt=1"),
-                            forEvent("7.6.4", "behavior=lessThan2, maxInt=2", "behavior=lessThan2", "maxInt=2"),
+                            forEvent("7.6.4", "lessThan1, 1", "behavior=lessThan1", "maxInt=1"),
+                            forEvent("7.6.4", "lessThan1, 2", "behavior=lessThan1", "maxInt=2"),
+                            forEvent("7.6.4", "lessThan2, 1", "behavior=lessThan2", "maxInt=1"),
+                            forEvent("7.6.4", "lessThan2, 2", "behavior=lessThan2", "maxInt=2"),
                             forEvent("7.6.4", "other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
@@ -207,28 +206,27 @@ final class ParameterizedByGradleVersionTest {
             assertThat(finished).hasSize(7);
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            forEvent("8.14.3", "behavior=lessThan1, maxInt=1", "behavior=lessThan1", "maxInt=1"),
-                            forEvent("8.14.3", "behavior=lessThan1, maxInt=2", "behavior=lessThan1", "maxInt=2"),
-                            forEvent("8.14.3", "behavior=lessThan2, maxInt=1", "behavior=lessThan2", "maxInt=1"),
-                            forEvent("8.14.3", "behavior=lessThan2, maxInt=2", "behavior=lessThan2", "maxInt=2"),
-                            forEvent("8.14.3", "behavior=equal, maxInt=1", "behavior=equal", "maxInt=1"),
-                            forEvent("8.14.3", "behavior=equal, maxInt=2", "behavior=equal", "maxInt=2"),
+                            forEvent("8.14.3", "lessThan1, 1", "behavior=lessThan1", "maxInt=1"),
+                            forEvent("8.14.3", "lessThan1, 2", "behavior=lessThan1", "maxInt=2"),
+                            forEvent("8.14.3", "lessThan2, 1", "behavior=lessThan2", "maxInt=1"),
+                            forEvent("8.14.3", "lessThan2, 2", "behavior=lessThan2", "maxInt=2"),
+                            forEvent("8.14.3", "equal, 1", "behavior=equal", "maxInt=1"),
+                            forEvent("8.14.3", "equal, 2", "behavior=equal", "maxInt=2"),
                             forEvent("8.14.3", "other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }
 
         @Test
         void gradle_9_3_0_creates_cartesian_product_with_otherwise() {
-            EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "9.3.0");
+            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionMultipleFixtureTest.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
             assertThat(finished).hasSize(3);
             assertThat(finished)
                     .satisfiesExactlyInAnyOrder(
-                            forEvent("9.3.0", "behavior=otherwise, maxInt=3", "behavior=otherwise", "maxInt=3"),
-                            forEvent("9.3.0", "behavior=otherwise, maxInt=4", "behavior=otherwise", "maxInt=4"),
+                            forEvent("9.3.0", "otherwise, 3", "behavior=otherwise", "maxInt=3"),
+                            forEvent("9.3.0", "otherwise, 4", "behavior=otherwise", "maxInt=4"),
                             forEvent("9.3.0", "other test"));
             assertThat(results.testEvents().skipped().count()).isZero();
         }

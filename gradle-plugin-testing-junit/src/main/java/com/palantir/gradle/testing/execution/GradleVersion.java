@@ -36,7 +36,7 @@ public record GradleVersion(String version) implements Comparable<GradleVersion>
     }
 
     public boolean isEqualTo(String otherVersion) {
-        return toGradleVersion().equals(org.gradle.util.GradleVersion.version(otherVersion));
+        return compareTo(new GradleVersion(otherVersion)) == 0;
     }
 
     private org.gradle.util.GradleVersion toGradleVersion() {
