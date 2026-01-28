@@ -37,6 +37,7 @@ final class ParameterizedByGradleVersionResolver implements TerseParameterResolv
 
         return extensionContext
                 .getTestMethod()
-                .flatMap(method -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersionStore.gradleVersion(extensionContext)));
+                .flatMap(method -> ParameterizedByGradleVersionValues.computeValue(
+                        method, GradleVersionStore.gradleVersion(extensionContext)));
     }
 }
