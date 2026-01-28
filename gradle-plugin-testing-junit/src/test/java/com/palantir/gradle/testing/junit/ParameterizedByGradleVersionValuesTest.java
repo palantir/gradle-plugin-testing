@@ -102,8 +102,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have a range starting from 0.0.0")
-                    .hasMessageContaining("First range starts at '8.0'");
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
         }
 
         @Test
@@ -112,8 +111,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have a range extending to infinity")
-                    .hasMessageContaining("Last range ends at '9.0'");
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
         }
 
         @Test
@@ -122,9 +120,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("has a gap or overlap between ranges")
-                    .hasMessageContaining("Range 'old' ends at '7.0'")
-                    .hasMessageContaining("next range 'new' starts at '8.0'");
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
         }
 
         @Test
@@ -133,9 +129,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("has a gap or overlap between ranges")
-                    .hasMessageContaining("Range 'old' ends at '8.5'")
-                    .hasMessageContaining("next range 'new' starts at '8.0'");
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
         }
 
         @Test
@@ -144,8 +138,61 @@ final class ParameterizedByGradleVersionValuesTest {
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("has overlapping ranges")
-                    .hasMessageContaining("has no upper bound but is not the last range");
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
+        }
+
+        @Test
+        void duplicate_upper_bounds_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateUpperBounds");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
+        }
+
+        @Test
+        void duplicate_lower_bounds_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateLowerBounds");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
+        }
+
+        @Test
+        void empty_range_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("emptyRange");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
+        }
+
+        @Test
+        void inverted_bounds_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("invertedBounds");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
+        }
+
+        @Test
+        void single_bounded_range_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("singleBoundedRange");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("7.5")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
+        }
+
+        @Test
+        void duplicate_fully_unbounded_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateFullyUnbounded");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("must have contiguous ranges covering all versions");
         }
     }
 
@@ -192,5 +239,38 @@ final class ParameterizedByGradleVersionValuesTest {
         @ParameterizedByGradleVersion(lowerBound = "7.0", stringValue = "middle")
         @ParameterizedByGradleVersion(lowerBound = "9.0", stringValue = "new")
         void unboundedMiddle() {}
+
+        // Duplicate upper bounds
+        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
+        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old2")
+        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
+        void duplicateUpperBounds() {}
+
+        // Duplicate lower bounds
+        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
+        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
+        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new2")
+        void duplicateLowerBounds() {}
+
+        // Empty range: lowerBound == upperBound
+        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
+        @ParameterizedByGradleVersion(lowerBound = "8.0", upperBound = "8.0", stringValue = "empty")
+        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
+        void emptyRange() {}
+
+        // Inverted bounds: lowerBound > upperBound
+        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
+        @ParameterizedByGradleVersion(lowerBound = "9.0", upperBound = "8.0", stringValue = "inverted")
+        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
+        void invertedBounds() {}
+
+        // Single bounded range not covering all versions
+        @ParameterizedByGradleVersion(lowerBound = "7.0", upperBound = "8.0", stringValue = "middle")
+        void singleBoundedRange() {}
+
+        // Two fully unbounded annotations
+        @ParameterizedByGradleVersion(stringValue = "all1")
+        @ParameterizedByGradleVersion(stringValue = "all2")
+        void duplicateFullyUnbounded() {}
     }
 }
