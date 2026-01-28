@@ -43,8 +43,9 @@ final class ParameterizedByGradleVersionValues {
     }
 
     private static boolean matchesVersion(ParameterizedByGradleVersion anno, GradleVersion current) {
-        boolean aboveLower = anno.lowerBound().isEmpty() || current.isGreaterThanOrEqualTo(anno.lowerBound());
-        boolean belowUpper = anno.upperBound().isEmpty() || current.isLessThan(anno.upperBound());
+        boolean aboveLower =
+                anno.lowerBound().isEmpty() || current.compareTo(new GradleVersion(anno.lowerBound())) >= 0;
+        boolean belowUpper = anno.upperBound().isEmpty() || current.compareTo(new GradleVersion(anno.upperBound())) < 0;
         return aboveLower && belowUpper;
     }
 

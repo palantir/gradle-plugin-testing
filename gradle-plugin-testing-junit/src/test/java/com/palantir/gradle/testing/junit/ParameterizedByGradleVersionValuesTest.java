@@ -34,11 +34,11 @@ final class ParameterizedByGradleVersionValuesTest {
         void single_range_covering_all_versions() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("singleRange");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("7.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.0")))
                     .isEqualTo(Optional.of("all"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("all"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("9.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
                     .isEqualTo(Optional.of("all"));
         }
 
@@ -46,15 +46,15 @@ final class ParameterizedByGradleVersionValuesTest {
         void two_ranges_split_at_8() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("twoRanges");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("7.6.4")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("old"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("7.9.9")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.9.9")))
                     .isEqualTo(Optional.of("old"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("new"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.14.3")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.14.3")))
                     .isEqualTo(Optional.of("new"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("9.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
                     .isEqualTo(Optional.of("new"));
         }
 
@@ -62,15 +62,15 @@ final class ParameterizedByGradleVersionValuesTest {
         void three_ranges() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("threeRanges");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("7.6.4")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("less than 8"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("8.x"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.14.3")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.14.3")))
                     .isEqualTo(Optional.of("8.x"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("9.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
                     .isEqualTo(Optional.of("9 and up"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("10.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("10.0")))
                     .isEqualTo(Optional.of("9 and up"));
         }
 
@@ -80,7 +80,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
             // lowerBound is inclusive, upperBound is exclusive
             // so 8.0 exactly should match the "new" range (lowerBound = "8.0")
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("new"));
         }
 
@@ -88,7 +88,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void no_annotations_returns_empty() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("noAnnotations");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isEmpty();
         }
     }
@@ -100,7 +100,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void missing_lower_range_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("missingLowerRange");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -109,7 +109,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void missing_upper_range_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("missingUpperRange");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -118,7 +118,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void gap_between_ranges_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("gapBetweenRanges");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -127,7 +127,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void overlap_between_ranges_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("overlapBetweenRanges");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -136,7 +136,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void unbounded_range_in_middle_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("unboundedMiddle");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -145,7 +145,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void duplicate_upper_bounds_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("duplicateUpperBounds");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -154,7 +154,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void duplicate_lower_bounds_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("duplicateLowerBounds");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -163,7 +163,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void empty_range_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("emptyRange");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -172,7 +172,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void inverted_bounds_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("invertedBounds");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -181,7 +181,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void single_bounded_range_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("singleBoundedRange");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("7.5")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.5")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
@@ -190,7 +190,7 @@ final class ParameterizedByGradleVersionValuesTest {
         void duplicate_fully_unbounded_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("duplicateFullyUnbounded");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, GradleVersion.of("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have contiguous ranges covering all versions");
         }
