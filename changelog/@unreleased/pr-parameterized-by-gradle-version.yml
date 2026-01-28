@@ -1,5 +1,0 @@
-type: feature
-feature:
-  description: Add `@ParameterizedByGradleVersion` annotation to inject String parameters based on Gradle version conditions.
-  links:
-    - https://github.com/palantir/gradle-plugin-testing/pull/TODO
