@@ -155,7 +155,10 @@ final class ParameterizedByGradleVersionValuesTest {
     // Test fixture classes with annotations for testing
     static class ValidFixtures {
 
-        @ParameterizedByGradleVersion(name = "behaviour", when = {}, otherwiseString = "default")
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                when = {},
+                otherwiseString = "default")
         void noConditions() {}
 
         @ParameterizedByGradleVersion(
