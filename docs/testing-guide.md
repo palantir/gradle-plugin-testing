@@ -208,6 +208,7 @@ void test(GradleInvoker gradle, RootProject project, String generation) {
 
 **Requirements:**
 - The `name` must match the parameter name in the method signature
+- Must contain an `otherwiseString` to catch the general case
 - Conditions must be ordered by ascending `lessThan` version (lowest first)
 
 ## File Operations
