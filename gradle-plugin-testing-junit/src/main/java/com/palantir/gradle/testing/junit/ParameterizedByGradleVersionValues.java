@@ -71,7 +71,8 @@ final class ParameterizedByGradleVersionValues {
 
         if (outOfOrder) {
             throw new IllegalStateException(
-                    "@ParameterizedByGradleVersion on %s.%s must have @WhenVersion conditions ordered by ascending lessThan version (lowest first)"
+                    ("@ParameterizedByGradleVersion on %s.%s must have @WhenVersion conditions ordered by ascending "
+                                    + "lessThan version (lowest first)")
                             .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
         }
     }
