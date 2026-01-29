@@ -16,16 +16,16 @@
 
 package com.palantir.gradle.testing.junit;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Marks a String parameter to receive the value from {@link ParameterizedByGradleVersion}.
- *
- * @see ParameterizedByGradleVersion
- */
-@Target(ElementType.PARAMETER)
+/** Version condition for {@link ParameterizedByGradleVersion}. Matches when Gradle version is less than threshold. */
+@Target({})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ParameterInject {}
+public @interface WhenVersion {
+
+    String lessThan();
+
+    String stringValue();
+}

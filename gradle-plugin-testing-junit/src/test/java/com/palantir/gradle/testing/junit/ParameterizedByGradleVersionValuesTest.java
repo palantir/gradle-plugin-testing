@@ -28,23 +28,23 @@ import org.junit.jupiter.api.Test;
 final class ParameterizedByGradleVersionValuesTest {
 
     @Nested
-    class ValidRanges {
+    class ValidConditions {
 
         @Test
-        void single_range_covering_all_versions() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("singleRange");
+        void no_when_conditions_returns_otherwise() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("noConditions");
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.0")))
-                    .isEqualTo(Optional.of("all"));
+                    .isEqualTo(Optional.of("default"));
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isEqualTo(Optional.of("all"));
+                    .isEqualTo(Optional.of("default"));
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
-                    .isEqualTo(Optional.of("all"));
+                    .isEqualTo(Optional.of("default"));
         }
 
         @Test
-        void two_ranges_split_at_8() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("twoRanges");
+        void single_when_condition() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("old"));
@@ -59,8 +59,8 @@ final class ParameterizedByGradleVersionValuesTest {
         }
 
         @Test
-        void three_ranges() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("threeRanges");
+        void two_when_conditions() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("twoConditions");
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("less than 8"));
@@ -75,192 +75,114 @@ final class ParameterizedByGradleVersionValuesTest {
         }
 
         @Test
-        void no_annotations_returns_empty() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("noAnnotations");
+        void no_annotation_returns_empty() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("noAnnotation");
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isEmpty();
         }
+
+        @Test
+        void parameter_name_returns_correct_value() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
+
+            assertThat(ParameterizedByGradleVersionValues.parameterName(method)).isEqualTo(Optional.of("behaviour"));
+        }
+
+        @Test
+        void parameter_name_returns_empty_when_no_annotation() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("noAnnotation");
+
+            assertThat(ParameterizedByGradleVersionValues.parameterName(method)).isEmpty();
+        }
     }
 
     @Nested
-    class InvalidRanges {
+    class InvalidOrdering {
 
         @Test
-        void missing_lower_range_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("missingLowerRange");
+        void descending_order_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("descendingOrder");
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
+                    .hasMessageContaining("must have @WhenVersion conditions ordered by ascending lessThan version");
         }
 
         @Test
-        void missing_upper_range_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("missingUpperRange");
+        void duplicate_versions_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateVersions");
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
+                    .hasMessageContaining("must have @WhenVersion conditions ordered by ascending lessThan version");
         }
 
         @Test
-        void gap_between_ranges_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("gapBetweenRanges");
+        void out_of_order_in_middle_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("outOfOrderMiddle");
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void overlap_between_ranges_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("overlapBetweenRanges");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void unbounded_range_in_middle_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("unboundedMiddle");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void duplicate_upper_bounds_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateUpperBounds");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void duplicate_lower_bounds_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateLowerBounds");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void empty_range_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("emptyRange");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void inverted_bounds_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("invertedBounds");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void single_bounded_range_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("singleBoundedRange");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.5")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
-        }
-
-        @Test
-        void duplicate_fully_unbounded_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateFullyUnbounded");
-
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("must have contiguous ranges covering all versions");
+                    .hasMessageContaining("must have @WhenVersion conditions ordered by ascending lessThan version");
         }
     }
 
     // Test fixture classes with annotations for testing
     static class ValidFixtures {
 
-        @ParameterizedByGradleVersion(stringValue = "all")
-        void singleRange() {}
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "default",
+                when = {})
+        void noConditions() {}
 
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void twoRanges() {}
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "new",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+        void singleCondition() {}
 
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "less than 8")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", upperBound = "9.0", stringValue = "8.x")
-        @ParameterizedByGradleVersion(lowerBound = "9.0", stringValue = "9 and up")
-        void threeRanges() {}
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "9 and up",
+                when = {
+                    @WhenVersion(lessThan = "8.0", stringValue = "less than 8"),
+                    @WhenVersion(lessThan = "9.0", stringValue = "8.x")
+                })
+        void twoConditions() {}
 
-        void noAnnotations() {}
+        void noAnnotation() {}
     }
 
     static class InvalidFixtures {
 
-        // Missing range from 0.0.0 to 8.0
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void missingLowerRange() {}
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "default",
+                when = {
+                    @WhenVersion(lessThan = "9.0", stringValue = "a"),
+                    @WhenVersion(lessThan = "8.0", stringValue = "b")
+                })
+        void descendingOrder() {}
 
-        // Missing range from 9.0 to infinity
-        @ParameterizedByGradleVersion(upperBound = "9.0", stringValue = "old")
-        void missingUpperRange() {}
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "default",
+                when = {
+                    @WhenVersion(lessThan = "8.0", stringValue = "a"),
+                    @WhenVersion(lessThan = "8.0", stringValue = "b")
+                })
+        void duplicateVersions() {}
 
-        // Gap between 7.0 and 8.0
-        @ParameterizedByGradleVersion(upperBound = "7.0", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void gapBetweenRanges() {}
-
-        // Overlap: first ends at 8.5, second starts at 8.0
-        @ParameterizedByGradleVersion(upperBound = "8.5", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void overlapBetweenRanges() {}
-
-        // Middle range has no upper bound
-        @ParameterizedByGradleVersion(upperBound = "7.0", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "7.0", stringValue = "middle")
-        @ParameterizedByGradleVersion(lowerBound = "9.0", stringValue = "new")
-        void unboundedMiddle() {}
-
-        // Duplicate upper bounds
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old2")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void duplicateUpperBounds() {}
-
-        // Duplicate lower bounds
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new2")
-        void duplicateLowerBounds() {}
-
-        // Empty range: lowerBound == upperBound
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", upperBound = "8.0", stringValue = "empty")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void emptyRange() {}
-
-        // Inverted bounds: lowerBound > upperBound
-        @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
-        @ParameterizedByGradleVersion(lowerBound = "9.0", upperBound = "8.0", stringValue = "inverted")
-        @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
-        void invertedBounds() {}
-
-        // Single bounded range not covering all versions
-        @ParameterizedByGradleVersion(lowerBound = "7.0", upperBound = "8.0", stringValue = "middle")
-        void singleBoundedRange() {}
-
-        // Two fully unbounded annotations
-        @ParameterizedByGradleVersion(stringValue = "all1")
-        @ParameterizedByGradleVersion(stringValue = "all2")
-        void duplicateFullyUnbounded() {}
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "default",
+                when = {
+                    @WhenVersion(lessThan = "7.0", stringValue = "a"),
+                    @WhenVersion(lessThan = "9.0", stringValue = "b"),
+                    @WhenVersion(lessThan = "8.0", stringValue = "c")
+                })
+        void outOfOrderMiddle() {}
     }
 }

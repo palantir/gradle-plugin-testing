@@ -20,49 +20,42 @@ import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-/** Computes parameter value for {@link ParameterizedByGradleVersion} based on Gradle version. */
+/** Computes parameter values for {@link ParameterizedByGradleVersion}. */
 final class ParameterizedByGradleVersionValues {
 
-    /** Returns the parameter value for the given Gradle version, validating range coverage. */
     public static Optional<String> computeValue(Method method, GradleVersion gradleVersion) {
-        ParameterizedByGradleVersion[] annotations = method.getAnnotationsByType(ParameterizedByGradleVersion.class);
+        ParameterizedByGradleVersion annotation = method.getAnnotation(ParameterizedByGradleVersion.class);
 
-        if (annotations.length == 0) {
+        if (annotation == null) {
             return Optional.empty();
         }
 
-        validateVersionRanges(annotations, method);
+        WhenVersion[] conditions = annotation.when();
+        validateOrdering(conditions, method);
 
-        return Arrays.stream(annotations)
-                .filter(anno -> matchesVersion(anno, gradleVersion))
-                .map(ParameterizedByGradleVersion::stringValue)
-                .findFirst();
+        return Arrays.stream(conditions)
+                .filter(when -> gradleVersion.compareTo(new GradleVersion(when.lessThan())) < 0)
+                .map(WhenVersion::stringValue)
+                .findFirst()
+                .or(() -> Optional.of(annotation.otherwiseString()));
     }
 
-    private static boolean matchesVersion(ParameterizedByGradleVersion anno, GradleVersion current) {
-        boolean aboveLower =
-                anno.lowerBound().isEmpty() || current.compareTo(new GradleVersion(anno.lowerBound())) >= 0;
-        boolean belowUpper = anno.upperBound().isEmpty() || current.compareTo(new GradleVersion(anno.upperBound())) < 0;
-        return aboveLower && belowUpper;
+    public static Optional<String> parameterName(Method method) {
+        return Optional.ofNullable(method.getAnnotation(ParameterizedByGradleVersion.class))
+                .map(ParameterizedByGradleVersion::name);
     }
 
-    private static void validateVersionRanges(ParameterizedByGradleVersion[] annotations, Method method) {
-        // For contiguous ranges, the set of lower bounds must equal the set of upper bounds,
-        // and there must be no duplicates within each set
-        Set<String> lowerBounds = Arrays.stream(annotations)
-                .map(ParameterizedByGradleVersion::lowerBound)
-                .collect(Collectors.toSet());
-        Set<String> upperBounds = Arrays.stream(annotations)
-                .map(ParameterizedByGradleVersion::upperBound)
-                .collect(Collectors.toSet());
+    private static void validateOrdering(WhenVersion[] conditions, Method method) {
+        for (int i = 1; i < conditions.length; i++) {
+            GradleVersion previous = new GradleVersion(conditions[i - 1].lessThan());
+            GradleVersion current = new GradleVersion(conditions[i].lessThan());
 
-        if (lowerBounds.size() != annotations.length || !lowerBounds.equals(upperBounds)) {
-            throw new IllegalStateException(
-                    "@ParameterizedByGradleVersion on %s.%s must have contiguous ranges covering all versions"
-                            .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
+            if (previous.compareTo(current) >= 0) {
+                throw new IllegalStateException(
+                        "@ParameterizedByGradleVersion on %s.%s must have @WhenVersion conditions ordered by ascending lessThan version (lowest first)"
+                                .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
+            }
         }
     }
 

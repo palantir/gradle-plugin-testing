@@ -17,7 +17,6 @@
 package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -25,30 +24,23 @@ import java.lang.annotation.Target;
 /**
  * Injects a String parameter based on the Gradle version under test.
  *
- * <p>Ranges use inclusive lower bounds and exclusive upper bounds. Annotations must cover
- * the entire version space with no gaps (first has no lowerBound, last has no upperBound,
- * each upperBound equals the next lowerBound).
- *
  * <pre>{@code
- * @Test
- * @ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "old")
- * @ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "new")
- * void test(GradleInvoker invoker, RootProject project, @ParameterInject String behaviour) { }
+ * @ParameterizedByGradleVersion(
+ *     name = "behaviour",
+ *     otherwiseString = "new",
+ *     when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+ * void test(GradleInvoker invoker, RootProject project, String behaviour) { }
  * }</pre>
  *
- * @see ParameterInject
+ * <p>Conditions must be ordered by ascending version (lowest first).
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(ParameterizedByGradleVersions.class)
 public @interface ParameterizedByGradleVersion {
 
-    /** Inclusive lower bound. Empty means minimum */
-    String lowerBound() default "";
+    String name();
 
-    /** Exclusive upper bound. Empty means unbounded. */
-    String upperBound() default "";
+    String otherwiseString();
 
-    /** Value to inject when the Gradle version is in this range. */
-    String stringValue();
+    WhenVersion[] when() default {};
 }

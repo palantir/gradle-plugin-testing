@@ -174,26 +174,32 @@ The versions from `@AdditionallyRunWithGradle` are merged with the globally conf
 
 #### Version-Conditional Parameters
 
-Use `@ParameterizedByGradleVersion` to inject different String values based on the Gradle version under test. Each annotation defines a version range with `lowerBound` (inclusive) and `upperBound` (exclusive). Annotations must cover the entire version space with no gaps.
+Use `@ParameterizedByGradleVersion` to inject different String values based on the Gradle version under test.
 
 ```java
 @Test
-@ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "legacyStyle")
-@ParameterizedByGradleVersion(lowerBound = "8.0", stringValue = "newStyle")
-void test(GradleInvoker gradle, RootProject project, @ParameterInject String configOption) {
+@ParameterizedByGradleVersion(
+    name = "configOption",
+    otherwiseString = "newStyle",
+    when = @WhenVersion(lessThan = "8.0", stringValue = "legacyStyle"))
+void test(GradleInvoker gradle, RootProject project, String configOption) {
     // configOption is "legacyStyle" for Gradle < 8.0, "newStyle" for Gradle >= 8.0
     project.buildGradle().append("myPlugin.style = '%s'", configOption);
 }
 ```
 
-**With multiple ranges:**
+**With multiple conditions:**
 
 ```java
 @Test
-@ParameterizedByGradleVersion(upperBound = "8.0", stringValue = "legacy")
-@ParameterizedByGradleVersion(lowerBound = "8.0", upperBound = "9.0", stringValue = "8.x")
-@ParameterizedByGradleVersion(lowerBound = "9.0", stringValue = "modern")
-void test(GradleInvoker gradle, RootProject project, @ParameterInject String generation) {
+@ParameterizedByGradleVersion(
+    name = "generation",
+    otherwiseString = "modern",
+    when = {
+        @WhenVersion(lessThan = "8.0", stringValue = "legacy"),
+        @WhenVersion(lessThan = "9.0", stringValue = "8.x")
+    })
+void test(GradleInvoker gradle, RootProject project, String generation) {
     // generation = "legacy" for Gradle < 8.0
     // generation = "8.x" for Gradle 8.0 to 8.x
     // generation = "modern" for Gradle >= 9.0
@@ -201,8 +207,8 @@ void test(GradleInvoker gradle, RootProject project, @ParameterInject String gen
 ```
 
 **Requirements:**
-- Mark the injected parameter with `@ParameterInject`
-- Ranges must be contiguous: first range has no `lowerBound`, last range has no `upperBound`, and each `upperBound` equals the next `lowerBound`
+- The `name` must match the parameter name in the method signature
+- Conditions must be ordered by ascending `lessThan` version (lowest first)
 
 ## File Operations
 

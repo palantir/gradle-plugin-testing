@@ -21,7 +21,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
-/** Resolves {@link ParameterInject} parameters based on {@link ParameterizedByGradleVersion} annotations. */
+/** Resolves parameters for {@link ParameterizedByGradleVersion}. */
 final class ParameterizedByGradleVersionResolver implements TerseParameterResolver {
 
     @Override
@@ -31,13 +31,16 @@ final class ParameterizedByGradleVersionResolver implements TerseParameterResolv
             return Optional.empty();
         }
 
-        if (!parameterContext.isAnnotated(ParameterInject.class)) {
-            return Optional.empty();
-        }
+        return extensionContext.getTestMethod().flatMap(method -> {
+            Optional<String> expectedName = ParameterizedByGradleVersionValues.parameterName(method);
+            String actualName = parameterContext.getParameter().getName();
 
-        return extensionContext
-                .getTestMethod()
-                .flatMap(method -> ParameterizedByGradleVersionValues.computeValue(
-                        method, GradleVersionStore.gradleVersion(extensionContext)));
+            if (expectedName.isEmpty() || !expectedName.get().equals(actualName)) {
+                return Optional.empty();
+            }
+
+            return ParameterizedByGradleVersionValues.computeValue(
+                    method, GradleVersionStore.gradleVersion(extensionContext));
+        });
     }
 }
