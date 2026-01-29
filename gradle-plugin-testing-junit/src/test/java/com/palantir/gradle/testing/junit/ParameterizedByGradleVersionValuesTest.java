@@ -155,35 +155,32 @@ final class ParameterizedByGradleVersionValuesTest {
     // Test fixture classes with annotations for testing
     static class ValidFixtures {
 
-        @ParameterizedByGradleVersion(
-                name = "behaviour",
-                otherwiseString = "default",
-                when = {})
+        @ParameterizedByGradleVersion(name = "behaviour", when = {}, otherwiseString = "default")
         void noConditions() {}
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "new",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
         void singleCondition() {}
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "9 and up",
                 when = {
                     @WhenVersion(lessThan = "8.0", stringValue = "less than 8"),
                     @WhenVersion(lessThan = "9.0", stringValue = "8.x")
-                })
+                },
+                otherwiseString = "9 and up")
         void twoConditions() {}
 
         @ParameterizedByGradleVersion(
                 name = "first",
-                otherwiseString = "new",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
         @ParameterizedByGradleVersion(
                 name = "second",
-                otherwiseString = "after 9",
-                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"))
+                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
+                otherwiseString = "after 9")
         void twoAnnotations() {}
 
         void noAnnotation() {}
@@ -193,40 +190,40 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "default",
                 when = {
                     @WhenVersion(lessThan = "9.0", stringValue = "a"),
                     @WhenVersion(lessThan = "8.0", stringValue = "b")
-                })
+                },
+                otherwiseString = "default")
         void descendingOrder() {}
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "default",
                 when = {
                     @WhenVersion(lessThan = "8.0", stringValue = "a"),
                     @WhenVersion(lessThan = "8.0", stringValue = "b")
-                })
+                },
+                otherwiseString = "default")
         void duplicateVersions() {}
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "default",
                 when = {
                     @WhenVersion(lessThan = "7.0", stringValue = "a"),
                     @WhenVersion(lessThan = "9.0", stringValue = "b"),
                     @WhenVersion(lessThan = "8.0", stringValue = "c")
-                })
+                },
+                otherwiseString = "default")
         void outOfOrderMiddle() {}
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "first",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "first")
         @ParameterizedByGradleVersion(
                 name = "behaviour",
-                otherwiseString = "second",
-                when = @WhenVersion(lessThan = "9.0", stringValue = "also old"))
+                when = @WhenVersion(lessThan = "9.0", stringValue = "also old"),
+                otherwiseString = "second")
         void duplicateNames() {}
     }
 }

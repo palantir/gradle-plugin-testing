@@ -35,8 +35,8 @@ public final class ParameterizedByGradleVersionBeforeEachFixtureTest {
     @BeforeEach
     @ParameterizedByGradleVersion(
             name = "behavior",
-            otherwiseString = "new",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+            when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+            otherwiseString = "new")
     void setup(RootProject rootProject, String behavior) {
         this.capturedBehavior = behavior;
         rootProject.buildGradle().plugins().add("java");

@@ -37,8 +37,8 @@ public final class ParameterizedByGradleVersionWithDisabledConfigurationCacheFix
     @Test
     @ParameterizedByGradleVersion(
             name = "behavior",
-            otherwiseString = "new",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+            when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+            otherwiseString = "new")
     @DisabledConfigurationCache("Testing compatibility with @ParameterizedByGradleVersion")
     void test_with_parameter(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""

@@ -35,11 +35,11 @@ public final class ParameterizedByGradleVersionFixtureTest {
     @Test
     @ParameterizedByGradleVersion(
             name = "behavior",
-            otherwiseString = "9 and up",
             when = {
                 @WhenVersion(lessThan = "8.0", stringValue = "less than 8"),
                 @WhenVersion(lessThan = "9.0", stringValue = "8.x")
-            })
+            },
+            otherwiseString = "9 and up")
     void test_one(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

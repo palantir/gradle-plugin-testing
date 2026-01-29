@@ -35,8 +35,8 @@ public final class ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest 
     @BeforeEach
     @ParameterizedByGradleVersion(
             name = "behavior",
-            otherwiseString = "setup-new",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "setup-old"))
+            when = @WhenVersion(lessThan = "8.0", stringValue = "setup-old"),
+            otherwiseString = "setup-new")
     void setup(RootProject rootProject, String behavior) {
         this.setupBehavior = behavior;
         rootProject.buildGradle().plugins().add("java");
@@ -45,8 +45,8 @@ public final class ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest 
     @Test
     @ParameterizedByGradleVersion(
             name = "behavior",
-            otherwiseString = "test-new",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "test-old"))
+            when = @WhenVersion(lessThan = "8.0", stringValue = "test-old"),
+            otherwiseString = "test-new")
     void test_same_name_on_both_methods(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

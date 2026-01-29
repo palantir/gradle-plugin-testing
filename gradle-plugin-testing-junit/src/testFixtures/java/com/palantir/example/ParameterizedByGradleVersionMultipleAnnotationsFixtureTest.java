@@ -32,12 +32,12 @@ public final class ParameterizedByGradleVersionMultipleAnnotationsFixtureTest {
     @Test
     @ParameterizedByGradleVersion(
             name = "style",
-            otherwiseString = "new",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+            when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+            otherwiseString = "new")
     @ParameterizedByGradleVersion(
             name = "format",
-            otherwiseString = "modern",
-            when = @WhenVersion(lessThan = "9.0", stringValue = "classic"))
+            when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
+            otherwiseString = "modern")
     void test_with_two_parameters(GradleInvoker gradleInvoker, RootProject rootProject, String style, String format) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

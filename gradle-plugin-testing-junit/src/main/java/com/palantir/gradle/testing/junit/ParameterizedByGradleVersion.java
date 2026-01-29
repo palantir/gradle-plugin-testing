@@ -28,8 +28,8 @@ import java.lang.annotation.Target;
  * <pre>{@code
  * @ParameterizedByGradleVersion(
  *     name = "behaviour",
- *     otherwiseString = "new",
- *     when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+ *     when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+ *     otherwiseString = "new")
  * void test(GradleInvoker invoker, RootProject project, String behaviour) { }
  * }</pre>
  *
@@ -42,7 +42,7 @@ public @interface ParameterizedByGradleVersion {
 
     String name();
 
-    String otherwiseString();
-
     WhenVersion[] when() default {};
+
+    String otherwiseString();
 }
