@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.testing.execution;
 
-import com.palantir.gradle.testing.junit.ConfigurationCacheStore;
+import com.google.common.collect.ImmutableList;
 import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.GradleInvokerDecoratorFactory;
@@ -24,13 +24,21 @@ import com.palantir.gradle.testing.junit.RegistersGradleInvokerDecorator;
 import com.palantir.gradle.testing.project.RootProject;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.commons.support.AnnotationSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +48,6 @@ public interface GradleInvoker {
 
     GradleInvocation withArgs(String... args);
 
-    /**
-     * Creates a GradleInvoker with all discovered decorators applied.
-     * Decorators are collected from the test extension context hierarchy, starting from the test method
-     * and moving up through parent classes. They are applied in registration order: first-registered decorators become
-     * innermost wrappers, while later-registered decorators become outer wrappers.
-     */
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker baseInvoker = new DefaultGradleInvoker(path, gradleVersion);
         RootProject rootProject = new RootProject(path);
@@ -58,66 +60,94 @@ public interface GradleInvoker {
     }
 
     private static List<GradleInvokerDecorator> discoverDecorators(ExtensionContext extensionContext) {
-        List<GradleInvokerDecorator> inheritedAnnotations = collectAnnotationsFromContext(extensionContext).stream()
-                .map(GradleInvoker::getDecoratorFromAnnotation)
-                .toList();
-        List<GradleInvokerDecorator> extraAnnotations =
-                ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)
-                        ? List.of(new ConfigurationCacheDecorator())
-                        : List.of();
-        return Stream.concat(inheritedAnnotations.stream(), extraAnnotations.stream())
-                .toList();
+        return getDecoratorsFromAnnotations(collectAnnotationsFromContext(extensionContext));
+    }
+
+    private static Set<Annotation> collectAnnotationsFromContext(ExtensionContext context) {
+        List<Annotation> methodAnnotations = context.getTestMethod()
+                .map(GradleInvoker::findAllAnnotationsWithRegisterDecorator)
+                .orElseGet(List::of);
+        // Collect contexts from bottom to top (method -> class -> parent classes)
+        List<ExtensionContext> contextHierarchy = Stream.iterate(
+                        context, Objects::nonNull, ctx -> ctx.getParent().orElse(null))
+                .collect(Collectors.toList());
+
+        // Reverse to get top-down order (parent classes -> class -> method)
+        Collections.reverse(contextHierarchy);
+
+        Stream<Annotation> classAnnotations = contextHierarchy.stream()
+                .flatMap(ctx -> ctx.getTestClass().stream())
+                .flatMap(testClass -> findAllAnnotationsWithRegisterDecorator(testClass).stream());
+
+        return Stream.concat(classAnnotations, methodAnnotations.stream())
+                // preserving the order while dropping duplicated annotations
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static List<Annotation> findAllAnnotationsWithRegisterDecorator(AnnotatedElement element) {
+        ImmutableList.Builder<Annotation> annotationBuilder = ImmutableList.builder();
+
+        for (Annotation annotation : element.getAnnotations()) {
+            if (AnnotationSupport.isAnnotated(annotation.annotationType(), RegistersGradleInvokerDecorator.class)) {
+                annotationBuilder.add(annotation);
+            }
+            // Check if this might be a container annotation for repeatable annotations
+            // Look for annotations that might be containers for @RegistersGradleInvokerDecorator annotations
+            try {
+                Method valueMethod = annotation.annotationType().getDeclaredMethod("value");
+                if (valueMethod.getReturnType().isArray()) {
+                    Class<?> componentType = valueMethod.getReturnType().getComponentType();
+
+                    if (Annotation.class.isAssignableFrom(componentType)
+                            && componentType.isAnnotationPresent(RegistersGradleInvokerDecorator.class)) {
+                        Object value = valueMethod.invoke(annotation);
+                        if (value instanceof Annotation[] containedAnnotations) {
+                            annotationBuilder.addAll(
+                                    Arrays.stream(containedAnnotations).toList());
+                        }
+                    }
+                }
+            } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                // not a repeatable annotation, ignore this
+            }
+        }
+        return annotationBuilder.build();
     }
 
     /**
-     * Collects all unique annotations starting from the current extension context (test method)
-     * and going up the parent tree (test class, parent classes, etc.).
+     * Groups annotations by their factory class and creates decorators for each factory, passing the
+     * `RegistersGradleInvokerDecorator` annotations.
      */
-    private static Set<Annotation> collectAnnotationsFromContext(ExtensionContext context) {
-        return Stream.iterate(context, Objects::nonNull, ctx -> ctx.getParent().orElse(null))
-                .flatMap(ctx -> Stream.concat(
-                        ctx.getTestMethod()
-                                .map(method -> getAnnotations(method.getAnnotations()))
-                                .orElseGet(Stream::empty),
-                        ctx.getTestClass()
-                                .map(clazz -> getAnnotations(clazz.getAnnotations()))
-                                .orElseGet(Stream::empty)))
+    private static List<GradleInvokerDecorator> getDecoratorsFromAnnotations(Set<Annotation> annotations) {
+        Set<? extends Class<? extends GradleInvokerDecoratorFactory>> factoryClasses = annotations.stream()
+                .map(annotation -> Optional.ofNullable(
+                        annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class)))
+                .<RegistersGradleInvokerDecorator>mapMulti(Optional::ifPresent)
+                .map(RegistersGradleInvokerDecorator::value)
                 .collect(Collectors.toSet());
-    }
 
-    private static Stream<Annotation> getAnnotations(Annotation[] annotations) {
-        return Stream.of(annotations)
-                .filter(annotation ->
-                        annotation.annotationType().isAnnotationPresent(RegistersGradleInvokerDecorator.class));
+        return factoryClasses.stream()
+                .map(factory ->
+                        createDecoratorFromFactory(factory, annotations.stream().toList()))
+                .toList();
     }
 
     @SuppressWarnings("unchecked")
-    private static GradleInvokerDecorator getDecoratorFromAnnotation(Annotation annotation) {
+    private static GradleInvokerDecorator createDecoratorFromFactory(
+            Class<? extends GradleInvokerDecoratorFactory> factoryClass, List<Annotation> annotations) {
         try {
-            RegistersGradleInvokerDecorator registersDecorator =
-                    annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);
-
-            if (registersDecorator == null) {
-                throw new IllegalArgumentException("Annotation "
-                        + annotation.annotationType().getName() + " does not have @RegistersGradleInvokerDecorator");
-            }
-
-            Class<? extends GradleInvokerDecoratorFactory<?>> factoryClass = registersDecorator.value();
-            GradleInvokerDecoratorFactory<Annotation> factory = (GradleInvokerDecoratorFactory<Annotation>)
+            GradleInvokerDecoratorFactory factory =
                     factoryClass.getDeclaredConstructor().newInstance();
 
-            GradleInvokerDecorator decorator = factory.create(annotation);
+            GradleInvokerDecorator decorator = factory.create(annotations);
             log.debug(
-                    "Found decorator from @{}: {}",
-                    annotation.annotationType().getSimpleName(),
+                    "Created decorator from factory {}: {}",
+                    factoryClass.getSimpleName(),
                     decorator.getClass().getSimpleName());
             return decorator;
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(
-                    String.format(
-                            "Failed to instantiate decorator factory for annotation @%s",
-                            annotation.annotationType().getSimpleName()),
-                    e);
+                    String.format("Failed to instantiate decorator factory %s", factoryClass.getSimpleName()), e);
         }
     }
 

@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * the framework will automatically:
  * <ol>
  *   <li>Instantiate the specified {@link GradleInvokerDecoratorFactory}</li>
- *   <li>Call {@link GradleInvokerDecoratorFactory#create} with the annotation instance</li>
+ *   <li>Call {@link GradleInvokerDecoratorFactory#create} with all matching annotation instance</li>
  *   <li>Register the resulting decorator</li>
  * </ol>
  *
@@ -50,5 +50,5 @@ public @interface RegistersGradleInvokerDecorator {
      * The factory class that creates the decorator.
      * Must have a public no-argument constructor.
      */
-    Class<? extends GradleInvokerDecoratorFactory<?>> value();
+    Class<? extends GradleInvokerDecoratorFactory> value();
 }

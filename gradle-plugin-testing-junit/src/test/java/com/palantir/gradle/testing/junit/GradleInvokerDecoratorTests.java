@@ -16,17 +16,17 @@
 
 package com.palantir.gradle.testing.junit;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.junit.TestDecorators.WithArgAddingDecorator;
-import com.palantir.gradle.testing.junit.TestDecorators.WithArgAddingDecorator2;
-import com.palantir.gradle.testing.junit.TestDecorators.WithArgAddingDecorator3;
-import com.palantir.gradle.testing.junit.TestDecorators.WithCountingDecorator;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@WithArgAddingDecorator(arg = "-PtopClass=true")
 @WithArgAddingDecorator(arg = "-PclassValue=classDecorator")
 @GradlePluginTests
 @DisabledConfigurationCache("Testing decorator mechanism without config cache complexity")
@@ -53,7 +53,7 @@ class GradleInvokerDecoratorTests {
     }
 
     @Test
-    @WithArgAddingDecorator2(arg = "help")
+    @WithArgAddingDecorator(arg = "help")
     void decorator_is_applied_via_annotation(GradleInvoker invoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             tasks.register("hello") {
@@ -69,11 +69,12 @@ class GradleInvokerDecoratorTests {
     }
 
     @Nested
-    @WithArgAddingDecorator2(arg = "help")
+    @WithArgAddingDecorator(arg = "help")
+    @WithArgAddingDecorator(arg = "-PnestedClass=value")
     class NestedTest {
 
         @Test
-        @WithArgAddingDecorator3(arg = "-Pname=hello")
+        @WithArgAddingDecorator(arg = "-Pname=hello")
         @WithArgAddingDecorator(arg = "-PclassValue2=secondClassDecorator")
         void multiple_decorators_are_applied(GradleInvoker invoker, RootProject rootProject) {
             rootProject.buildGradle().append("""
@@ -92,57 +93,12 @@ class GradleInvokerDecoratorTests {
                     .output()
                     .contains("Hello from task hello with decorator values: classDecorator & secondClassDecorator");
             result.assertThat().output().contains("Task :help");
+
+            // top-down order (parent classes -> class -> method)
+            assertThatThrownBy(() -> invoker.withArgs("hello").buildsWithFailure())
+                    .hasMessageContaining(
+                            "hello, -PtopClass=true, -PclassValue=classDecorator, help, -PnestedClass=value,"
+                                + " -Pname=hello, -PclassValue2=secondClassDecorator, --stacktrace, -P__TESTING=true");
         }
-    }
-
-    @Nested
-    @WithCountingDecorator
-    public class DuplicateDecoratorTests {
-
-        @BeforeEach
-        void setup(RootProject rootProject) {
-            rootProject.buildGradle().append("""
-                tasks.register("decoratorCount") {
-                    doLast {
-                        def count = project.properties.count { k, v -> k.toString().startsWith("decoratorId") }
-                        println "Decorator count: ${count}"
-                    }
-                }
-                """);
-        }
-
-        @Test
-        @WithCountingDecorator
-        void duplicate_decorator_on_test_method(GradleInvoker invoker) {
-            checkOnlyFirstDecoratorRegistered(invoker);
-        }
-
-        @Nested
-        class OtherTestClass {
-
-            @WithCountingDecorator
-            @Test
-            void nested_test_with_duplicated_decorator(GradleInvoker invoker) {
-                checkOnlyFirstDecoratorRegistered(invoker);
-            }
-        }
-
-        @WithCountingDecorator
-        @Nested
-        class TestClassWithDuplicateDecorator {
-
-            @Test
-            void simple_test(GradleInvoker invoker) {
-                checkOnlyFirstDecoratorRegistered(invoker);
-            }
-        }
-    }
-
-    private static void checkOnlyFirstDecoratorRegistered(GradleInvoker invoker) {
-        invoker.withArgs("decoratorCount")
-                .buildsSuccessfully()
-                .assertThat()
-                .output()
-                .contains("Decorator count: 1");
     }
 }

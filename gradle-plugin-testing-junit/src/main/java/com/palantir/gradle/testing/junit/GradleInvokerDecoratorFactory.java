@@ -17,25 +17,25 @@
 package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * Factory for creating {@link GradleInvokerDecorator} instances from annotations.
  *
  * <p>Implementations are referenced by the {@link RegistersGradleInvokerDecorator} meta-annotation.
  * When a test class or method is annotated with an annotation that has {@code @RegistersGradleInvokerDecorator},
- * the framework will instantiate the factory and call {@link #create} with the annotation instance.
+ * the framework will instantiate the factory and call {@link #create} with all matching annotation instances.
  *
  * <p>Factories must have a public no-argument constructor.
  *
- * @param <A> the annotation type this factory handles
  */
-public interface GradleInvokerDecoratorFactory<A extends Annotation> {
+public interface GradleInvokerDecoratorFactory {
 
     /**
-     * Creates a decorator from the given annotation.
+     * Creates a decorator from the given annotations.
      *
-     * @param annotation the annotation instance from the test class or method
+     * @param annotations the annotation instances from the test class or method
      * @return a decorator that will be registered for this test
      */
-    GradleInvokerDecorator create(A annotation);
+    GradleInvokerDecorator create(List<Annotation> annotations);
 }

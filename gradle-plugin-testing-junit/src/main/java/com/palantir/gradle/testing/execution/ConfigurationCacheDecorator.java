@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.execution;
 
-import com.palantir.gradle.testing.junit.ConfigurationCacheStore;
 import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 
@@ -27,19 +26,11 @@ import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
  * once to populate the configuration cache, and a second time (with --dry-run)
  * to verify the cache is properly reused.
  *
- * <p>The decorator checks {@link ConfigurationCacheStore#isConfigurationCacheEnabled} at
- * decoration time. If configuration cache has been disabled (e.g., by {@code @DisabledConfigurationCache}),
- * this decorator acts as a pass-through and returns the delegate unchanged.
  */
 public final class ConfigurationCacheDecorator implements GradleInvokerDecorator {
 
     @Override
     public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
-        // Check if configuration cache is still enabled at decoration time
-        // (it may have been disabled by @DisabledConfigurationCache on the method)
-        if (!ConfigurationCacheStore.isConfigurationCacheEnabled(context.extensionContext())) {
-            return delegate;
-        }
         return new ConfigurationCacheInvoker(context.rootProject().path(), delegate);
     }
 }
