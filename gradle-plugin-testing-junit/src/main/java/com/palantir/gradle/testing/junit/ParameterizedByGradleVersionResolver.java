@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
+import java.lang.reflect.Method;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -27,20 +28,10 @@ final class ParameterizedByGradleVersionResolver implements TerseParameterResolv
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
-        if (parameterContext.getParameter().getType() != String.class) {
-            return Optional.empty();
-        }
-
-        return extensionContext.getTestMethod().flatMap(method -> {
-            Optional<String> expectedName = ParameterizedByGradleVersionValues.parameterName(method);
-            String actualName = parameterContext.getParameter().getName();
-
-            if (expectedName.isEmpty() || !expectedName.get().equals(actualName)) {
-                return Optional.empty();
-            }
-
-            return ParameterizedByGradleVersionValues.computeValue(
-                    method, GradleVersionStore.gradleVersion(extensionContext));
-        });
+        return ParameterizedByGradleVersionValues.computeValue(
+                        (Method) parameterContext.getDeclaringExecutable(),
+                        parameterContext.getParameter().getName(),
+                        GradleVersionStore.gradleVersion(extensionContext))
+                .map(s -> s);
     }
 }

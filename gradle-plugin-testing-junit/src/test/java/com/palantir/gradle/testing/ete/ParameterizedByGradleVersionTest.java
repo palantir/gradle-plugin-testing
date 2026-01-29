@@ -18,7 +18,10 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.palantir.example.ParameterizedByGradleVersionBeforeEachFixtureTest;
 import com.palantir.example.ParameterizedByGradleVersionFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionMultipleAnnotationsFixtureTest;
+import com.palantir.example.ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest;
 import com.palantir.example.ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest;
 import com.palantir.example.ParameterizedByGradleVersionWithMethodLevelAdditionalVersionFixtureTest;
 import java.util.List;
@@ -121,6 +124,118 @@ final class ParameterizedByGradleVersionTest {
                 assertThat(msg).contains("behavior=old");
                 assertThat(msg).contains("GradleVersion: 7.6.4");
                 assertThat(msg).contains("isConfigurationCacheRequested=false");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+    }
+
+    @Nested
+    class WithBeforeEach {
+        @Test
+        void before_each_receives_correct_value() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionBeforeEachFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("behavior=old");
+                assertThat(msg).contains("GradleVersion: 7.6.4");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        @Test
+        void before_each_receives_new_value_for_newer_gradle() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionBeforeEachFixtureTest.class, "8.14.3");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("behavior=new");
+                assertThat(msg).contains("GradleVersion: 8.14.3");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+    }
+
+    @Nested
+    class WithMultipleAnnotations {
+        @Test
+        void multiple_parameters_receive_correct_values_for_old_gradle() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionMultipleAnnotationsFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("style=old");
+                assertThat(msg).contains("format=classic");
+                assertThat(msg).contains("GradleVersion: 7.6.4");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        @Test
+        void multiple_parameters_receive_correct_values_for_gradle_8() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionMultipleAnnotationsFixtureTest.class, "8.14.3");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("style=new");
+                assertThat(msg).contains("format=classic");
+                assertThat(msg).contains("GradleVersion: 8.14.3");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        @Test
+        void multiple_parameters_receive_correct_values_for_gradle_9() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionMultipleAnnotationsFixtureTest.class, "9.3.0");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("style=new");
+                assertThat(msg).contains("format=modern");
+                assertThat(msg).contains("GradleVersion: 9.3.0");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+    }
+
+    @Nested
+    class SameNameAcrossMethods {
+        @Test
+        void same_name_allowed_on_before_each_and_test_for_old_gradle() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest.class, "7.6.4");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("setupBehavior=setup-old");
+                assertThat(msg).contains("testBehavior=test-old");
+                assertThat(msg).contains("GradleVersion: 7.6.4");
+            });
+            assertThat(results.testEvents().skipped().count()).isZero();
+        }
+
+        @Test
+        void same_name_allowed_on_before_each_and_test_for_new_gradle() {
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest.class, "8.14.3");
+
+            List<Event> finished = results.testEvents().finished().stream().toList();
+
+            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
+                assertThat(msg).contains("setupBehavior=setup-new");
+                assertThat(msg).contains("testBehavior=test-new");
+                assertThat(msg).contains("GradleVersion: 8.14.3");
             });
             assertThat(results.testEvents().skipped().count()).isZero();
         }

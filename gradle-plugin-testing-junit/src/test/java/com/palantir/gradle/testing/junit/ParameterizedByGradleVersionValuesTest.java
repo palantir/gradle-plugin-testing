@@ -34,11 +34,11 @@ final class ParameterizedByGradleVersionValuesTest {
         void no_when_conditions_returns_otherwise() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("noConditions");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.0")))
                     .isEqualTo(Optional.of("default"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("default"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("9.0")))
                     .isEqualTo(Optional.of("default"));
         }
 
@@ -46,15 +46,16 @@ final class ParameterizedByGradleVersionValuesTest {
         void single_when_condition() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.6.4")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("old"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.9.9")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.9.9")))
                     .isEqualTo(Optional.of("old"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("new"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.14.3")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.14.3")))
                     .isEqualTo(Optional.of("new"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("9.0")))
                     .isEqualTo(Optional.of("new"));
         }
 
@@ -62,15 +63,16 @@ final class ParameterizedByGradleVersionValuesTest {
         void two_when_conditions() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("twoConditions");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("7.6.4")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("less than 8"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("8.0")))
                     .isEqualTo(Optional.of("8.x"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.14.3")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.14.3")))
                     .isEqualTo(Optional.of("8.x"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("9.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("9.0")))
                     .isEqualTo(Optional.of("9 and up"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("10.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("10.0")))
                     .isEqualTo(Optional.of("9 and up"));
         }
 
@@ -78,22 +80,31 @@ final class ParameterizedByGradleVersionValuesTest {
         void no_annotation_returns_empty() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("noAnnotation");
 
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("8.0")))
                     .isEmpty();
         }
 
         @Test
-        void parameter_name_returns_correct_value() throws Exception {
+        void unmatched_parameter_name_returns_empty() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
 
-            assertThat(ParameterizedByGradleVersionValues.parameterName(method)).isEqualTo(Optional.of("behaviour"));
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "wrongName", new GradleVersion("8.0")))
+                    .isEmpty();
         }
 
         @Test
-        void parameter_name_returns_empty_when_no_annotation() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("noAnnotation");
+        void multiple_annotations_with_different_names() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("twoAnnotations");
 
-            assertThat(ParameterizedByGradleVersionValues.parameterName(method)).isEmpty();
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("7.0")))
+                    .isEqualTo(Optional.of("old"));
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("8.0")))
+                    .isEqualTo(Optional.of("new"));
+
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "second", new GradleVersion("8.0")))
+                    .isEqualTo(Optional.of("before 9"));
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "second", new GradleVersion("9.0")))
+                    .isEqualTo(Optional.of("after 9"));
         }
     }
 
@@ -104,7 +115,8 @@ final class ParameterizedByGradleVersionValuesTest {
         void descending_order_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("descendingOrder");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have @WhenVersion conditions ordered by ascending lessThan version");
         }
@@ -113,7 +125,8 @@ final class ParameterizedByGradleVersionValuesTest {
         void duplicate_versions_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("duplicateVersions");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have @WhenVersion conditions ordered by ascending lessThan version");
         }
@@ -122,9 +135,20 @@ final class ParameterizedByGradleVersionValuesTest {
         void out_of_order_in_middle_throws() throws Exception {
             Method method = InvalidFixtures.class.getDeclaredMethod("outOfOrderMiddle");
 
-            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(method, new GradleVersion("8.0")))
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("must have @WhenVersion conditions ordered by ascending lessThan version");
+        }
+
+        @Test
+        void duplicate_names_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateNames");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("has duplicate name values");
         }
     }
 
@@ -151,6 +175,16 @@ final class ParameterizedByGradleVersionValuesTest {
                     @WhenVersion(lessThan = "9.0", stringValue = "8.x")
                 })
         void twoConditions() {}
+
+        @ParameterizedByGradleVersion(
+                name = "first",
+                otherwiseString = "new",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+        @ParameterizedByGradleVersion(
+                name = "second",
+                otherwiseString = "after 9",
+                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"))
+        void twoAnnotations() {}
 
         void noAnnotation() {}
     }
@@ -184,5 +218,15 @@ final class ParameterizedByGradleVersionValuesTest {
                     @WhenVersion(lessThan = "8.0", stringValue = "c")
                 })
         void outOfOrderMiddle() {}
+
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "first",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
+        @ParameterizedByGradleVersion(
+                name = "behaviour",
+                otherwiseString = "second",
+                when = @WhenVersion(lessThan = "9.0", stringValue = "also old"))
+        void duplicateNames() {}
     }
 }

@@ -19,43 +19,60 @@ package com.palantir.gradle.testing.junit;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /** Computes parameter values for {@link ParameterizedByGradleVersion}. */
 final class ParameterizedByGradleVersionValues {
 
-    public static Optional<String> computeValue(Method method, GradleVersion gradleVersion) {
-        ParameterizedByGradleVersion annotation = method.getAnnotation(ParameterizedByGradleVersion.class);
+    public static Optional<String> computeValue(Method method, String parameterName, GradleVersion gradleVersion) {
+        ParameterizedByGradleVersion[] annotations = method.getAnnotationsByType(ParameterizedByGradleVersion.class);
 
-        if (annotation == null) {
-            return Optional.empty();
-        }
+        validateNoDuplicateNames(annotations, method);
 
-        WhenVersion[] conditions = annotation.when();
-        validateOrdering(conditions, method);
-
-        return Arrays.stream(conditions)
-                .filter(when -> gradleVersion.compareTo(new GradleVersion(when.lessThan())) < 0)
-                .map(WhenVersion::stringValue)
+        return Arrays.stream(annotations)
+                .filter(anno -> anno.name().equals(parameterName))
                 .findFirst()
-                .or(() -> Optional.of(annotation.otherwiseString()));
+                .map(anno -> {
+                    validateOrdering(anno.when(), method);
+                    return computeValueForAnnotation(anno, gradleVersion);
+                });
     }
 
-    public static Optional<String> parameterName(Method method) {
-        return Optional.ofNullable(method.getAnnotation(ParameterizedByGradleVersion.class))
-                .map(ParameterizedByGradleVersion::name);
+    private static String computeValueForAnnotation(ParameterizedByGradleVersion annotation, GradleVersion version) {
+        return Arrays.stream(annotation.when())
+                .filter(when -> version.compareTo(new GradleVersion(when.lessThan())) < 0)
+                .map(WhenVersion::stringValue)
+                .findFirst()
+                .orElseGet(annotation::otherwiseString);
+    }
+
+    private static void validateNoDuplicateNames(ParameterizedByGradleVersion[] annotations, Method method) {
+        Set<String> names = Arrays.stream(annotations)
+                .map(ParameterizedByGradleVersion::name)
+                .collect(Collectors.toSet());
+
+        if (names.size() != annotations.length) {
+            throw new IllegalStateException("@ParameterizedByGradleVersion on %s.%s has duplicate name values"
+                    .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
+        }
     }
 
     private static void validateOrdering(WhenVersion[] conditions, Method method) {
-        for (int i = 1; i < conditions.length; i++) {
-            GradleVersion previous = new GradleVersion(conditions[i - 1].lessThan());
-            GradleVersion current = new GradleVersion(conditions[i].lessThan());
+        List<GradleVersion> versions = Arrays.stream(conditions)
+                .map(when -> new GradleVersion(when.lessThan()))
+                .toList();
 
-            if (previous.compareTo(current) >= 0) {
-                throw new IllegalStateException(
-                        "@ParameterizedByGradleVersion on %s.%s must have @WhenVersion conditions ordered by ascending lessThan version (lowest first)"
-                                .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
-            }
+        boolean outOfOrder = IntStream.range(1, versions.size())
+                .anyMatch(i -> versions.get(i - 1).compareTo(versions.get(i)) >= 0);
+
+        if (outOfOrder) {
+            throw new IllegalStateException(
+                    "@ParameterizedByGradleVersion on %s.%s must have @WhenVersion conditions ordered by ascending lessThan version (lowest first)"
+                            .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
         }
     }
 

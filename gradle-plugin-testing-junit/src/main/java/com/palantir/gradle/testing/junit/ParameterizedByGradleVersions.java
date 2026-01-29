@@ -17,32 +17,13 @@
 package com.palantir.gradle.testing.junit;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Injects a String parameter based on the Gradle version under test.
- *
- * <pre>{@code
- * @ParameterizedByGradleVersion(
- *     name = "behaviour",
- *     otherwiseString = "new",
- *     when = @WhenVersion(lessThan = "8.0", stringValue = "old"))
- * void test(GradleInvoker invoker, RootProject project, String behaviour) { }
- * }</pre>
- *
- * <p>Conditions must be ordered by ascending version (lowest first).
- */
+/** Container for repeatable {@link ParameterizedByGradleVersion} annotations. */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(ParameterizedByGradleVersions.class)
-public @interface ParameterizedByGradleVersion {
-
-    String name();
-
-    String otherwiseString();
-
-    WhenVersion[] when() default {};
+public @interface ParameterizedByGradleVersions {
+    ParameterizedByGradleVersion[] value();
 }
