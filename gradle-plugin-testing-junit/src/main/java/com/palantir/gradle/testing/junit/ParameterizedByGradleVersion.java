@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * void test(GradleInvoker invoker, RootProject project, @InjectByGradleVersion String behaviour) { }
  * }</pre>
  *
- * <p>Multiple parameters (name required):
+ * <p>Multiple parameters (name must match the method parameter name):
  * <pre>{@code
  * @ParameterizedByGradleVersion(
  *     name = "style",
