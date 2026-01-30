@@ -194,7 +194,7 @@ project.buildGradle().append("group 'com.example'");
 project.buildGradle().append("version '1.0.0'");
 ```
 
-**No leading newlines**: Start text block content immediately after `"""`:
+**No leading newlines**: Start text block content immediately after `"""`. Test file readability matters more than the generated build files, which are rarely read:
 
 ```java
 // CORRECT
