@@ -73,8 +73,8 @@ final class ParameterizedByGradleVersionValues {
     }
 
     private static void validateAllHaveNames(ParameterizedByGradleVersion[] annotations, Method method) {
-        boolean anyMissingName =
-                Arrays.stream(annotations).anyMatch(anno -> anno.name().isEmpty());
+        boolean anyMissingName = Arrays.stream(annotations)
+                .anyMatch(annotation -> annotation.name().isEmpty());
 
         if (anyMissingName) {
             throw new IllegalStateException(
