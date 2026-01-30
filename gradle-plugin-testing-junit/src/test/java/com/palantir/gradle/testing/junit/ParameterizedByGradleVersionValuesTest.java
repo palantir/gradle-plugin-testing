@@ -161,7 +161,7 @@ final class ParameterizedByGradleVersionValuesTest {
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("has duplicate name values");
+                    .hasMessageContaining("has duplicate name values: [behaviour]");
         }
 
         @Test

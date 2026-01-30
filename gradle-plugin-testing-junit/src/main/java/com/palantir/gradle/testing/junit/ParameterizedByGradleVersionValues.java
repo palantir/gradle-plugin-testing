@@ -16,13 +16,15 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.google.common.collect.Comparators;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
 /** Computes parameter values for {@link ParameterizedByGradleVersion}. */
 final class ParameterizedByGradleVersionValues {
@@ -51,7 +53,7 @@ final class ParameterizedByGradleVersionValues {
 
         // Multiple annotations or single with name - match by name
         return Arrays.stream(annotations)
-                .filter(anno -> anno.name().equals(parameterName))
+                .filter(annotation -> annotation.name().equals(parameterName))
                 .findFirst();
     }
 
@@ -66,8 +68,8 @@ final class ParameterizedByGradleVersionValues {
     private static void validate(ParameterizedByGradleVersion[] annotations, Method method) {
         if (annotations.length > 1) {
             validateAllHaveNames(annotations, method);
+            validateNoDuplicateNames(annotations, method);
         }
-        validateNoDuplicateNames(annotations, method);
     }
 
     private static void validateAllHaveNames(ParameterizedByGradleVersion[] annotations, Method method) {
@@ -82,16 +84,18 @@ final class ParameterizedByGradleVersionValues {
     }
 
     private static void validateNoDuplicateNames(ParameterizedByGradleVersion[] annotations, Method method) {
-        List<String> nonEmptyNames = Arrays.stream(annotations)
+        List<String> names = Arrays.stream(annotations)
                 .map(ParameterizedByGradleVersion::name)
-                .filter(name -> !name.isEmpty())
                 .toList();
 
-        Set<String> uniqueNames = Set.copyOf(nonEmptyNames);
+        Set<String> duplicates = names.stream()
+                .filter(name -> names.stream().filter(name::equals).count() > 1)
+                .collect(Collectors.toSet());
 
-        if (uniqueNames.size() != nonEmptyNames.size()) {
-            throw new IllegalStateException("@ParameterizedByGradleVersion on %s.%s has duplicate name values"
-                    .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
+        if (!duplicates.isEmpty()) {
+            throw new IllegalStateException(
+                    "@ParameterizedByGradleVersion on %s.%s has duplicate name values: %s"
+                            .formatted(method.getDeclaringClass().getSimpleName(), method.getName(), duplicates));
         }
     }
 
@@ -100,10 +104,7 @@ final class ParameterizedByGradleVersionValues {
                 .map(when -> new GradleVersion(when.lessThan()))
                 .toList();
 
-        boolean outOfOrder = IntStream.range(1, versions.size())
-                .anyMatch(i -> versions.get(i - 1).compareTo(versions.get(i)) >= 0);
-
-        if (outOfOrder) {
+        if (!Comparators.isInStrictOrder(versions, Comparator.naturalOrder())) {
             throw new IllegalStateException(
                     ("@ParameterizedByGradleVersion on %s.%s must have @WhenVersion conditions ordered by ascending "
                                     + "lessThan version (lowest first)")
