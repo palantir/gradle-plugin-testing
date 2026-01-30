@@ -25,14 +25,12 @@ import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public final class ParameterizedByGradleVersionFixtureTest {
 
-    @Nested
     @GradlePluginTests
-    public class SingleParameter {
+    public static class SingleParameter {
 
         @Test
         @ParameterizedByGradleVersion(
@@ -65,9 +63,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
         }
     }
 
-    @Nested
     @GradlePluginTests
-    public class WithBeforeEach {
+    public static class WithBeforeEach {
 
         private String capturedBehavior;
 
@@ -93,9 +90,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
         }
     }
 
-    @Nested
     @GradlePluginTests
-    public class MultipleAnnotations {
+    public static class MultipleAnnotations {
 
         @Test
         @ParameterizedByGradleVersion(
@@ -123,9 +119,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
         }
     }
 
-    @Nested
     @GradlePluginTests
-    public class SameNameAcrossMethods {
+    public static class SameNameAcrossMethods {
 
         private String setupBehavior;
 
@@ -159,9 +154,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
         }
     }
 
-    @Nested
     @GradlePluginTests
-    public class WithDisabledConfigurationCache {
+    public static class WithDisabledConfigurationCache {
 
         @Test
         @ParameterizedByGradleVersion(
@@ -195,9 +189,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
         }
     }
 
-    @Nested
     @GradlePluginTests
-    public class WithMethodLevelAdditionalVersion {
+    public static class WithMethodLevelAdditionalVersion {
 
         @Test
         @ParameterizedByGradleVersion(
