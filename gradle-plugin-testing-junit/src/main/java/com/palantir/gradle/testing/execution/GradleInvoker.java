@@ -26,15 +26,15 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,17 +85,20 @@ public interface GradleInvoker {
             // Look for annotations that might be containers for @RegistersGradleInvokerDecorator annotations
             try {
                 Method valueMethod = annotation.annotationType().getDeclaredMethod("value");
-                if (valueMethod.getReturnType().isArray()) {
-                    Class<?> componentType = valueMethod.getReturnType().getComponentType();
+                if (!valueMethod.getReturnType().isArray()) {
+                    continue;
+                }
+                Class<?> componentType = valueMethod.getReturnType().getComponentType();
 
-                    if (Annotation.class.isAssignableFrom(componentType)
-                            && componentType.isAnnotationPresent(RegistersGradleInvokerDecorator.class)) {
-                        Object value = valueMethod.invoke(annotation);
-                        if (value instanceof Annotation[] containedAnnotations) {
-                            annotationBuilder.addAll(
-                                    Arrays.stream(containedAnnotations).toList());
-                        }
-                    }
+                if (!Annotation.class.isAssignableFrom(componentType)) {
+                    continue;
+                }
+                if (!componentType.isAnnotationPresent(RegistersGradleInvokerDecorator.class)) {
+                    continue;
+                }
+                Object value = valueMethod.invoke(annotation);
+                if (value instanceof Annotation[] containedAnnotations) {
+                    annotationBuilder.addAll(Arrays.stream(containedAnnotations).toList());
                 }
             } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                 // not a repeatable annotation, ignore this
@@ -110,18 +113,30 @@ public interface GradleInvoker {
      */
     private static GradleInvoker decorateInvokerWithAnnotations(
             DecoratorContext context, GradleInvoker baseInvoker, Set<Annotation> annotations) {
-        Set<? extends Class<? extends GradleInvokerDecorator>> decoratorClasses = annotations.stream()
-                .map(annotation -> Optional.ofNullable(
-                        annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class)))
-                .<RegistersGradleInvokerDecorator>mapMulti(Optional::ifPresent)
-                .map(RegistersGradleInvokerDecorator::value)
-                // maintains the original order, while dropping duplicates
-                .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        GradleInvoker invoker = baseInvoker;
-        for (Class<? extends GradleInvokerDecorator> decoratorClass : decoratorClasses) {
-            invoker = createGradleInvokerFromDecorator(decoratorClass, context, invoker, annotations);
+        Map<Class<? extends GradleInvokerDecorator>, List<Annotation>> decoratorToAnnotations = new LinkedHashMap<>();
+        for (Annotation annotation : annotations) {
+            RegistersGradleInvokerDecorator registersMeta =
+                    annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);
+            if (registersMeta == null) {
+                continue;
+            }
+            Class<? extends GradleInvokerDecorator> decoratorClass = registersMeta.value();
+            if (!decoratorToAnnotations.containsKey(decoratorClass)) {
+                decoratorToAnnotations.put(decoratorClass, new ArrayList<>());
+            }
+            decoratorToAnnotations.get(decoratorClass).add(annotation);
         }
+
+        // Apply decorators in the original order, passing only relevant annotations to each
+        GradleInvoker invoker = baseInvoker;
+        for (Map.Entry<Class<? extends GradleInvokerDecorator>, List<Annotation>> entry :
+                decoratorToAnnotations.entrySet()) {
+            Class<? extends GradleInvokerDecorator> decoratorClass = entry.getKey();
+            List<Annotation> relevantAnnotations = entry.getValue();
+            invoker = createGradleInvokerFromDecorator(decoratorClass, context, invoker, relevantAnnotations);
+        }
+
         return invoker;
     }
 
@@ -130,52 +145,15 @@ public interface GradleInvoker {
             Class<? extends GradleInvokerDecorator> decoratorClass,
             DecoratorContext context,
             GradleInvoker invoker,
-            Set<Annotation> annotations) {
+            List<Annotation> annotations) {
         try {
-            // Get decorator's generic type parameter (the annotation type it can process)
-            Class<? extends Annotation> annotationType = getDecoratorAnnotationType(decoratorClass);
-
-            // Filter annotations to only include those of the expected type
-            List<Annotation> filteredAnnotations =
-                    annotations.stream().filter(annotationType::isInstance).toList();
-
             GradleInvokerDecorator<Annotation> decorator =
                     decoratorClass.getDeclaredConstructor().newInstance();
-            return decorator.decorate(context, invoker, filteredAnnotations);
+            return decorator.decorate(context, invoker, annotations);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(
                     String.format("Failed to instantiate decorator class %s", decoratorClass.getSimpleName()), e);
         }
-    }
-
-    /**
-     * Determines the annotation type that a decorator can process by examining its generic type parameter.
-     */
-    @SuppressWarnings("unchecked")
-    private static Class<? extends Annotation> getDecoratorAnnotationType(
-            Class<? extends GradleInvokerDecorator> decoratorClass) {
-        // Look for the GradleInvokerDecorator interface in the class hierarchy
-        Type[] genericInterfaces = decoratorClass.getGenericInterfaces();
-        for (Type genericInterface : genericInterfaces) {
-            if (genericInterface instanceof ParameterizedType parameterizedType) {
-                if (GradleInvokerDecorator.class.equals(parameterizedType.getRawType())) {
-                    Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                    if (typeArg instanceof Class<?> annotationClass) {
-                        return (Class<? extends Annotation>) annotationClass;
-                    }
-                }
-            }
-        }
-
-        // If we couldn't find it directly, check the superclass
-        Class<?> superclass = decoratorClass.getSuperclass();
-        if (superclass != null && GradleInvokerDecorator.class.isAssignableFrom(superclass)) {
-            return getDecoratorAnnotationType((Class<? extends GradleInvokerDecorator>) superclass);
-        }
-
-        // we shouldn't reach here
-        throw new IllegalStateException(String.format(
-                "Could not determine annotation type for decorator class %s", decoratorClass.getSimpleName()));
     }
 
     static boolean shouldRunInTestkitDebugMode() {

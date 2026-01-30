@@ -90,8 +90,7 @@ class GradleInvokerDecoratorTests {
             """);
 
         InvocationResult result = invoker.withArgs("hello").buildsSuccessfully();
-        result.assertThat().output().contains("Hello from task");
-        result.assertThat().output().contains("Task :help");
+        result.assertThat().output().contains("Hello from task").contains("Task :help");
     }
 
     @Nested
@@ -124,11 +123,11 @@ class GradleInvokerDecoratorTests {
             result.assertThat()
                     .output()
                     .contains("Hello from task hello with decorator values: classDecorator & secondClassDecorator")
-                    .contains("foo bar baz");
-            result.assertThat().output().contains("Task :help");
+                    .contains("foo bar baz")
+                    .contains("Task :help");
 
-            // top-down order (parent classes -> class -> method)
             assertThatThrownBy(() -> invoker.withArgs("hello").buildsWithFailure())
+                    .as("check top-down order (parent classes -> class -> method), ")
                     .hasMessageContaining("hello, "
                             + // first discovering the `@WithArgAddingDecorator`(most inner class) annotation with the
                             // corresponding args.
