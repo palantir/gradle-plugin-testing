@@ -21,7 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Marks a String parameter to receive the value from {@link ParameterizedByGradleVersion}. */
+/** Marks a method parameter to receive the value from {@link ParameterizedByGradleVersion}. */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface InjectByGradleVersion {}

@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Injects a String parameter based on the Gradle version under test.
+ * Injects a parameter based on the Gradle version under test.
  *
  * <p>Simple usage (single parameter):
  * <pre>{@code
