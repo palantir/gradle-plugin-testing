@@ -66,9 +66,27 @@ final class ParameterizedByGradleVersionValues {
     }
 
     private static void validate(ParameterizedByGradleVersion[] annotations, Method method) {
+        validateHasInjectParameter(annotations, method);
         if (annotations.length > 1) {
             validateAllHaveNames(annotations, method);
             validateNoDuplicateNames(annotations, method);
+        }
+    }
+
+    private static void validateHasInjectParameter(ParameterizedByGradleVersion[] annotations, Method method) {
+        long injectParameterCount = Arrays.stream(method.getParameters())
+                .filter(param -> param.isAnnotationPresent(InjectByGradleVersion.class))
+                .count();
+
+        if (injectParameterCount != annotations.length) {
+            throw new IllegalStateException("""
+                @ParameterizedByGradleVersion on %s.%s requires a corresponding @InjectByGradleVersion \
+                parameter for each annotation (found %d annotations but %d @InjectByGradleVersion parameters)\
+                """.formatted(
+                            method.getDeclaringClass().getSimpleName(),
+                            method.getName(),
+                            annotations.length,
+                            injectParameterCount));
         }
     }
 

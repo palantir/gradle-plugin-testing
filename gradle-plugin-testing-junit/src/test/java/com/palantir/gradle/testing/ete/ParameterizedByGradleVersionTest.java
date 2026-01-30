@@ -113,7 +113,8 @@ final class ParameterizedByGradleVersionTest {
     class WithMultipleAnnotations {
         @ParameterizedTest
         @MethodSource("gradleVersions")
-        void multiple_parameters_receive_correct_values(String gradleVersion, String expectedStyle, String expectedFormat) {
+        void multiple_parameters_receive_correct_values(
+                String gradleVersion, String expectedStyle, String expectedFormat) {
             EngineExecutionResults results =
                     runFixture(ParameterizedByGradleVersionFixtureTest.MultipleAnnotations.class, gradleVersion);
 

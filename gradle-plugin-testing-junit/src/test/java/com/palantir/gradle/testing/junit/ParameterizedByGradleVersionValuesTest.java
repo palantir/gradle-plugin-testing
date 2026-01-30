@@ -33,7 +33,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void no_when_conditions_returns_otherwise() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("noConditions");
+            Method method = ValidFixtures.class.getDeclaredMethod("noConditions", String.class);
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.0")))
                     .isEqualTo(Optional.of("default"));
@@ -45,7 +45,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void single_when_condition() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
+            Method method = ValidFixtures.class.getDeclaredMethod("singleCondition", String.class);
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("old"));
@@ -62,7 +62,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void two_when_conditions() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("twoConditions");
+            Method method = ValidFixtures.class.getDeclaredMethod("twoConditions", String.class);
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.6.4")))
                     .isEqualTo(Optional.of("less than 8"));
@@ -87,7 +87,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void single_annotation_without_name_matches_any_parameter() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
+            Method method = ValidFixtures.class.getDeclaredMethod("singleCondition", String.class);
 
             // Single annotation without name matches any @InjectByGradleVersion parameter regardless of its name
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "anyName", new GradleVersion("8.0")))
@@ -98,7 +98,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void multiple_annotations_unmatched_name_returns_empty() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("twoAnnotations");
+            Method method = ValidFixtures.class.getDeclaredMethod("twoAnnotations", String.class, String.class);
 
             // When there are multiple annotations, name must match
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "wrongName", new GradleVersion("8.0")))
@@ -107,7 +107,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void multiple_annotations_with_different_names() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("twoAnnotations");
+            Method method = ValidFixtures.class.getDeclaredMethod("twoAnnotations", String.class, String.class);
 
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("7.0")))
                     .isEqualTo(Optional.of("old"));
@@ -126,7 +126,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void descending_order_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("descendingOrder");
+            Method method = InvalidFixtures.class.getDeclaredMethod("descendingOrder", String.class);
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
@@ -136,7 +136,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void duplicate_versions_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateVersions");
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateVersions", String.class);
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
@@ -146,7 +146,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void out_of_order_in_middle_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("outOfOrderMiddle");
+            Method method = InvalidFixtures.class.getDeclaredMethod("outOfOrderMiddle", String.class);
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
@@ -156,7 +156,7 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void duplicate_names_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateNames");
+            Method method = InvalidFixtures.class.getDeclaredMethod("duplicateNames", String.class, String.class);
 
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
@@ -166,12 +166,45 @@ final class ParameterizedByGradleVersionValuesTest {
 
         @Test
         void missing_name_when_multiple_annotations_throws() throws Exception {
-            Method method = InvalidFixtures.class.getDeclaredMethod("missingNameOnSecond");
+            Method method = InvalidFixtures.class.getDeclaredMethod("missingNameOnSecond", String.class, String.class);
 
             assertThatThrownBy(() ->
                             ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("name is required when multiple annotations are present");
+        }
+
+        @Test
+        void missing_inject_parameter_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("missingInjectParameter");
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
+                    .hasMessageContaining("found 1 annotations but 0 @InjectByGradleVersion parameters");
+        }
+
+        @Test
+        void two_annotations_but_only_one_parameter_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("twoAnnotationsButOnlyOneParameter", String.class);
+
+            assertThatThrownBy(() ->
+                            ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
+                    .hasMessageContaining("found 2 annotations but 1 @InjectByGradleVersion parameters");
+        }
+
+        @Test
+        void extra_inject_parameter_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("extraInjectParameter", String.class, String.class);
+
+            assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
+                            method, "behaviour", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
+                    .hasMessageContaining("found 1 annotations but 2 @InjectByGradleVersion parameters");
         }
     }
 
@@ -179,12 +212,12 @@ final class ParameterizedByGradleVersionValuesTest {
     static class ValidFixtures {
 
         @ParameterizedByGradleVersion(otherwiseString = "default")
-        void noConditions() {}
+        void noConditions(@InjectByGradleVersion String behaviour) {}
 
         @ParameterizedByGradleVersion(
                 when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
                 otherwiseString = "new")
-        void singleCondition() {}
+        void singleCondition(@InjectByGradleVersion String behaviour) {}
 
         @ParameterizedByGradleVersion(
                 when = {
@@ -192,7 +225,7 @@ final class ParameterizedByGradleVersionValuesTest {
                     @WhenVersion(lessThan = "9.0", stringValue = "8.x")
                 },
                 otherwiseString = "9 and up")
-        void twoConditions() {}
+        void twoConditions(@InjectByGradleVersion String behaviour) {}
 
         @ParameterizedByGradleVersion(
                 name = "first",
@@ -202,7 +235,7 @@ final class ParameterizedByGradleVersionValuesTest {
                 name = "second",
                 when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
                 otherwiseString = "after 9")
-        void twoAnnotations() {}
+        void twoAnnotations(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
 
         void noAnnotation() {}
     }
@@ -215,7 +248,7 @@ final class ParameterizedByGradleVersionValuesTest {
                     @WhenVersion(lessThan = "8.0", stringValue = "b")
                 },
                 otherwiseString = "default")
-        void descendingOrder() {}
+        void descendingOrder(@InjectByGradleVersion String behaviour) {}
 
         @ParameterizedByGradleVersion(
                 when = {
@@ -223,7 +256,7 @@ final class ParameterizedByGradleVersionValuesTest {
                     @WhenVersion(lessThan = "8.0", stringValue = "b")
                 },
                 otherwiseString = "default")
-        void duplicateVersions() {}
+        void duplicateVersions(@InjectByGradleVersion String behaviour) {}
 
         @ParameterizedByGradleVersion(
                 when = {
@@ -232,7 +265,7 @@ final class ParameterizedByGradleVersionValuesTest {
                     @WhenVersion(lessThan = "8.0", stringValue = "c")
                 },
                 otherwiseString = "default")
-        void outOfOrderMiddle() {}
+        void outOfOrderMiddle(@InjectByGradleVersion String behaviour) {}
 
         @ParameterizedByGradleVersion(
                 name = "behaviour",
@@ -242,7 +275,7 @@ final class ParameterizedByGradleVersionValuesTest {
                 name = "behaviour",
                 when = @WhenVersion(lessThan = "9.0", stringValue = "also old"),
                 otherwiseString = "second")
-        void duplicateNames() {}
+        void duplicateNames(@InjectByGradleVersion String behaviour, @InjectByGradleVersion String other) {}
 
         @ParameterizedByGradleVersion(
                 name = "first",
@@ -251,6 +284,26 @@ final class ParameterizedByGradleVersionValuesTest {
         @ParameterizedByGradleVersion(
                 when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
                 otherwiseString = "after 9")
-        void missingNameOnSecond() {}
+        void missingNameOnSecond(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
+
+        @ParameterizedByGradleVersion(
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
+        void missingInjectParameter() {}
+
+        @ParameterizedByGradleVersion(
+                name = "first",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
+        @ParameterizedByGradleVersion(
+                name = "second",
+                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
+                otherwiseString = "after 9")
+        void twoAnnotationsButOnlyOneParameter(@InjectByGradleVersion String first) {}
+
+        @ParameterizedByGradleVersion(
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
+        void extraInjectParameter(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
     }
 }
