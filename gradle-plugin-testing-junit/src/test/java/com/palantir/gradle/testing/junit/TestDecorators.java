@@ -32,15 +32,33 @@ public class TestDecorators {
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     public @interface WithArgAddingDecorators {
-        WithArgAddingDecorator[] value();
+        RepeatableWithArgAddingDecorator[] value();
     }
 
     @Repeatable(WithArgAddingDecorators.class)
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
+    @RegistersGradleInvokerDecorator(RepeatableArgAddingDecoratorFactory.class)
+    public @interface RepeatableWithArgAddingDecorator {
+        String arg();
+    }
+
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
     @RegistersGradleInvokerDecorator(ArgAddingDecoratorFactory.class)
     public @interface WithArgAddingDecorator {
         String arg();
+    }
+
+    public static final class RepeatableArgAddingDecoratorFactory implements GradleInvokerDecoratorFactory {
+
+        @Override
+        public GradleInvokerDecorator create(List<Annotation> annotations) {
+            return new CompositeArgAddingDecorator(annotations.stream()
+                    .filter(annotation -> annotation instanceof RepeatableWithArgAddingDecorator)
+                    .map(annotation -> ((RepeatableWithArgAddingDecorator) annotation).arg())
+                    .toList());
+        }
     }
 
     public static final class ArgAddingDecoratorFactory implements GradleInvokerDecoratorFactory {
