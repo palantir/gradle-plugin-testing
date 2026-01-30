@@ -46,7 +46,15 @@ import java.lang.annotation.Target;
  * void test(GradleInvoker invoker, @InjectByGradleVersion String style, @InjectByGradleVersion String format) { }
  * }</pre>
  *
- * <p>Conditions must be ordered by ascending version (lowest first).
+ * <p>Conditions must be ordered by ascending version (lowest first). The following will fail at test runtime:
+ * <pre>{@code
+ * @ParameterizedByGradleVersion(
+ *     when = {
+ *         @WhenVersion(lessThan = "9.0", stringValue = "a"),
+ *         @WhenVersion(lessThan = "8.0", stringValue = "b")
+ *     },
+ *     otherwiseString = "c")
+ * }</pre>
  *
  * @see InjectByGradleVersion
  * @see WhenVersion
