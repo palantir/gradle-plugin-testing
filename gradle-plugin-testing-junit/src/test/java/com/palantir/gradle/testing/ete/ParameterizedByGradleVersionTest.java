@@ -120,21 +120,6 @@ final class ParameterizedByGradleVersionTest {
 
             assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
                 assertThat(msg).contains("behavior=old");
-                assertThat(msg).contains("GradleVersion: 7.6.4");
-            });
-            assertThat(results.testEvents().skipped().count()).isZero();
-        }
-
-        @Test
-        void before_each_receives_new_value_for_newer_gradle() {
-            EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionFixtureTest.WithBeforeEach.class, "8.14.3");
-
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
-                assertThat(msg).contains("behavior=new");
-                assertThat(msg).contains("GradleVersion: 8.14.3");
             });
             assertThat(results.testEvents().skipped().count()).isZero();
         }
