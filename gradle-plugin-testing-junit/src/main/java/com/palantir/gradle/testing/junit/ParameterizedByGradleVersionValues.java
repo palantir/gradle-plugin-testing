@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /** Computes parameter values for {@link ParameterizedByGradleVersion}. */
@@ -31,15 +30,29 @@ final class ParameterizedByGradleVersionValues {
     public static Optional<String> computeValue(Method method, String parameterName, GradleVersion gradleVersion) {
         ParameterizedByGradleVersion[] annotations = method.getAnnotationsByType(ParameterizedByGradleVersion.class);
 
-        validateNoDuplicateNames(annotations, method);
+        if (annotations.length == 0) {
+            return Optional.empty();
+        }
 
+        validate(annotations, method);
+
+        return findMatchingAnnotation(annotations, parameterName).map(anno -> {
+            validateOrdering(anno.when(), method);
+            return computeValueForAnnotation(anno, gradleVersion);
+        });
+    }
+
+    private static Optional<ParameterizedByGradleVersion> findMatchingAnnotation(
+            ParameterizedByGradleVersion[] annotations, String parameterName) {
+        if (annotations.length == 1 && annotations[0].name().isEmpty()) {
+            // Single annotation without name - matches any @InjectByGradleVersion parameter
+            return Optional.of(annotations[0]);
+        }
+
+        // Multiple annotations or single with name - match by name
         return Arrays.stream(annotations)
                 .filter(anno -> anno.name().equals(parameterName))
-                .findFirst()
-                .map(anno -> {
-                    validateOrdering(anno.when(), method);
-                    return computeValueForAnnotation(anno, gradleVersion);
-                });
+                .findFirst();
     }
 
     private static String computeValueForAnnotation(ParameterizedByGradleVersion annotation, GradleVersion version) {
@@ -50,12 +63,33 @@ final class ParameterizedByGradleVersionValues {
                 .orElseGet(annotation::otherwiseString);
     }
 
-    private static void validateNoDuplicateNames(ParameterizedByGradleVersion[] annotations, Method method) {
-        Set<String> names = Arrays.stream(annotations)
-                .map(ParameterizedByGradleVersion::name)
-                .collect(Collectors.toSet());
+    private static void validate(ParameterizedByGradleVersion[] annotations, Method method) {
+        if (annotations.length > 1) {
+            validateAllHaveNames(annotations, method);
+        }
+        validateNoDuplicateNames(annotations, method);
+    }
 
-        if (names.size() != annotations.length) {
+    private static void validateAllHaveNames(ParameterizedByGradleVersion[] annotations, Method method) {
+        boolean anyMissingName =
+                Arrays.stream(annotations).anyMatch(anno -> anno.name().isEmpty());
+
+        if (anyMissingName) {
+            throw new IllegalStateException(
+                    "@ParameterizedByGradleVersion on %s.%s: name is required when multiple annotations are present"
+                            .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
+        }
+    }
+
+    private static void validateNoDuplicateNames(ParameterizedByGradleVersion[] annotations, Method method) {
+        List<String> nonEmptyNames = Arrays.stream(annotations)
+                .map(ParameterizedByGradleVersion::name)
+                .filter(name -> !name.isEmpty())
+                .toList();
+
+        Set<String> uniqueNames = Set.copyOf(nonEmptyNames);
+
+        if (uniqueNames.size() != nonEmptyNames.size()) {
             throw new IllegalStateException("@ParameterizedByGradleVersion on %s.%s has duplicate name values"
                     .formatted(method.getDeclaringClass().getSimpleName(), method.getName()));
         }

@@ -25,22 +25,39 @@ import java.lang.annotation.Target;
 /**
  * Injects a String parameter based on the Gradle version under test.
  *
+ * <p>Simple usage (single parameter):
  * <pre>{@code
  * @ParameterizedByGradleVersion(
- *     name = "behaviour",
  *     when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
  *     otherwiseString = "new")
- * void test(GradleInvoker invoker, RootProject project, String behaviour) { }
+ * void test(GradleInvoker invoker, RootProject project, @InjectByGradleVersion String behaviour) { }
+ * }</pre>
+ *
+ * <p>Multiple parameters (name required):
+ * <pre>{@code
+ * @ParameterizedByGradleVersion(
+ *     name = "style",
+ *     when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+ *     otherwiseString = "new")
+ * @ParameterizedByGradleVersion(
+ *     name = "format",
+ *     when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
+ *     otherwiseString = "modern")
+ * void test(GradleInvoker invoker, @InjectByGradleVersion String style, @InjectByGradleVersion String format) { }
  * }</pre>
  *
  * <p>Conditions must be ordered by ascending version (lowest first).
+ *
+ * @see InjectByGradleVersion
+ * @see WhenVersion
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(ParameterizedByGradleVersions.class)
 public @interface ParameterizedByGradleVersion {
 
-    String name();
+    /** Parameter name. Required when multiple annotations are present, optional for single annotation. */
+    String name() default "";
 
     WhenVersion[] when() default {};
 

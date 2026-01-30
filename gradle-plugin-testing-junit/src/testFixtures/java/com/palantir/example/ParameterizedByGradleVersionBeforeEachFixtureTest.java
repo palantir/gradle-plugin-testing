@@ -18,6 +18,7 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.InjectByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
@@ -33,11 +34,8 @@ public final class ParameterizedByGradleVersionBeforeEachFixtureTest {
     private String capturedBehavior;
 
     @BeforeEach
-    @ParameterizedByGradleVersion(
-            name = "behavior",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-            otherwiseString = "new")
-    void setup(RootProject rootProject, String behavior) {
+    @ParameterizedByGradleVersion(when = @WhenVersion(lessThan = "8.0", stringValue = "old"), otherwiseString = "new")
+    void setup(RootProject rootProject, @InjectByGradleVersion String behavior) {
         this.capturedBehavior = behavior;
         rootProject.buildGradle().plugins().add("java");
     }

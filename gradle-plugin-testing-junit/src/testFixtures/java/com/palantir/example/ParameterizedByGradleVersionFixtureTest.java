@@ -18,6 +18,7 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.InjectByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
@@ -34,13 +35,12 @@ public final class ParameterizedByGradleVersionFixtureTest {
 
     @Test
     @ParameterizedByGradleVersion(
-            name = "behavior",
             when = {
                 @WhenVersion(lessThan = "8.0", stringValue = "less than 8"),
                 @WhenVersion(lessThan = "9.0", stringValue = "8.x")
             },
             otherwiseString = "9 and up")
-    void test_one(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
+    void test_one(GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"

@@ -18,6 +18,7 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.InjectByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
@@ -38,7 +39,11 @@ public final class ParameterizedByGradleVersionMultipleAnnotationsFixtureTest {
             name = "format",
             when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
             otherwiseString = "modern")
-    void test_with_two_parameters(GradleInvoker gradleInvoker, RootProject rootProject, String style, String format) {
+    void test_with_two_parameters(
+            GradleInvoker gradleInvoker,
+            RootProject rootProject,
+            @InjectByGradleVersion String style,
+            @InjectByGradleVersion String format) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"

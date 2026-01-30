@@ -19,6 +19,7 @@ package com.palantir.example;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.InjectByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
@@ -35,12 +36,10 @@ import org.junit.jupiter.api.Test;
 public final class ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest {
 
     @Test
-    @ParameterizedByGradleVersion(
-            name = "behavior",
-            when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-            otherwiseString = "new")
+    @ParameterizedByGradleVersion(when = @WhenVersion(lessThan = "8.0", stringValue = "old"), otherwiseString = "new")
     @DisabledConfigurationCache("Testing compatibility with @ParameterizedByGradleVersion")
-    void test_with_parameter(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
+    void test_with_parameter(
+            GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
 

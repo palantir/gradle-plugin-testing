@@ -18,6 +18,7 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.junit.InjectByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
 import com.palantir.gradle.testing.junit.WhenVersion;
 import com.palantir.gradle.testing.project.RootProject;
@@ -37,7 +38,7 @@ public final class ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest 
             name = "behavior",
             when = @WhenVersion(lessThan = "8.0", stringValue = "setup-old"),
             otherwiseString = "setup-new")
-    void setup(RootProject rootProject, String behavior) {
+    void setup(RootProject rootProject, @InjectByGradleVersion String behavior) {
         this.setupBehavior = behavior;
         rootProject.buildGradle().plugins().add("java");
     }
@@ -47,7 +48,8 @@ public final class ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest 
             name = "behavior",
             when = @WhenVersion(lessThan = "8.0", stringValue = "test-old"),
             otherwiseString = "test-new")
-    void test_same_name_on_both_methods(GradleInvoker gradleInvoker, RootProject rootProject, String behavior) {
+    void test_same_name_on_both_methods(
+            GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion
             println "GradleVersion: ${GradleVersion.current().version}"

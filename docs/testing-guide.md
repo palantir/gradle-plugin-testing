@@ -179,10 +179,9 @@ Use `@ParameterizedByGradleVersion` to inject different String values based on t
 ```java
 @Test
 @ParameterizedByGradleVersion(
-    name = "configOption",
     when = @WhenVersion(lessThan = "8.0", stringValue = "legacyStyle"),
     otherwiseString = "newStyle")
-void test(GradleInvoker gradle, RootProject project, String configOption) {
+void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion String configOption) {
     // configOption is "legacyStyle" for Gradle < 8.0, "newStyle" for Gradle >= 8.0
     project.buildGradle().append("myPlugin.style = '%s'", configOption);
 }
@@ -193,23 +192,41 @@ void test(GradleInvoker gradle, RootProject project, String configOption) {
 ```java
 @Test
 @ParameterizedByGradleVersion(
-    name = "generation",
     when = {
         @WhenVersion(lessThan = "8.0", stringValue = "legacy"),
         @WhenVersion(lessThan = "9.0", stringValue = "8.x")
     },
     otherwiseString = "modern")
-void test(GradleInvoker gradle, RootProject project, String generation) {
+void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion String generation) {
     // generation = "legacy" for Gradle < 8.0
     // generation = "8.x" for Gradle 8.0 to 8.x
     // generation = "modern" for Gradle >= 9.0
 }
 ```
 
+**With multiple parameters:**
+
+```java
+@Test
+@ParameterizedByGradleVersion(
+    name = "style",
+    when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+    otherwiseString = "new")
+@ParameterizedByGradleVersion(
+    name = "format",
+    when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
+    otherwiseString = "modern")
+void test(GradleInvoker gradle, @InjectByGradleVersion String style, @InjectByGradleVersion String format) {
+    // style = "old" for Gradle < 8.0, "new" for Gradle >= 8.0
+    // format = "classic" for Gradle < 9.0, "modern" for Gradle >= 9.0
+}
+```
+
 **Requirements:**
-- The `name` must match the parameter name in the method signature
+- The receiving parameter must be annotated with `@InjectByGradleVersion`
 - Must contain an `otherwiseString` to catch the general case
 - Conditions must be ordered by ascending `lessThan` version (lowest first)
+- When using multiple `@ParameterizedByGradleVersion` annotations, each must have a `name` matching its parameter
 
 ## File Operations
 

@@ -28,6 +28,10 @@ final class ParameterizedByGradleVersionResolver implements TerseParameterResolv
     @Override
     public Optional<Object> parameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
+        if (!parameterContext.isAnnotated(InjectByGradleVersion.class)) {
+            return Optional.empty();
+        }
+
         return ParameterizedByGradleVersionValues.computeValue(
                         (Method) parameterContext.getDeclaringExecutable(),
                         parameterContext.getParameter().getName(),

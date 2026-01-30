@@ -85,9 +85,21 @@ final class ParameterizedByGradleVersionValuesTest {
         }
 
         @Test
-        void unmatched_parameter_name_returns_empty() throws Exception {
+        void single_annotation_without_name_matches_any_parameter() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("singleCondition");
 
+            // Single annotation without name matches any @InjectByGradleVersion parameter regardless of its name
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "anyName", new GradleVersion("8.0")))
+                    .isEqualTo(Optional.of("new"));
+            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "anotherName", new GradleVersion("7.0")))
+                    .isEqualTo(Optional.of("old"));
+        }
+
+        @Test
+        void multiple_annotations_unmatched_name_returns_empty() throws Exception {
+            Method method = ValidFixtures.class.getDeclaredMethod("twoAnnotations");
+
+            // When there are multiple annotations, name must match
             assertThat(ParameterizedByGradleVersionValues.computeValue(method, "wrongName", new GradleVersion("8.0")))
                     .isEmpty();
         }
@@ -150,25 +162,30 @@ final class ParameterizedByGradleVersionValuesTest {
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("has duplicate name values");
         }
+
+        @Test
+        void missing_name_when_multiple_annotations_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("missingNameOnSecond");
+
+            assertThatThrownBy(() ->
+                            ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("name is required when multiple annotations are present");
+        }
     }
 
     // Test fixture classes with annotations for testing
     static class ValidFixtures {
 
-        @ParameterizedByGradleVersion(
-                name = "behaviour",
-                when = {},
-                otherwiseString = "default")
+        @ParameterizedByGradleVersion(otherwiseString = "default")
         void noConditions() {}
 
         @ParameterizedByGradleVersion(
-                name = "behaviour",
                 when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
                 otherwiseString = "new")
         void singleCondition() {}
 
         @ParameterizedByGradleVersion(
-                name = "behaviour",
                 when = {
                     @WhenVersion(lessThan = "8.0", stringValue = "less than 8"),
                     @WhenVersion(lessThan = "9.0", stringValue = "8.x")
@@ -192,7 +209,6 @@ final class ParameterizedByGradleVersionValuesTest {
     static class InvalidFixtures {
 
         @ParameterizedByGradleVersion(
-                name = "behaviour",
                 when = {
                     @WhenVersion(lessThan = "9.0", stringValue = "a"),
                     @WhenVersion(lessThan = "8.0", stringValue = "b")
@@ -201,7 +217,6 @@ final class ParameterizedByGradleVersionValuesTest {
         void descendingOrder() {}
 
         @ParameterizedByGradleVersion(
-                name = "behaviour",
                 when = {
                     @WhenVersion(lessThan = "8.0", stringValue = "a"),
                     @WhenVersion(lessThan = "8.0", stringValue = "b")
@@ -210,7 +225,6 @@ final class ParameterizedByGradleVersionValuesTest {
         void duplicateVersions() {}
 
         @ParameterizedByGradleVersion(
-                name = "behaviour",
                 when = {
                     @WhenVersion(lessThan = "7.0", stringValue = "a"),
                     @WhenVersion(lessThan = "9.0", stringValue = "b"),
@@ -228,5 +242,14 @@ final class ParameterizedByGradleVersionValuesTest {
                 when = @WhenVersion(lessThan = "9.0", stringValue = "also old"),
                 otherwiseString = "second")
         void duplicateNames() {}
+
+        @ParameterizedByGradleVersion(
+                name = "first",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
+        @ParameterizedByGradleVersion(
+                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
+                otherwiseString = "after 9")
+        void missingNameOnSecond() {}
     }
 }
