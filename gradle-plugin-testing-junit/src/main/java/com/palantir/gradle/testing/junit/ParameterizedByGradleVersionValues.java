@@ -38,9 +38,9 @@ final class ParameterizedByGradleVersionValues {
 
         validate(annotations, method);
 
-        return findMatchingAnnotation(annotations, parameterName).map(anno -> {
-            validateOrdering(anno.when(), method);
-            return computeValueForAnnotation(anno, gradleVersion);
+        return findMatchingAnnotation(annotations, parameterName).map(annotation -> {
+            validateOrdering(annotation.when(), method);
+            return computeValueForAnnotation(annotation, gradleVersion);
         });
     }
 
@@ -93,9 +93,8 @@ final class ParameterizedByGradleVersionValues {
                 .collect(Collectors.toSet());
 
         if (!duplicates.isEmpty()) {
-            throw new IllegalStateException(
-                    "@ParameterizedByGradleVersion on %s.%s has duplicate name values: %s"
-                            .formatted(method.getDeclaringClass().getSimpleName(), method.getName(), duplicates));
+            throw new IllegalStateException("@ParameterizedByGradleVersion on %s.%s has duplicate name values: %s"
+                    .formatted(method.getDeclaringClass().getSimpleName(), method.getName(), duplicates));
         }
     }
 
