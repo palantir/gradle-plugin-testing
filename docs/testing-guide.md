@@ -218,6 +218,27 @@ void test(GradleInvoker gradle, @InjectByGradleVersion String style, @InjectByGr
 }
 ```
 
+**In `@BeforeEach`:**
+
+```java
+private String configStyle;
+
+@BeforeEach
+@ParameterizedByGradleVersion(
+    when = @WhenVersion(lessThan = "8.0", stringValue = "legacy"),
+    otherwiseString = "modern")
+void setup(RootProject project, @InjectByGradleVersion String style) {
+    this.configStyle = style;
+    project.buildGradle().plugins().add("my-plugin");
+}
+
+@Test
+void test_uses_correct_style(GradleInvoker gradle, RootProject project) {
+    project.buildGradle().append("myPlugin.style = '%s'", configStyle);
+    gradle.withArgs("build").buildsSuccessfully();
+}
+```
+
 **Requirements:**
 - The receiving parameter must be annotated with `@InjectByGradleVersion`
 - Must contain an `otherwiseString` to catch the general case
