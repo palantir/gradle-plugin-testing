@@ -105,7 +105,8 @@ public interface GradleInvoker {
     }
 
     /**
-     * Groups annotations by their decorator class and decorates the baseInvoker passing the relevant `@RegistersGradleInvokerDecorator` annotations.
+     * Groups annotations by their decorator class and decorates the baseInvoker passing the relevant
+     * `@RegistersGradleInvokerDecorator` annotations.
      */
     private static GradleInvoker decorateInvokerWithAnnotations(
             DecoratorContext context, GradleInvoker baseInvoker, Set<Annotation> annotations) {
