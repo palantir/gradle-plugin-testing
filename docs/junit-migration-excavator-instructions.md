@@ -213,7 +213,7 @@ project.buildGradle().append("""
 
 **Skip unnecessary setup**: Don't call `settingsGradle().rootProjectName()` unless you need a custom name.
 
-**Use exact assertions**: Prefer `isEqualTo()` with text blocks over `contains()` for file content - makes expected output obvious.
+**Use exact assertions for lock files**: Prefer `isEqualTo()` with text blocks over `contains()` for lock file content - makes expected output obvious.
 
 # Final Instructions
 - Make sure the migrated tests compile by running `./gradlew compileTestJava`.
