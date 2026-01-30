@@ -18,12 +18,7 @@ package com.palantir.gradle.testing.ete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.example.ParameterizedByGradleVersionBeforeEachFixtureTest;
 import com.palantir.example.ParameterizedByGradleVersionFixtureTest;
-import com.palantir.example.ParameterizedByGradleVersionMultipleAnnotationsFixtureTest;
-import com.palantir.example.ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest;
-import com.palantir.example.ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest;
-import com.palantir.example.ParameterizedByGradleVersionWithMethodLevelAdditionalVersionFixtureTest;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;
@@ -41,7 +36,8 @@ final class ParameterizedByGradleVersionTest {
     class SingleParameter {
         @Test
         void gradle_7_6_4_runs_less_than_8() {
-            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionFixtureTest.class, "7.6.4");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionFixtureTest.SingleParameter.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -57,7 +53,8 @@ final class ParameterizedByGradleVersionTest {
 
         @Test
         void gradle_8_14_3_runs_8_x() {
-            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionFixtureTest.class, "8.14.3");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionFixtureTest.SingleParameter.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -73,7 +70,8 @@ final class ParameterizedByGradleVersionTest {
 
         @Test
         void gradle_9_3_0_runs_9_and_up() {
-            EngineExecutionResults results = runFixture(ParameterizedByGradleVersionFixtureTest.class, "9.3.0");
+            EngineExecutionResults results =
+                    runFixture(ParameterizedByGradleVersionFixtureTest.SingleParameter.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -93,7 +91,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void runs_with_correct_values_for_method_level_additional_version() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionWithMethodLevelAdditionalVersionFixtureTest.class, "7.6.4");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.WithMethodLevelAdditionalVersion.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -116,7 +114,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void runs_with_configuration_cache_disabled() {
             EngineExecutionResults results = runFixture(
-                    ParameterizedByGradleVersionWithDisabledConfigurationCacheFixtureTest.class, "7.6.4", "true");
+                    ParameterizedByGradleVersionFixtureTest.WithDisabledConfigurationCache.class, "7.6.4", "true");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -134,7 +132,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void before_each_receives_correct_value() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionBeforeEachFixtureTest.class, "7.6.4");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.WithBeforeEach.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -148,7 +146,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void before_each_receives_new_value_for_newer_gradle() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionBeforeEachFixtureTest.class, "8.14.3");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.WithBeforeEach.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -165,7 +163,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void multiple_parameters_receive_correct_values_for_old_gradle() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionMultipleAnnotationsFixtureTest.class, "7.6.4");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.MultipleAnnotations.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -180,7 +178,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void multiple_parameters_receive_correct_values_for_gradle_8() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionMultipleAnnotationsFixtureTest.class, "8.14.3");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.MultipleAnnotations.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -195,7 +193,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void multiple_parameters_receive_correct_values_for_gradle_9() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionMultipleAnnotationsFixtureTest.class, "9.3.0");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.MultipleAnnotations.class, "9.3.0");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -213,7 +211,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void same_name_allowed_on_before_each_and_test_for_old_gradle() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest.class, "7.6.4");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.SameNameAcrossMethods.class, "7.6.4");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
@@ -228,7 +226,7 @@ final class ParameterizedByGradleVersionTest {
         @Test
         void same_name_allowed_on_before_each_and_test_for_new_gradle() {
             EngineExecutionResults results =
-                    runFixture(ParameterizedByGradleVersionSameNameAcrossMethodsFixtureTest.class, "8.14.3");
+                    runFixture(ParameterizedByGradleVersionFixtureTest.SameNameAcrossMethods.class, "8.14.3");
 
             List<Event> finished = results.testEvents().finished().stream().toList();
 
