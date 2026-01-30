@@ -182,7 +182,6 @@ Use `@ParameterizedByGradleVersion` to inject different String values based on t
     when = @WhenVersion(lessThan = "8.0", stringValue = "legacyStyle"),
     otherwiseString = "newStyle")
 void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion String configOption) {
-    // configOption is "legacyStyle" for Gradle < 8.0, "newStyle" for Gradle >= 8.0
     project.buildGradle().append("myPlugin.style = '%s'", configOption);
 }
 ```
@@ -198,9 +197,7 @@ void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion Stri
     },
     otherwiseString = "modern")
 void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion String generation) {
-    // generation = "legacy" for Gradle < 8.0
-    // generation = "8.x" for Gradle 8.0 to 8.x
-    // generation = "modern" for Gradle >= 9.0
+    project.buildGradle().append("myPlugin.generation = '%s'", generation);
 }
 ```
 
@@ -217,8 +214,7 @@ void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion Stri
     when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
     otherwiseString = "modern")
 void test(GradleInvoker gradle, @InjectByGradleVersion String style, @InjectByGradleVersion String format) {
-    // style = "old" for Gradle < 8.0, "new" for Gradle >= 8.0
-    // format = "classic" for Gradle < 9.0, "modern" for Gradle >= 9.0
+    project.buildGradle().append("myPlugin { style = '%s'; format = '%s' }", style, format);
 }
 ```
 
