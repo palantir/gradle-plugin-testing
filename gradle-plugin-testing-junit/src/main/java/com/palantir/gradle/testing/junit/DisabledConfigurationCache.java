@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@RegistersGradleInvokerDecorator(ConfigurationCacheDecoratorFactory.class)
+@RegistersGradleInvokerDecorator(ConfigurationCacheDecorator.class)
 public @interface DisabledConfigurationCache {
 
     /**

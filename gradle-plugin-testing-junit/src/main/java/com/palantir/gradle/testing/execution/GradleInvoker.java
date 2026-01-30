@@ -19,7 +19,6 @@ package com.palantir.gradle.testing.execution;
 import com.google.common.collect.ImmutableList;
 import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
-import com.palantir.gradle.testing.junit.GradleInvokerDecoratorFactory;
 import com.palantir.gradle.testing.junit.RegistersGradleInvokerDecorator;
 import com.palantir.gradle.testing.project.RootProject;
 import java.lang.annotation.Annotation;
@@ -41,12 +40,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public interface GradleInvoker {
-
-    Logger log = LoggerFactory.getLogger(GradleInvoker.class);
 
     GradleInvocation withArgs(String... args);
 
@@ -54,15 +49,8 @@ public interface GradleInvoker {
         GradleInvoker baseInvoker = new DefaultGradleInvoker(path, gradleVersion);
         RootProject rootProject = new RootProject(path);
         DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
-        List<GradleInvokerDecorator> decorators = discoverDecorators(extensionContext);
-        for (GradleInvokerDecorator decorator : decorators) {
-            baseInvoker = decorator.decorate(decoratorContext, baseInvoker);
-        }
-        return baseInvoker;
-    }
-
-    private static List<GradleInvokerDecorator> discoverDecorators(ExtensionContext extensionContext) {
-        return getDecoratorsFromAnnotations(collectAnnotationsFromContext(extensionContext));
+        Set<Annotation> annotations = collectAnnotationsFromContext(extensionContext);
+        return decorateInvokerWithAnnotations(decoratorContext, baseInvoker, annotations);
     }
 
     private static Set<Annotation> collectAnnotationsFromContext(ExtensionContext context) {
@@ -117,64 +105,59 @@ public interface GradleInvoker {
     }
 
     /**
-     * Groups annotations by their factory class and creates decorators for each factory, passing the
-     * `RegistersGradleInvokerDecorator` annotations.
+     * Groups annotations by their decorator class and decorates the baseInvoker passing the relevant `@RegistersGradleInvokerDecorator` annotations.
      */
-    private static List<GradleInvokerDecorator> getDecoratorsFromAnnotations(Set<Annotation> annotations) {
-        Set<? extends Class<? extends GradleInvokerDecoratorFactory>> factoryClasses = annotations.stream()
+    private static GradleInvoker decorateInvokerWithAnnotations(
+            DecoratorContext context, GradleInvoker baseInvoker, Set<Annotation> annotations) {
+        Set<? extends Class<? extends GradleInvokerDecorator>> decoratorClasses = annotations.stream()
                 .map(annotation -> Optional.ofNullable(
                         annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class)))
                 .<RegistersGradleInvokerDecorator>mapMulti(Optional::ifPresent)
                 .map(RegistersGradleInvokerDecorator::value)
-                .collect(Collectors.toSet());
+                // maintains the original order, while dropping duplicates
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        return factoryClasses.stream()
-                .map(factory ->
-                        createDecoratorFromFactory(factory, annotations.stream().toList()))
-                .toList();
+        GradleInvoker invoker = baseInvoker;
+        for (Class<? extends GradleInvokerDecorator> decoratorClass : decoratorClasses) {
+            invoker = createGradleInvokerFromDecorator(decoratorClass, context, invoker, annotations);
+        }
+        return invoker;
     }
 
     @SuppressWarnings("unchecked")
-    private static GradleInvokerDecorator createDecoratorFromFactory(
-            Class<? extends GradleInvokerDecoratorFactory> factoryClass, List<Annotation> annotations) {
+    private static GradleInvoker createGradleInvokerFromDecorator(
+            Class<? extends GradleInvokerDecorator> decoratorClass,
+            DecoratorContext context,
+            GradleInvoker invoker,
+            Set<Annotation> annotations) {
         try {
-            // Get the factory's generic type parameter (the annotation type it can process)
-            Class<? extends Annotation> annotationType = getFactoryAnnotationType(factoryClass);
+            // Get decorator's generic type parameter (the annotation type it can process)
+            Class<? extends Annotation> annotationType = getDecoratorAnnotationType(decoratorClass);
 
-            // Filter annotations to only include those of the correct type
+            // Filter annotations to only include those of the expected type
             List<Annotation> filteredAnnotations =
                     annotations.stream().filter(annotationType::isInstance).toList();
 
-            GradleInvokerDecoratorFactory factory =
-                    factoryClass.getDeclaredConstructor().newInstance();
-
-            GradleInvokerDecorator decorator = factory.create(filteredAnnotations);
-            log.debug(
-                    "Created decorator from factory {}: {} (processed {} annotations)",
-                    factoryClass.getSimpleName(),
-                    decorator.getClass().getSimpleName(),
-                    filteredAnnotations.size());
-            return decorator;
+            GradleInvokerDecorator<Annotation> decorator =
+                    decoratorClass.getDeclaredConstructor().newInstance();
+            return decorator.decorate(context, invoker, filteredAnnotations);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(
-                    String.format("Failed to instantiate decorator factory %s", factoryClass.getSimpleName()), e);
+                    String.format("Failed to instantiate decorator class %s", decoratorClass.getSimpleName()), e);
         }
     }
 
     /**
-     * Determines the annotation type that a factory can process by examining its generic type parameter.
-     *
-     * @param factoryClass the factory class to examine
-     * @return the annotation type that the factory can process
+     * Determines the annotation type that a decorator can process by examining its generic type parameter.
      */
     @SuppressWarnings("unchecked")
-    private static Class<? extends Annotation> getFactoryAnnotationType(
-            Class<? extends GradleInvokerDecoratorFactory> factoryClass) {
-        // Look for the GradleInvokerDecoratorFactory interface in the class hierarchy
-        Type[] genericInterfaces = factoryClass.getGenericInterfaces();
+    private static Class<? extends Annotation> getDecoratorAnnotationType(
+            Class<? extends GradleInvokerDecorator> decoratorClass) {
+        // Look for the GradleInvokerDecorator interface in the class hierarchy
+        Type[] genericInterfaces = decoratorClass.getGenericInterfaces();
         for (Type genericInterface : genericInterfaces) {
             if (genericInterface instanceof ParameterizedType parameterizedType) {
-                if (GradleInvokerDecoratorFactory.class.equals(parameterizedType.getRawType())) {
+                if (GradleInvokerDecorator.class.equals(parameterizedType.getRawType())) {
                     Type typeArg = parameterizedType.getActualTypeArguments()[0];
                     if (typeArg instanceof Class<?> annotationClass) {
                         return (Class<? extends Annotation>) annotationClass;
@@ -184,14 +167,14 @@ public interface GradleInvoker {
         }
 
         // If we couldn't find it directly, check the superclass
-        Class<?> superclass = factoryClass.getSuperclass();
-        if (superclass != null && GradleInvokerDecoratorFactory.class.isAssignableFrom(superclass)) {
-            return getFactoryAnnotationType((Class<? extends GradleInvokerDecoratorFactory>) superclass);
+        Class<?> superclass = decoratorClass.getSuperclass();
+        if (superclass != null && GradleInvokerDecorator.class.isAssignableFrom(superclass)) {
+            return getDecoratorAnnotationType((Class<? extends GradleInvokerDecorator>) superclass);
         }
 
         // we shouldn't reach here
-        throw new IllegalStateException(
-                String.format("Could not determine annotation type for factory %s", factoryClass.getSimpleName()));
+        throw new IllegalStateException(String.format(
+                "Could not determine annotation type for decorator class %s", decoratorClass.getSimpleName()));
     }
 
     static boolean shouldRunInTestkitDebugMode() {

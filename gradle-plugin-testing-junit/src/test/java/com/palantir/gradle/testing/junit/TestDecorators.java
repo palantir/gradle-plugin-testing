@@ -37,47 +37,45 @@ public class TestDecorators {
     @Repeatable(WithArgAddingDecorators.class)
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
-    @RegistersGradleInvokerDecorator(RepeatableArgAddingDecoratorFactory.class)
+    @RegistersGradleInvokerDecorator(RepeatableArgAddingDecorator.class)
     public @interface RepeatableWithArgAddingDecorator {
         String arg();
     }
 
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
-    @RegistersGradleInvokerDecorator(ArgAddingDecoratorFactory.class)
+    @RegistersGradleInvokerDecorator(ArgAddingDecorator.class)
     public @interface WithArgAddingDecorator {
         String arg();
     }
 
-    public static final class RepeatableArgAddingDecoratorFactory
-            implements GradleInvokerDecoratorFactory<RepeatableWithArgAddingDecorator> {
+    public static final class RepeatableArgAddingDecorator
+            implements GradleInvokerDecorator<RepeatableWithArgAddingDecorator> {
 
         @Override
-        public GradleInvokerDecorator create(List<RepeatableWithArgAddingDecorator> annotations) {
-            return new CompositeArgAddingDecorator(annotations.stream()
-                    .map(RepeatableWithArgAddingDecorator::arg)
-                    .toList());
-        }
-    }
-
-    public static final class ArgAddingDecoratorFactory
-            implements GradleInvokerDecoratorFactory<WithArgAddingDecorator> {
-
-        @Override
-        public GradleInvokerDecorator create(List<WithArgAddingDecorator> annotations) {
-            return new CompositeArgAddingDecorator(
-                    annotations.stream().map(WithArgAddingDecorator::arg).toList());
-        }
-    }
-
-    record CompositeArgAddingDecorator(List<String> argsToAdd) implements GradleInvokerDecorator {
-
-        @Override
-        public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate) {
+        public GradleInvoker decorate(
+                DecoratorContext context, GradleInvoker invoker, List<RepeatableWithArgAddingDecorator> annotations) {
             return args -> {
-                String[] modifiedArgs =
-                        Stream.concat(Arrays.stream(args), argsToAdd.stream()).toArray(String[]::new);
-                return delegate.withArgs(modifiedArgs);
+                String[] modifiedArgs = Stream.concat(
+                                Arrays.stream(args),
+                                annotations.stream().map(RepeatableWithArgAddingDecorator::arg).toList().stream())
+                        .toArray(String[]::new);
+                return invoker.withArgs(modifiedArgs);
+            };
+        }
+    }
+
+    public static final class ArgAddingDecorator implements GradleInvokerDecorator<WithArgAddingDecorator> {
+
+        @Override
+        public GradleInvoker decorate(
+                DecoratorContext context, GradleInvoker invoker, List<WithArgAddingDecorator> annotations) {
+            return args -> {
+                String[] modifiedArgs = Stream.concat(
+                                Arrays.stream(args),
+                                annotations.stream().map(WithArgAddingDecorator::arg).toList().stream())
+                        .toArray(String[]::new);
+                return invoker.withArgs(modifiedArgs);
             };
         }
     }

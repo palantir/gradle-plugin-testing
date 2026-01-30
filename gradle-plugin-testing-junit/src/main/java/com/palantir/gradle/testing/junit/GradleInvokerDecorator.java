@@ -17,14 +17,14 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * A decorator that wraps a {@link GradleInvoker} to add additional behavior.
- * To create a decorator that is automatically registered via annotation, implement
- * {@link GradleInvokerDecoratorFactory} and use the {@link RegistersGradleInvokerDecorator}
- * meta-annotation on your test annotation.
+ * Implementations are referenced by the {@link RegistersGradleInvokerDecorator} meta-annotation.
  */
-public interface GradleInvokerDecorator {
+public interface GradleInvokerDecorator<A extends Annotation> {
 
-    GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate);
+    GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate, List<A> annotations);
 }

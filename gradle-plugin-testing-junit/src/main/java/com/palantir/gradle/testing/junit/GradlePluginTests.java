@@ -29,5 +29,5 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(GradleVersioningClassTemplate.class)
 @ClassTemplate
 @DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
-@RegistersGradleInvokerDecorator(ConfigurationCacheDecoratorFactory.class)
+@RegistersGradleInvokerDecorator(ConfigurationCacheDecorator.class)
 public @interface GradlePluginTests {}

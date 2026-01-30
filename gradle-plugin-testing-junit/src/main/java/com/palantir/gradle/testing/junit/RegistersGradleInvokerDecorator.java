@@ -16,10 +16,12 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 
 /**
  * Meta-annotation that marks an annotation as registering a {@link GradleInvokerDecorator}.
@@ -27,16 +29,15 @@ import java.lang.annotation.Target;
  * <p>When a test class or method is annotated with an annotation that has this meta-annotation,
  * the framework will automatically:
  * <ol>
- *   <li>Instantiate the specified {@link GradleInvokerDecoratorFactory}</li>
- *   <li>Call {@link GradleInvokerDecoratorFactory#create} with all matching annotation instance</li>
- *   <li>Register the resulting decorator</li>
+ *   <li>Instantiate the specified {@link GradleInvokerDecorator}</li>
+ *   <li>Call {@link GradleInvokerDecorator#decorate(DecoratorContext, GradleInvoker, List)} with all matching annotation type instances</li>
  * </ol>
  *
  * <p>Example usage:
  * <pre>{@code
  * @Target({ElementType.TYPE, ElementType.METHOD})
  * @Retention(RetentionPolicy.RUNTIME)
- * @RegistersGradleInvokerDecorator(MyDecoratorFactory.class)
+ * @RegistersGradleInvokerDecorator(MyDecorator.class)
  * public @interface WithMyFeature {
  *     // Optional configuration attributes
  * }
@@ -47,8 +48,7 @@ import java.lang.annotation.Target;
 public @interface RegistersGradleInvokerDecorator {
 
     /**
-     * The factory class that creates the decorator.
-     * Must have a public no-argument constructor.
+     * The decorator class that decorates the gradle invoker.
      */
-    Class<? extends GradleInvokerDecoratorFactory> value();
+    Class<? extends GradleInvokerDecorator> value();
 }
