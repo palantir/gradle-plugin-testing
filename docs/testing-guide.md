@@ -751,6 +751,102 @@ externalDepsFile.assertThat().exists();
 
 When migrating Spock tests, convert `then:` block labels to `.as()` calls, but keep `when:` block labels as comments since they describe actions, not assertions.
 
+## Best Practices
+
+### Test Setup Organization
+
+**Combine multiple append calls**: When building up `build.gradle` content, use a single `append()` call with one text block rather than multiple calls:
+
+```java
+// Good - single append with all content
+project.buildGradle().append("""
+    group 'com.example'
+    version '1.0.0'
+
+    myPlugin {
+        enabled = true
+    }
+    """);
+
+// Avoid - multiple appends
+project.buildGradle().append("group 'com.example'");
+project.buildGradle().append("version '1.0.0'");
+```
+
+**No leading newlines in text blocks**: Start content immediately after the opening `"""`:
+
+```java
+// Good
+project.buildGradle().append("""
+    myPlugin {
+        enabled = true
+    }
+    """);
+
+// Avoid - unnecessary leading newline
+project.buildGradle().append("""
+
+    myPlugin {
+        enabled = true
+    }
+    """);
+```
+
+**Group related setup with blank lines**: In `@BeforeEach` methods, separate unrelated groups of setup calls with blank lines for readability:
+
+```java
+@BeforeEach
+void setUp(RootProject project) {
+    project.buildGradle().plugins().add("my-plugin");
+    project.buildGradle().append("""
+        group 'com.example'
+        version '1.0.0'
+        """);
+
+    project.gradlePropertiesFile()
+            .appendProperty("myProperty", "value");
+
+    project.file("config.json").append("{}");
+}
+```
+
+**Skip unnecessary setup**: Don't call `settingsGradle().rootProjectName()` unless you specifically need a custom project name - the framework provides sensible defaults.
+
+### Assertions
+
+**Prefer exact text block assertions**: Use `isEqualTo()` with a text block instead of `contains()` when checking file content - it makes the expected output obvious and catches whitespace issues:
+
+```java
+// Good - exact match shows precisely what's expected
+assertThat(project.file("output.txt").text()).isEqualTo("""
+    line one
+    line two
+    """);
+
+// Avoid - hides what the full content should be
+assertThat(project.file("output.txt").text()).contains("line one");
+assertThat(project.file("output.txt").text()).contains("line two");
+```
+
+### Testing Edge Cases
+
+**Test with properties unset**: If your plugin uses Gradle properties with conventions/defaults, write tests that explicitly unset them to verify behavior when values are missing:
+
+```java
+@Test
+void handles_missing_optional_property(RootProject project, GradleInvoker gradle) {
+    project.buildGradle().append("""
+        myPlugin {
+            optionalProperty.set(providers.provider { null })
+        }
+        """);
+
+    // Verify behavior when property has no value
+    assertThat(gradle.withArgs("myTask").buildsSuccessfully())
+        .output().contains("optionalProperty = <no-value>");
+}
+```
+
 ## Error Prone Checks
 
 The `gradle-plugin-testing` plugin ships with custom Error Prone checks that are automatically enabled when the `net.ltgt.errorprone` plugin is applied to your project.
