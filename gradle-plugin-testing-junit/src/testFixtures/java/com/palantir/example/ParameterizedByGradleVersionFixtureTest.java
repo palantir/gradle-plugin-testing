@@ -127,7 +127,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
                 when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
                 otherwiseString = "new")
         @AdditionallyRunWithGradle("8.5")
-        void test_with_parameter(RootProject rootProject, TestReporter testReporter, @InjectByGradleVersion String behavior) {
+        void test_with_parameter(
+                RootProject rootProject, TestReporter testReporter, @InjectByGradleVersion String behavior) {
             rootProject.buildGradle().plugins().add("java");
             testReporter.publishEntry("behavior", behavior);
         }
