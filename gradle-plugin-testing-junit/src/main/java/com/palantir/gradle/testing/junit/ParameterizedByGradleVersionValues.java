@@ -58,7 +58,7 @@ final class ParameterizedByGradleVersionValues {
     private static String computeValueForAnnotation(ParameterizedByGradleVersion annotation, GradleVersion version) {
         return Arrays.stream(annotation.when())
                 .filter(when -> version.compareTo(new GradleVersion(when.lessThan())) < 0)
-                .map(WhenVersion::stringValue)
+                .map(ParameterizedByGradleVersion.WhenVersion::stringValue)
                 .findFirst()
                 .orElseGet(annotation::otherwiseString);
     }
@@ -95,7 +95,7 @@ final class ParameterizedByGradleVersionValues {
         }
     }
 
-    private static void validateOrdering(WhenVersion[] conditions, Method method) {
+    private static void validateOrdering(ParameterizedByGradleVersion.WhenVersion[] conditions, Method method) {
         List<GradleVersion> versions = Arrays.stream(conditions)
                 .map(when -> new GradleVersion(when.lessThan()))
                 .toList();

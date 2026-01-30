@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.gradle.testing.execution.GradleVersion;
+import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion.WhenVersion;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;

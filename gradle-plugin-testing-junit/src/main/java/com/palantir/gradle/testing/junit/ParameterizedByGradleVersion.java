@@ -62,4 +62,14 @@ public @interface ParameterizedByGradleVersion {
     WhenVersion[] when() default {};
 
     String otherwiseString();
+
+    /** Version condition. Matches when Gradle version is less than threshold. */
+    @Target({})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface WhenVersion {
+
+        String lessThan();
+
+        String stringValue();
+    }
 }
