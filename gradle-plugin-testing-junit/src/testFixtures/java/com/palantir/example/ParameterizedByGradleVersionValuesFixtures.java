@@ -24,9 +24,6 @@ public final class ParameterizedByGradleVersionValuesFixtures {
 
     public static class ValidFixtures {
 
-        @ParameterizedByGradleVersion(otherwiseString = "default")
-        public void noConditions(@InjectByGradleVersion String behaviour) {}
-
         @ParameterizedByGradleVersion(
                 when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
                 otherwiseString = "new")

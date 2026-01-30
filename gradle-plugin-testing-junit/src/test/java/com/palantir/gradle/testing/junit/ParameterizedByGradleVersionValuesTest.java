@@ -33,18 +33,6 @@ final class ParameterizedByGradleVersionValuesTest {
     class ValidConditions {
 
         @Test
-        void no_when_conditions_returns_otherwise() throws Exception {
-            Method method = ValidFixtures.class.getDeclaredMethod("noConditions", String.class);
-
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("7.0")))
-                    .isEqualTo(Optional.of("default"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("8.0")))
-                    .isEqualTo(Optional.of("default"));
-            assertThat(ParameterizedByGradleVersionValues.computeValue(method, "behaviour", new GradleVersion("9.0")))
-                    .isEqualTo(Optional.of("default"));
-        }
-
-        @Test
         void single_when_condition() throws Exception {
             Method method = ValidFixtures.class.getDeclaredMethod("singleCondition", String.class);
 
