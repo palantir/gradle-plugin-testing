@@ -16,23 +16,19 @@
 
 package com.palantir.gradle.testing.ete;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.platform.testkit.engine.EventConditions.reportEntry;
 
 import com.palantir.example.ParameterizedByGradleVersionFixtureTest;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.TestExecutionResult.Status;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
-import org.junit.platform.testkit.engine.Event;
 
 final class ParameterizedByGradleVersionTest {
 
@@ -44,16 +40,11 @@ final class ParameterizedByGradleVersionTest {
             EngineExecutionResults results =
                     runFixture(ParameterizedByGradleVersionFixtureTest.SingleParameter.class, gradleVersion);
 
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished))
-                    .satisfiesExactlyInAnyOrder(
-                            msg -> {
-                                assertThat(msg).contains("behavior=" + expectedBehavior);
-                                assertThat(msg).contains("GradleVersion: " + gradleVersion);
-                            },
-                            msg -> assertThat(msg).contains("GradleVersion: " + gradleVersion));
-            assertThat(results.testEvents().skipped().count()).isZero();
+            results.allEvents()
+                    .assertStatistics(stats -> stats.skipped(0).failed(0))
+                    .assertEventsMatchLooselyInOrder(
+                            reportEntry(Map.of("behavior", expectedBehavior)),
+                            reportEntry(Map.of("behavior", "other")));
         }
 
         static Stream<Arguments> gradleVersions() {
@@ -71,19 +62,10 @@ final class ParameterizedByGradleVersionTest {
             EngineExecutionResults results =
                     runFixture(ParameterizedByGradleVersionFixtureTest.WithMethodLevelAdditionalVersion.class, "7.6.4");
 
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished))
-                    .satisfiesExactlyInAnyOrder(
-                            msg -> {
-                                assertThat(msg).contains("behavior=old");
-                                assertThat(msg).contains("GradleVersion: 7.6.4");
-                            },
-                            msg -> {
-                                assertThat(msg).contains("behavior=new");
-                                assertThat(msg).contains("GradleVersion: 8.5");
-                            });
-            assertThat(results.testEvents().skipped().count()).isZero();
+            results.allEvents()
+                    .assertStatistics(stats -> stats.skipped(0).failed(0))
+                    .assertEventsMatchLooselyInOrder(
+                            reportEntry(Map.of("behavior", "old")), reportEntry(Map.of("behavior", "new")));
         }
     }
 
@@ -95,13 +77,9 @@ final class ParameterizedByGradleVersionTest {
             EngineExecutionResults results =
                     runFixture(ParameterizedByGradleVersionFixtureTest.WithBeforeEach.class, gradleVersion);
 
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
-                assertThat(msg).contains("behavior=" + expectedBehavior);
-                assertThat(msg).contains("GradleVersion: " + gradleVersion);
-            });
-            assertThat(results.testEvents().skipped().count()).isZero();
+            results.allEvents()
+                    .assertStatistics(stats -> stats.skipped(0).failed(0))
+                    .assertEventsMatchLooselyInOrder(reportEntry(Map.of("behavior", expectedBehavior)));
         }
 
         static Stream<Arguments> gradleVersions() {
@@ -118,14 +96,10 @@ final class ParameterizedByGradleVersionTest {
             EngineExecutionResults results =
                     runFixture(ParameterizedByGradleVersionFixtureTest.MultipleAnnotations.class, gradleVersion);
 
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
-                assertThat(msg).contains("style=" + expectedStyle);
-                assertThat(msg).contains("format=" + expectedFormat);
-                assertThat(msg).contains("GradleVersion: " + gradleVersion);
-            });
-            assertThat(results.testEvents().skipped().count()).isZero();
+            results.allEvents()
+                    .assertStatistics(stats -> stats.skipped(0).failed(0))
+                    .assertEventsMatchLooselyInOrder(
+                            reportEntry(Map.of("style", expectedStyle)), reportEntry(Map.of("format", expectedFormat)));
         }
 
         static Stream<Arguments> gradleVersions() {
@@ -143,13 +117,11 @@ final class ParameterizedByGradleVersionTest {
             EngineExecutionResults results =
                     runFixture(ParameterizedByGradleVersionFixtureTest.SameNameAcrossMethods.class, "7.6.4");
 
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
-                assertThat(msg).contains("setupBehavior=setup-old");
-                assertThat(msg).contains("testBehavior=test-old");
-            });
-            assertThat(results.testEvents().skipped().count()).isZero();
+            results.allEvents()
+                    .assertStatistics(stats -> stats.skipped(0).failed(0))
+                    .assertEventsMatchLooselyInOrder(
+                            reportEntry(Map.of("setupBehavior", "setup-old")),
+                            reportEntry(Map.of("testBehavior", "test-old")));
         }
     }
 
@@ -159,14 +131,5 @@ final class ParameterizedByGradleVersionTest {
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
-    }
-
-    private static List<String> getExceptionMessages(List<Event> events) {
-        return events.stream()
-                .map(event -> event.getPayload(TestExecutionResult.class))
-                .<TestExecutionResult>mapMulti(Optional::ifPresent)
-                .filter(result -> result.getStatus() == Status.FAILED)
-                .map(result -> result.getThrowable().map(Throwable::getMessage).orElse(""))
-                .toList();
     }
 }

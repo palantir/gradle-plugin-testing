@@ -16,7 +16,6 @@
 
 package com.palantir.example;
 
-import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.junit.InjectByGradleVersion;
@@ -25,6 +24,7 @@ import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion.WhenVersio
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestReporter;
 
 public final class ParameterizedByGradleVersionFixtureTest {
 
@@ -38,27 +38,15 @@ public final class ParameterizedByGradleVersionFixtureTest {
                     @WhenVersion(lessThan = "9.0", stringValue = "8.x")
                 },
                 otherwiseString = "9 and up")
-        void test_one(GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "Behavior: %s"
-                """, behavior);
-
-            String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-            throw new RuntimeException("behavior=" + behavior + "|output=" + output);
+        void test_one(RootProject rootProject, TestReporter testReporter, @InjectByGradleVersion String behavior) {
+            rootProject.buildGradle().plugins().add("java");
+            testReporter.publishEntry("behavior", behavior);
         }
 
         @Test
-        void other_test(GradleInvoker gradleInvoker, RootProject rootProject) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "Behavior: other"
-                """);
-
-            String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-            throw new RuntimeException("output=" + output);
+        void other_test(RootProject rootProject, TestReporter testReporter) {
+            rootProject.buildGradle().plugins().add("java");
+            testReporter.publishEntry("behavior", "other");
         }
     }
 
@@ -77,15 +65,8 @@ public final class ParameterizedByGradleVersionFixtureTest {
         }
 
         @Test
-        void test_uses_value_from_before_each(GradleInvoker gradleInvoker, RootProject rootProject) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "Behavior: %s"
-                """, capturedBehavior);
-
-            String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-            throw new RuntimeException("behavior=" + capturedBehavior + "|output=" + output);
+        void test_uses_value_from_before_each(TestReporter testReporter) {
+            testReporter.publishEntry("behavior", capturedBehavior);
         }
     }
 
@@ -102,19 +83,13 @@ public final class ParameterizedByGradleVersionFixtureTest {
                 when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
                 otherwiseString = "modern")
         void test_with_two_parameters(
-                GradleInvoker gradleInvoker,
                 RootProject rootProject,
+                TestReporter testReporter,
                 @InjectByGradleVersion String style,
                 @InjectByGradleVersion String format) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "Style: %s"
-                println "Format: %s"
-                """, style, format);
-
-            String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-            throw new RuntimeException("style=" + style + "|format=" + format + "|output=" + output);
+            rootProject.buildGradle().plugins().add("java");
+            testReporter.publishEntry("style", style);
+            testReporter.publishEntry("format", format);
         }
     }
 
@@ -138,18 +113,9 @@ public final class ParameterizedByGradleVersionFixtureTest {
                 name = "behavior",
                 when = @WhenVersion(lessThan = "8.0", stringValue = "test-old"),
                 otherwiseString = "test-new")
-        void test_same_name_on_both_methods(
-                GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "SetupBehavior: %s"
-                println "TestBehavior: %s"
-                """, setupBehavior, behavior);
-
-            String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-            throw new RuntimeException(
-                    "setupBehavior=" + setupBehavior + "|testBehavior=" + behavior + "|output=" + output);
+        void test_same_name_on_both_methods(TestReporter testReporter, @InjectByGradleVersion String behavior) {
+            testReporter.publishEntry("setupBehavior", setupBehavior);
+            testReporter.publishEntry("testBehavior", behavior);
         }
     }
 
@@ -161,16 +127,9 @@ public final class ParameterizedByGradleVersionFixtureTest {
                 when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
                 otherwiseString = "new")
         @AdditionallyRunWithGradle("8.5")
-        void test_with_parameter(
-                GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "Behavior: %s"
-                """, behavior);
-
-            String output = gradleInvoker.withArgs().buildsSuccessfully().output();
-            throw new RuntimeException("behavior=" + behavior + "|output=" + output);
+        void test_with_parameter(RootProject rootProject, TestReporter testReporter, @InjectByGradleVersion String behavior) {
+            rootProject.buildGradle().plugins().add("java");
+            testReporter.publishEntry("behavior", behavior);
         }
     }
 }
