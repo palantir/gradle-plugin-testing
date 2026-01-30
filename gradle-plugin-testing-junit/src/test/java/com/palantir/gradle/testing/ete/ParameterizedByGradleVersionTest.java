@@ -222,26 +222,19 @@ final class ParameterizedByGradleVersionTest {
     }
 
     private static EngineExecutionResults runFixture(Class<?> fixtureClass, String gradleVersion) {
-        return runFixture(fixtureClass, gradleVersion, "false");
-    }
-
-    private static EngineExecutionResults runFixture(
-            Class<?> fixtureClass, String gradleVersion, String configurationCacheEnabled) {
         return EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(fixtureClass))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
-                .configurationParameter(
-                        "com.palantir.gradle.testing.configuration_cache_enabled", configurationCacheEnabled)
+                .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .execute();
     }
 
     private static List<String> getExceptionMessages(List<Event> events) {
         return events.stream()
-                .map(e -> e.getPayload(TestExecutionResult.class))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(r -> r.getStatus() == Status.FAILED)
-                .map(r -> r.getThrowable().map(Throwable::getMessage).orElse(""))
+                .map(event -> event.getPayload(TestExecutionResult.class))
+                .<TestExecutionResult>mapMulti(Optional::ifPresent)
+                .filter(result -> result.getStatus() == Status.FAILED)
+                .map(result -> result.getThrowable().map(Throwable::getMessage).orElse(""))
                 .toList();
     }
 }
