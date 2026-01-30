@@ -19,8 +19,9 @@ package com.palantir.gradle.testing.junit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.palantir.example.ParameterizedByGradleVersionValuesFixtures.InvalidFixtures;
+import com.palantir.example.ParameterizedByGradleVersionValuesFixtures.ValidFixtures;
 import com.palantir.gradle.testing.execution.GradleVersion;
-import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion.WhenVersion;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;
@@ -206,104 +207,5 @@ final class ParameterizedByGradleVersionValuesTest {
                     .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
                     .hasMessageContaining("found 1 annotations but 2 @InjectByGradleVersion parameters");
         }
-    }
-
-    // Test fixture classes with annotations for testing
-    static class ValidFixtures {
-
-        @ParameterizedByGradleVersion(otherwiseString = "default")
-        void noConditions(@InjectByGradleVersion String behaviour) {}
-
-        @ParameterizedByGradleVersion(
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        void singleCondition(@InjectByGradleVersion String behaviour) {}
-
-        @ParameterizedByGradleVersion(
-                when = {
-                    @WhenVersion(lessThan = "8.0", stringValue = "less than 8"),
-                    @WhenVersion(lessThan = "9.0", stringValue = "8.x")
-                },
-                otherwiseString = "9 and up")
-        void twoConditions(@InjectByGradleVersion String behaviour) {}
-
-        @ParameterizedByGradleVersion(
-                name = "first",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        @ParameterizedByGradleVersion(
-                name = "second",
-                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
-                otherwiseString = "after 9")
-        void twoAnnotations(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
-
-        void noAnnotation() {}
-    }
-
-    static class InvalidFixtures {
-
-        @ParameterizedByGradleVersion(
-                when = {
-                    @WhenVersion(lessThan = "9.0", stringValue = "a"),
-                    @WhenVersion(lessThan = "8.0", stringValue = "b")
-                },
-                otherwiseString = "default")
-        void descendingOrder(@InjectByGradleVersion String behaviour) {}
-
-        @ParameterizedByGradleVersion(
-                when = {
-                    @WhenVersion(lessThan = "8.0", stringValue = "a"),
-                    @WhenVersion(lessThan = "8.0", stringValue = "b")
-                },
-                otherwiseString = "default")
-        void duplicateVersions(@InjectByGradleVersion String behaviour) {}
-
-        @ParameterizedByGradleVersion(
-                when = {
-                    @WhenVersion(lessThan = "7.0", stringValue = "a"),
-                    @WhenVersion(lessThan = "9.0", stringValue = "b"),
-                    @WhenVersion(lessThan = "8.0", stringValue = "c")
-                },
-                otherwiseString = "default")
-        void outOfOrderMiddle(@InjectByGradleVersion String behaviour) {}
-
-        @ParameterizedByGradleVersion(
-                name = "behaviour",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "first")
-        @ParameterizedByGradleVersion(
-                name = "behaviour",
-                when = @WhenVersion(lessThan = "9.0", stringValue = "also old"),
-                otherwiseString = "second")
-        void duplicateNames(@InjectByGradleVersion String behaviour, @InjectByGradleVersion String other) {}
-
-        @ParameterizedByGradleVersion(
-                name = "first",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        @ParameterizedByGradleVersion(
-                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
-                otherwiseString = "after 9")
-        void missingNameOnSecond(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
-
-        @ParameterizedByGradleVersion(
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        void missingInjectParameter() {}
-
-        @ParameterizedByGradleVersion(
-                name = "first",
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        @ParameterizedByGradleVersion(
-                name = "second",
-                when = @WhenVersion(lessThan = "9.0", stringValue = "before 9"),
-                otherwiseString = "after 9")
-        void twoAnnotationsButOnlyOneParameter(@InjectByGradleVersion String first) {}
-
-        @ParameterizedByGradleVersion(
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        void extraInjectParameter(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
     }
 }
