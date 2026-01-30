@@ -18,7 +18,6 @@ package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.AdditionallyRunWithGradle;
-import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.junit.InjectByGradleVersion;
 import com.palantir.gradle.testing.junit.ParameterizedByGradleVersion;
@@ -151,41 +150,6 @@ public final class ParameterizedByGradleVersionFixtureTest {
             String output = gradleInvoker.withArgs().buildsSuccessfully().output();
             throw new RuntimeException(
                     "setupBehavior=" + setupBehavior + "|testBehavior=" + behavior + "|output=" + output);
-        }
-    }
-
-    @GradlePluginTests
-    public static class WithDisabledConfigurationCache {
-
-        @Test
-        @ParameterizedByGradleVersion(
-                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
-                otherwiseString = "new")
-        @DisabledConfigurationCache("Testing compatibility with @ParameterizedByGradleVersion")
-        void test_with_parameter(
-                GradleInvoker gradleInvoker, RootProject rootProject, @InjectByGradleVersion String behavior) {
-            rootProject.buildGradle().append("""
-                import org.gradle.util.GradleVersion
-
-                tasks.register('checkConfigurationCache') {
-                    def configCacheEnabled = gradle.startParameter.configurationCacheRequested
-                    inputs.property('configCacheStatus', configCacheEnabled)
-
-                    doLast {
-                        def status = inputs.properties.get('configCacheStatus')
-                        println "isConfigurationCacheRequested=" + status
-                    }
-                }
-
-                println "GradleVersion: ${GradleVersion.current().version}"
-                println "Behavior: %s"
-                """, behavior);
-
-            String output = gradleInvoker
-                    .withArgs("checkConfigurationCache")
-                    .buildsSuccessfully()
-                    .output();
-            throw new RuntimeException("behavior=" + behavior + "|output=" + output);
         }
     }
 

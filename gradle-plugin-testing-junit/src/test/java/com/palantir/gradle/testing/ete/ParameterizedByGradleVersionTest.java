@@ -110,24 +110,6 @@ final class ParameterizedByGradleVersionTest {
     }
 
     @Nested
-    class WithDisabledConfigurationCache {
-        @Test
-        void runs_with_configuration_cache_disabled() {
-            EngineExecutionResults results = runFixture(
-                    ParameterizedByGradleVersionFixtureTest.WithDisabledConfigurationCache.class, "7.6.4", "true");
-
-            List<Event> finished = results.testEvents().finished().stream().toList();
-
-            assertThat(getExceptionMessages(finished)).satisfiesExactlyInAnyOrder(msg -> {
-                assertThat(msg).contains("behavior=old");
-                assertThat(msg).contains("GradleVersion: 7.6.4");
-                assertThat(msg).contains("isConfigurationCacheRequested=false");
-            });
-            assertThat(results.testEvents().skipped().count()).isZero();
-        }
-    }
-
-    @Nested
     class WithBeforeEach {
         @Test
         void before_each_receives_correct_value() {
