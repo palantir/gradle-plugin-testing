@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.ConfigurationCacheDecorator;
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import java.lang.annotation.Annotation;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,16 +25,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Factory for creating {@link ConfigurationCacheDecorator} instances.
  */
-public final class ConfigurationCacheDecoratorFactory implements GradleInvokerDecoratorFactory {
+public final class ConfigurationCacheDecoratorFactory
+        implements GradleInvokerDecoratorFactory<DisabledConfigurationCache> {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationCacheDecoratorFactory.class);
 
     @Override
-    public GradleInvokerDecorator create(List<Annotation> annotations) {
-        boolean disabledConfigurationCachePresent =
-                annotations.stream().anyMatch(annotation -> annotation instanceof DisabledConfigurationCache);
-
-        if (disabledConfigurationCachePresent) {
+    public GradleInvokerDecorator create(List<DisabledConfigurationCache> annotations) {
+        if (!annotations.isEmpty()) {
             log.debug("DisabledConfigurationCache annotation found, skipping configuration cache decoration");
             return (context, delegate) -> delegate;
         }

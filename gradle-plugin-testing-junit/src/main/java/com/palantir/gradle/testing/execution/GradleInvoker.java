@@ -27,6 +27,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -136,19 +138,60 @@ public interface GradleInvoker {
     private static GradleInvokerDecorator createDecoratorFromFactory(
             Class<? extends GradleInvokerDecoratorFactory> factoryClass, List<Annotation> annotations) {
         try {
+            // Get the factory's generic type parameter (the annotation type it can process)
+            Class<? extends Annotation> annotationType = getFactoryAnnotationType(factoryClass);
+
+            // Filter annotations to only include those of the correct type
+            List<Annotation> filteredAnnotations =
+                    annotations.stream().filter(annotationType::isInstance).toList();
+
             GradleInvokerDecoratorFactory factory =
                     factoryClass.getDeclaredConstructor().newInstance();
 
-            GradleInvokerDecorator decorator = factory.create(annotations);
+            GradleInvokerDecorator decorator = factory.create(filteredAnnotations);
             log.debug(
-                    "Created decorator from factory {}: {}",
+                    "Created decorator from factory {}: {} (processed {} annotations)",
                     factoryClass.getSimpleName(),
-                    decorator.getClass().getSimpleName());
+                    decorator.getClass().getSimpleName(),
+                    filteredAnnotations.size());
             return decorator;
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(
                     String.format("Failed to instantiate decorator factory %s", factoryClass.getSimpleName()), e);
         }
+    }
+
+    /**
+     * Determines the annotation type that a factory can process by examining its generic type parameter.
+     *
+     * @param factoryClass the factory class to examine
+     * @return the annotation type that the factory can process
+     */
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Annotation> getFactoryAnnotationType(
+            Class<? extends GradleInvokerDecoratorFactory> factoryClass) {
+        // Look for the GradleInvokerDecoratorFactory interface in the class hierarchy
+        Type[] genericInterfaces = factoryClass.getGenericInterfaces();
+        for (Type genericInterface : genericInterfaces) {
+            if (genericInterface instanceof ParameterizedType parameterizedType) {
+                if (GradleInvokerDecoratorFactory.class.equals(parameterizedType.getRawType())) {
+                    Type typeArg = parameterizedType.getActualTypeArguments()[0];
+                    if (typeArg instanceof Class<?> annotationClass) {
+                        return (Class<? extends Annotation>) annotationClass;
+                    }
+                }
+            }
+        }
+
+        // If we couldn't find it directly, check the superclass
+        Class<?> superclass = factoryClass.getSuperclass();
+        if (superclass != null && GradleInvokerDecoratorFactory.class.isAssignableFrom(superclass)) {
+            return getFactoryAnnotationType((Class<? extends GradleInvokerDecoratorFactory>) superclass);
+        }
+
+        // we shouldn't reach here
+        throw new IllegalStateException(
+                String.format("Could not determine annotation type for factory %s", factoryClass.getSimpleName()));
     }
 
     static boolean shouldRunInTestkitDebugMode() {

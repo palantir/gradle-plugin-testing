@@ -17,7 +17,6 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -50,25 +49,24 @@ public class TestDecorators {
         String arg();
     }
 
-    public static final class RepeatableArgAddingDecoratorFactory implements GradleInvokerDecoratorFactory {
+    public static final class RepeatableArgAddingDecoratorFactory
+            implements GradleInvokerDecoratorFactory<RepeatableWithArgAddingDecorator> {
 
         @Override
-        public GradleInvokerDecorator create(List<Annotation> annotations) {
+        public GradleInvokerDecorator create(List<RepeatableWithArgAddingDecorator> annotations) {
             return new CompositeArgAddingDecorator(annotations.stream()
-                    .filter(annotation -> annotation instanceof RepeatableWithArgAddingDecorator)
-                    .map(annotation -> ((RepeatableWithArgAddingDecorator) annotation).arg())
+                    .map(RepeatableWithArgAddingDecorator::arg)
                     .toList());
         }
     }
 
-    public static final class ArgAddingDecoratorFactory implements GradleInvokerDecoratorFactory {
+    public static final class ArgAddingDecoratorFactory
+            implements GradleInvokerDecoratorFactory<WithArgAddingDecorator> {
 
         @Override
-        public GradleInvokerDecorator create(List<Annotation> annotations) {
-            return new CompositeArgAddingDecorator(annotations.stream()
-                    .filter(annotation -> annotation instanceof WithArgAddingDecorator)
-                    .map(annotation -> ((WithArgAddingDecorator) annotation).arg())
-                    .toList());
+        public GradleInvokerDecorator create(List<WithArgAddingDecorator> annotations) {
+            return new CompositeArgAddingDecorator(
+                    annotations.stream().map(WithArgAddingDecorator::arg).toList());
         }
     }
 

@@ -29,7 +29,7 @@ import java.util.List;
  * <p>Factories must have a public no-argument constructor.
  *
  */
-public interface GradleInvokerDecoratorFactory {
+public interface GradleInvokerDecoratorFactory<A extends Annotation> {
 
     /**
      * Creates a decorator from the given annotations.
@@ -37,5 +37,5 @@ public interface GradleInvokerDecoratorFactory {
      * @param annotations the annotation instances from the test class or method
      * @return a decorator that will be registered for this test
      */
-    GradleInvokerDecorator create(List<Annotation> annotations);
+    GradleInvokerDecorator create(List<A> annotations);
 }
