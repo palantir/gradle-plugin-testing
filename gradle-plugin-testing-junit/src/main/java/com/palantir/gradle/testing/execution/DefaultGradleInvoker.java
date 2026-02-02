@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import java.nio.file.Path;
 import org.gradle.testkit.runner.GradleRunner;
 
-public class DefaultGradleInvoker extends GradleInvoker {
+public final class DefaultGradleInvoker extends GradleInvoker {
 
     private final Path rootProjectDir;
     private final GradleVersion gradleVersion;
