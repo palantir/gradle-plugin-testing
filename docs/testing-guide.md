@@ -203,6 +203,8 @@ void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion Stri
 }
 ```
 
+Conditions are evaluated in order. For Gradle 7.6, `generation` is `"legacy"` (matches first condition). For Gradle 8.5, `generation` is `"8.x"` (doesn't match first, matches second). For Gradle 9.0+, `generation` is `"modern"` (no condition matches, uses fallback).
+
 **With multiple parameters:**
 
 ```java
