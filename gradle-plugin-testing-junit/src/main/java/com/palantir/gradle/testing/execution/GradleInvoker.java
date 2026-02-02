@@ -18,16 +18,21 @@ package com.palantir.gradle.testing.execution;
 
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface GradleInvoker {
+public abstract class GradleInvoker {
 
-    Logger log = LoggerFactory.getLogger(GradleInvoker.class);
+    private static Logger log = LoggerFactory.getLogger(GradleInvoker.class);
 
-    GradleInvocation withArgs(String... args);
+    public final GradleInvocation withArgs(String... args) {
+        return with(Options.builder().args(Arrays.asList(args)).build());
+    }
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
+    abstract GradleInvocation with(Options options);
+
+    public static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
         DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
         if (configurationCache) {
             if (shouldRunInTestkitDebugMode()) {
