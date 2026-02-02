@@ -67,11 +67,17 @@ public @interface ParameterizedByGradleVersion {
     /** Parameter name. Required when multiple annotations are present, optional for single annotation. */
     String name() default "";
 
+    /**
+     * Conditions evaluated in order. The first condition where the Gradle version satisfies
+     * {@link WhenVersion#lessThan()} is used. If no condition matches, {@link #otherwiseString()} is used.
+     *
+     * <p>Conditions must be ordered by ascending version (lowest first).
+     */
     WhenVersion[] when() default {};
 
     String otherwiseString();
 
-    /** Version condition. Matches when Gradle version is less than threshold. */
+    /** Condition that matches when Gradle version is less than {@link #lessThan()}. */
     @Target({})
     @Retention(RetentionPolicy.RUNTIME)
     @interface WhenVersion {

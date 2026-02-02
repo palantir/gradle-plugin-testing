@@ -176,6 +176,8 @@ The versions from `@AdditionallyRunWithGradle` are merged with the globally conf
 
 Use `@ParameterizedByGradleVersion` to inject different String values based on the Gradle version under test.
 
+Conditions in `when` are evaluated in order, and the first matching condition is used. If no condition matches, `otherwiseString` provides the fallback value. Conditions must be ordered by ascending version (lowest `lessThan` value first).
+
 ```java
 @Test
 @ParameterizedByGradleVersion(
