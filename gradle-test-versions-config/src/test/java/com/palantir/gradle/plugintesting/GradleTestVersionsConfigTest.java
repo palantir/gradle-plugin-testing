@@ -25,6 +25,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("for-rollout:FinalClass")
 public class GradleTestVersionsConfigTest {
     private GradleTestVersionsConfigTest() {}
 

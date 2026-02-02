@@ -63,6 +63,7 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
         };
     }
 
+    @SuppressWarnings("for-rollout:StreamFlatMapOptional")
     static List<Class<?>> getClassesFrom(List<String> classNames) {
         return classNames.stream()
                 .map(className -> {
