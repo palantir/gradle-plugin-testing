@@ -178,6 +178,43 @@ assertThat(result).task(":myProject:checkstyleMain").succeeded();
 
 This only matters for explicit task assertions. Running tasks by name (e.g., `gradle.withArgs("checkstyleMain")`) works without the full path since Gradle resolves the task across all projects.
 
+## Test Setup Best Practices
+
+**Combine `buildGradle().append()` calls**: Use a single append with one text block, not multiple calls:
+
+```java
+// CORRECT
+project.buildGradle().append("""
+    group 'com.example'
+    version '1.0.0'
+    """);
+
+// WRONG - multiple appends
+project.buildGradle().append("group 'com.example'");
+project.buildGradle().append("version '1.0.0'");
+```
+
+**No leading newlines**: Start text block content immediately after `"""`. Test file readability matters more than the generated build files, which are rarely read:
+
+```java
+// CORRECT
+project.buildGradle().append("""
+    myPlugin {
+        enabled = true
+    }
+    """);
+
+// WRONG - unnecessary leading newline
+project.buildGradle().append("""
+
+    myPlugin {
+    """);
+```
+
+**Skip unnecessary setup**: Don't call `settingsGradle().rootProjectName()` unless you need a custom name.
+
+**Use exact assertions for lock files**: Prefer `isEqualTo()` with text blocks over `contains()` for lock file content - makes expected output obvious.
+
 # Final Instructions
 - Make sure the migrated tests compile by running `./gradlew compileTestJava`.
 - As you discover errors in your work, write out what the error was and what you did to find the information to fix it to a file called "test-migration-errors.md".
