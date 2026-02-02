@@ -170,8 +170,8 @@ final class ParameterizedByGradleVersionValuesTest {
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
-                    .hasMessageContaining("found 1 annotations but 0 @InjectByGradleVersion parameters");
+                    .hasMessageContaining("without a name requires exactly one")
+                    .hasMessageContaining("@InjectByGradleVersion parameter (found 0)");
         }
 
         @Test
@@ -181,8 +181,8 @@ final class ParameterizedByGradleVersionValuesTest {
             assertThatThrownBy(() ->
                             ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
-                    .hasMessageContaining("found 2 annotations but 1 @InjectByGradleVersion parameters");
+                    .hasMessageContaining("no @InjectByGradleVersion parameter found for name(s):")
+                    .hasMessageContaining("second");
         }
 
         @Test
@@ -192,8 +192,31 @@ final class ParameterizedByGradleVersionValuesTest {
             assertThatThrownBy(() -> ParameterizedByGradleVersionValues.computeValue(
                             method, "behaviour", new GradleVersion("8.0")))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("requires a corresponding @InjectByGradleVersion parameter")
-                    .hasMessageContaining("found 1 annotations but 2 @InjectByGradleVersion parameters");
+                    .hasMessageContaining("without a name requires exactly one")
+                    .hasMessageContaining("@InjectByGradleVersion parameter (found 2)");
+        }
+
+        @Test
+        void mismatched_annotation_name_throws() throws Exception {
+            Method method = InvalidFixtures.class.getDeclaredMethod("mismatchedAnnotationName", String.class);
+
+            assertThatThrownBy(() ->
+                            ParameterizedByGradleVersionValues.computeValue(method, "param", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("no @InjectByGradleVersion parameter found for name(s):")
+                    .hasMessageContaining("wrongName");
+        }
+
+        @Test
+        void extra_parameter_with_wrong_name_throws() throws Exception {
+            Method method =
+                    InvalidFixtures.class.getDeclaredMethod("extraParameterWithWrongName", String.class, String.class);
+
+            assertThatThrownBy(() ->
+                            ParameterizedByGradleVersionValues.computeValue(method, "first", new GradleVersion("8.0")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("no annotation found for @InjectByGradleVersion parameter(s):")
+                    .hasMessageContaining("extra");
         }
     }
 }

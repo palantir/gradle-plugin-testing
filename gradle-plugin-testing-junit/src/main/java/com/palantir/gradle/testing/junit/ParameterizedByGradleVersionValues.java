@@ -17,13 +17,18 @@
 package com.palantir.gradle.testing.junit;
 
 import com.google.common.collect.Comparators;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /** Computes parameter values for {@link ParameterizedByGradleVersion}. */
@@ -66,28 +71,11 @@ final class ParameterizedByGradleVersionValues {
     }
 
     private static void validate(ParameterizedByGradleVersion[] annotations, Method method) {
-        validateHasInjectParameter(annotations, method);
         if (annotations.length > 1) {
             validateAllHaveNames(annotations, method);
             validateNoDuplicateNames(annotations, method);
         }
-    }
-
-    private static void validateHasInjectParameter(ParameterizedByGradleVersion[] annotations, Method method) {
-        long injectParameterCount = Arrays.stream(method.getParameters())
-                .filter(param -> param.isAnnotationPresent(InjectByGradleVersion.class))
-                .count();
-
-        if (injectParameterCount != annotations.length) {
-            throw new IllegalStateException("""
-                @ParameterizedByGradleVersion on %s.%s requires a corresponding @InjectByGradleVersion \
-                parameter for each annotation (found %d annotations but %d @InjectByGradleVersion parameters)\
-                """.formatted(
-                            method.getDeclaringClass().getSimpleName(),
-                            method.getName(),
-                            annotations.length,
-                            injectParameterCount));
-        }
+        validateAnnotationsMatchParameters(annotations, method);
     }
 
     private static void validateAllHaveNames(ParameterizedByGradleVersion[] annotations, Method method) {
@@ -102,17 +90,67 @@ final class ParameterizedByGradleVersionValues {
     }
 
     private static void validateNoDuplicateNames(ParameterizedByGradleVersion[] annotations, Method method) {
-        List<String> names = Arrays.stream(annotations)
-                .map(ParameterizedByGradleVersion::name)
-                .toList();
+        Multiset<String> nameCounts = HashMultiset.create();
+        Arrays.stream(annotations).map(ParameterizedByGradleVersion::name).forEach(nameCounts::add);
 
-        Set<String> duplicates = names.stream()
-                .filter(name -> names.stream().filter(name::equals).count() > 1)
+        Set<String> duplicates = nameCounts.entrySet().stream()
+                .filter(entry -> entry.getCount() > 1)
+                .map(Multiset.Entry::getElement)
                 .collect(Collectors.toSet());
 
         if (!duplicates.isEmpty()) {
             throw new IllegalStateException("@ParameterizedByGradleVersion on %s.%s has duplicate name values: %s"
                     .formatted(method.getDeclaringClass().getSimpleName(), method.getName(), duplicates));
+        }
+    }
+
+    private static void validateAnnotationsMatchParameters(ParameterizedByGradleVersion[] annotations, Method method) {
+        Map<String, ParameterizedByGradleVersion> annotationsByName = Arrays.stream(annotations)
+                .collect(Collectors.toMap(ParameterizedByGradleVersion::name, Function.identity()));
+
+        List<Parameter> injectParameters = Arrays.stream(method.getParameters())
+                .filter(param -> param.isAnnotationPresent(InjectByGradleVersion.class))
+                .toList();
+
+        Set<String> injectParameterNames =
+                injectParameters.stream().map(Parameter::getName).collect(Collectors.toSet());
+
+        // For single unnamed annotation, it matches any single @InjectByGradleVersion parameter
+        if (annotations.length == 1 && annotations[0].name().isEmpty()) {
+            if (injectParameters.size() == 1) {
+                throw new IllegalStateException(
+                        ("@ParameterizedByGradleVersion on %s.%s without a name requires exactly one "
+                                        + "@InjectByGradleVersion parameter (found %d)")
+                                .formatted(
+                                        method.getDeclaringClass().getSimpleName(),
+                                        method.getName(),
+                                        injectParameters.size()));
+            }
+            return;
+        }
+
+        // Validate: each annotation has a corresponding @InjectByGradleVersion parameter
+        Set<String> annotationNames = annotationsByName.keySet();
+        Set<String> missingParameters = annotationNames.stream()
+                .filter(name -> !injectParameterNames.contains(name))
+                .collect(Collectors.toSet());
+
+        if (!missingParameters.isEmpty()) {
+            throw new IllegalStateException(
+                    "@ParameterizedByGradleVersion on %s.%s: no @InjectByGradleVersion parameter found for name(s): %s"
+                            .formatted(
+                                    method.getDeclaringClass().getSimpleName(), method.getName(), missingParameters));
+        }
+
+        // Validate: each @InjectByGradleVersion parameter has a corresponding annotation
+        Set<String> missingAnnotations = injectParameterNames.stream()
+                .filter(name -> !annotationNames.contains(name))
+                .collect(Collectors.toSet());
+
+        if (!missingAnnotations.isEmpty()) {
+            throw new IllegalStateException(("@ParameterizedByGradleVersion on %s.%s: no annotation found for "
+                            + "@InjectByGradleVersion parameter(s): %s")
+                    .formatted(method.getDeclaringClass().getSimpleName(), method.getName(), missingAnnotations));
         }
     }
 

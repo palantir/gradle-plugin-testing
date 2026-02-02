@@ -115,6 +115,19 @@ public final class ParameterizedByGradleVersionValuesFixtures {
                 when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
                 otherwiseString = "new")
         public void extraInjectParameter(@InjectByGradleVersion String first, @InjectByGradleVersion String second) {}
+
+        @ParameterizedByGradleVersion(
+                name = "wrongName",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
+        public void mismatchedAnnotationName(@InjectByGradleVersion String param) {}
+
+        @ParameterizedByGradleVersion(
+                name = "first",
+                when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+                otherwiseString = "new")
+        public void extraParameterWithWrongName(
+                @InjectByGradleVersion String first, @InjectByGradleVersion String extra) {}
     }
 
     private ParameterizedByGradleVersionValuesFixtures() {}
