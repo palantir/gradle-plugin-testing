@@ -41,10 +41,10 @@ public final class ConfigurationCacheInvoker extends GradleInvoker {
         cleanupConfigurationCache();
 
         Options argsWithConfigCache =
-                Options.from(options).addArgs("--configuration-cache").build();
+                options.asBuilder().addArgs("--configuration-cache").build();
         GradleInvocation initialGradleInvocation = gradleInvoker.with(argsWithConfigCache);
         GradleInvocation secondGradleInvocation = gradleInvoker.with(
-                Options.from(argsWithConfigCache).addArgs("--dry-run").build());
+                argsWithConfigCache.asBuilder().addArgs("--dry-run").build());
         return new ConfigurationCacheInvocation(rootProjectDir, initialGradleInvocation, secondGradleInvocation);
     }
 

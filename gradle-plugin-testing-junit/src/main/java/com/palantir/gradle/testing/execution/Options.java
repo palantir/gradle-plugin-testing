@@ -22,17 +22,17 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 @ImmutablesStyle
-public interface Options {
+public abstract class Options {
 
-    List<String> args();
+    public abstract List<String> args();
 
-    class Builder extends ImmutableOptions.Builder {}
+    final Builder asBuilder() {
+        return builder().from(this);
+    }
 
-    static Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
-    static Builder from(Options options) {
-        return builder().args(options.args());
-    }
+    public static final class Builder extends ImmutableOptions.Builder {}
 }
