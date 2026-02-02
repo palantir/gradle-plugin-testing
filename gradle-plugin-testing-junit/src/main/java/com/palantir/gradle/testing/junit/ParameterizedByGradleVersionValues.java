@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.junit;
 import com.google.common.collect.Comparators;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -131,9 +132,7 @@ final class ParameterizedByGradleVersionValues {
 
         // Validate: each annotation has a corresponding @InjectByGradleVersion parameter
         Set<String> annotationNames = annotationsByName.keySet();
-        Set<String> missingParameters = annotationNames.stream()
-                .filter(name -> !injectParameterNames.contains(name))
-                .collect(Collectors.toSet());
+        Set<String> missingParameters = Sets.difference(annotationNames, injectParameterNames);
 
         if (!missingParameters.isEmpty()) {
             throw new IllegalStateException(
@@ -143,9 +142,7 @@ final class ParameterizedByGradleVersionValues {
         }
 
         // Validate: each @InjectByGradleVersion parameter has a corresponding annotation
-        Set<String> missingAnnotations = injectParameterNames.stream()
-                .filter(name -> !annotationNames.contains(name))
-                .collect(Collectors.toSet());
+        Set<String> missingAnnotations = Sets.difference(injectParameterNames, annotationNames);
 
         if (!missingAnnotations.isEmpty()) {
             throw new IllegalStateException(("@ParameterizedByGradleVersion on %s.%s: no annotation found for "
