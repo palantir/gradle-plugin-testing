@@ -117,7 +117,7 @@ final class ParameterizedByGradleVersionValues {
 
         // For single unnamed annotation, it matches any single @InjectByGradleVersion parameter
         if (annotations.length == 1 && annotations[0].name().isEmpty()) {
-            if (injectParameters.size() == 1) {
+            if (injectParameters.size() != 1) {
                 throw new IllegalStateException(
                         ("@ParameterizedByGradleVersion on %s.%s without a name requires exactly one "
                                         + "@InjectByGradleVersion parameter (found %d)")
