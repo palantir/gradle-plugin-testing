@@ -148,6 +148,7 @@ public interface GradleInvoker {
             List<Annotation> annotations) {
         try {
             checkAnnotationsType(decoratorClass, annotations);
+
             GradleInvokerDecorator<Annotation> decorator =
                     decoratorClass.getDeclaredConstructor().newInstance();
             return decorator.decorate(context, invoker, annotations);

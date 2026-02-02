@@ -16,18 +16,10 @@
 
 package com.palantir.example;
 
+import com.palantir.example.TestFixtureDecorators.WithWrongDecoratorAnnotation;
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.DecoratorContext;
-import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
-import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
-import com.palantir.gradle.testing.junit.RegistersGradleInvokerDecorator;
 import com.palantir.gradle.testing.project.RootProject;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 @WithWrongDecoratorAnnotation
@@ -40,18 +32,3 @@ public class IncompatibleDecoratorsFixtureTest {
         invoker.withArgs("help").buildsSuccessfully();
     }
 }
-
-class SomeDecorator implements GradleInvokerDecorator<DisabledConfigurationCache> {
-
-    @Override
-    public GradleInvoker decorate(
-            DecoratorContext context, GradleInvoker invoker, List<DisabledConfigurationCache> annotations) {
-        throw new RuntimeException("This shouldn't be reachable");
-    }
-    ;
-}
-
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@RegistersGradleInvokerDecorator(SomeDecorator.class)
-@interface WithWrongDecoratorAnnotation {}
