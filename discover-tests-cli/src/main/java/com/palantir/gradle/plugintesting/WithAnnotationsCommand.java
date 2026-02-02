@@ -71,7 +71,7 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
         return annotations.stream().anyMatch(annotation -> AnnotationSupport.isAnnotated(clazz, annotation));
     }
 
-    @SuppressWarnings("BanSystemOut")
+    @SuppressWarnings({"BanSystemOut", "for-rollout:UnnecessarilyQualified"})
     private static Optional<Class<? extends Annotation>> getClassAnnotation(String annotationName) {
         try {
             return Optional.of((Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName));
