@@ -26,6 +26,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -132,9 +134,7 @@ public interface GradleInvoker {
         GradleInvoker invoker = baseInvoker;
         for (Map.Entry<Class<? extends GradleInvokerDecorator>, List<Annotation>> entry :
                 decoratorToAnnotations.entrySet()) {
-            Class<? extends GradleInvokerDecorator> decoratorClass = entry.getKey();
-            List<Annotation> relevantAnnotations = entry.getValue();
-            invoker = createGradleInvokerFromDecorator(decoratorClass, context, invoker, relevantAnnotations);
+            invoker = createGradleInvokerFromDecorator(entry.getKey(), context, invoker, entry.getValue());
         }
 
         return invoker;
@@ -147,12 +147,53 @@ public interface GradleInvoker {
             GradleInvoker invoker,
             List<Annotation> annotations) {
         try {
+            checkAnnotationsType(decoratorClass, annotations);
             GradleInvokerDecorator<Annotation> decorator =
                     decoratorClass.getDeclaredConstructor().newInstance();
             return decorator.decorate(context, invoker, annotations);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(
                     String.format("Failed to instantiate decorator class %s", decoratorClass.getSimpleName()), e);
+        }
+    }
+
+    private static void checkAnnotationsType(
+            Class<? extends GradleInvokerDecorator> decoratorClass, List<Annotation> annotations) {
+        Class<?> expectedAnnotationType = getDecoratorAnnotationType(decoratorClass);
+        List<String> incompatibleAnnotations = annotations.stream()
+                .filter(annotation -> !expectedAnnotationType.isInstance(annotation))
+                .map(annotation -> annotation.annotationType().getSimpleName())
+                .toList();
+        if (!incompatibleAnnotations.isEmpty()) {
+            throw new RuntimeException(String.format(
+                    "Type mismatch: Decorator %s expects annotations of type %s, but received incompatible annotation"
+                            + " types: %s",
+                    decoratorClass.getSimpleName(), expectedAnnotationType.getSimpleName(), incompatibleAnnotations));
+        }
+    }
+
+    /**
+     * Extracts the annotation type parameter by examining the decorate method's parameter types.
+     */
+    private static Class<?> getDecoratorAnnotationType(Class<?> decoratorClass) {
+        try {
+            Method decorateMethod =
+                    decoratorClass.getMethod("decorate", DecoratorContext.class, GradleInvoker.class, List.class);
+            Type[] genericParameterTypes = decorateMethod.getGenericParameterTypes();
+            if (genericParameterTypes.length >= 3 && genericParameterTypes[2] instanceof ParameterizedType paramType) {
+                Type[] typeArgs = paramType.getActualTypeArguments();
+                if (typeArgs.length > 0 && typeArgs[0] instanceof Class) {
+                    return (Class<?>) typeArgs[0];
+                }
+            }
+            throw new RuntimeException(String.format(
+                    "Could not determine expected annotation type for decorator %s", decoratorClass.getSimpleName()));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(
+                    String.format(
+                            "Could not determine expected annotation type for decorator %s",
+                            decoratorClass.getSimpleName()),
+                    e);
         }
     }
 
