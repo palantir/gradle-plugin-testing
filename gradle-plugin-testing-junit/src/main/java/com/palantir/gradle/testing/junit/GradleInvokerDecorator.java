@@ -23,6 +23,8 @@ import java.util.List;
 /**
  * A decorator that wraps a {@link GradleInvoker} to add additional behavior.
  * Implementations are referenced by the {@link RegistersGradleInvokerDecorator} meta-annotation.
+ *
+ * Decorators must have a public no-argument constructor.
  */
 public interface GradleInvokerDecorator<A extends Annotation> {
 

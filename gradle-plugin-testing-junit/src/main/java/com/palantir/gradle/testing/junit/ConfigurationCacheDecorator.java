@@ -30,8 +30,7 @@ public final class ConfigurationCacheDecorator implements GradleInvokerDecorator
     @Override
     public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate, List<Annotation> annotations) {
         if (annotations.stream()
-                .anyMatch(
-                        annotation -> annotation.annotationType().isAssignableFrom(DisabledConfigurationCache.class))) {
+                .anyMatch(annotation -> annotation.annotationType().equals(DisabledConfigurationCache.class))) {
             log.debug("DisabledConfigurationCache annotation found, skipping configuration cache decoration");
             return delegate;
         }

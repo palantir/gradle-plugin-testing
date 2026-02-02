@@ -30,7 +30,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -100,7 +99,7 @@ public interface GradleInvoker {
                 }
                 Object value = valueMethod.invoke(annotation);
                 if (value instanceof Annotation[] containedAnnotations) {
-                    annotationBuilder.addAll(Arrays.stream(containedAnnotations).toList());
+                    annotationBuilder.add(containedAnnotations);
                 }
             } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                 // not a repeatable annotation, ignore this
@@ -174,7 +173,9 @@ public interface GradleInvoker {
     }
 
     /**
-     * Extracts the annotation type parameter by examining the decorate method's parameter types.
+     * Extracts the annotation type parameter by examining the decorate method's 3rd param type `A` from the relevant
+     * method {@code decorate(
+     *          DecoratorContext _firstParam, GradleInvoker _secondParam, List{@literal <}A{@literal >} thirdParam)}
      */
     private static Class<?> getDecoratorAnnotationType(Class<?> decoratorClass) {
         try {
