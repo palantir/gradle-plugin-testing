@@ -22,7 +22,7 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 import org.gradle.testkit.runner.GradleRunner;
 
-public final class DefaultGradleInvoker extends GradleInvoker {
+public final class DefaultGradleInvoker implements GradleInvoker {
 
     private final Path rootProjectDir;
     private final GradleVersion gradleVersion;

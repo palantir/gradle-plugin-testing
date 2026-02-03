@@ -22,17 +22,17 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class GradleInvoker {
+public interface GradleInvoker {
 
-    private static Logger log = LoggerFactory.getLogger(GradleInvoker.class);
+    Logger log = LoggerFactory.getLogger(GradleInvoker.class);
 
-    public final GradleInvocation withArgs(String... args) {
+    default GradleInvocation withArgs(String... args) {
         return with(Options.builder().args(Arrays.asList(args)).build());
     }
 
-    abstract GradleInvocation with(Options options);
+    GradleInvocation with(Options options);
 
-    public static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
+    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
         DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
         if (configurationCache) {
             if (shouldRunInTestkitDebugMode()) {

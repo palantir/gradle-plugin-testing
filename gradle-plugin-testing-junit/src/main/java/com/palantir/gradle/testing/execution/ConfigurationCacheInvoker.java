@@ -24,7 +24,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 
-public final class ConfigurationCacheInvoker extends GradleInvoker {
+public final class ConfigurationCacheInvoker implements GradleInvoker {
 
     private final Path rootProjectDir;
     private final GradleInvoker gradleInvoker;
