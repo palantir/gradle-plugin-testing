@@ -11,6 +11,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [The @GradlePluginTests Annotation](#the-gradleplugintests-annotation)
     - [Parameter Injection](#parameter-injection)
     - [Multi-Version Testing](#multi-version-testing)
+    - [Version-Conditional Parameters](#version-conditional-parameters)
 - [File Operations](#file-operations)
     - [Working with Files](#working-with-files)
     - [Build Gradle](#build-gradle)
@@ -170,6 +171,83 @@ class CompatibilityTest {
 ```
 
 The versions from `@AdditionallyRunWithGradle` are merged with the globally configured versions. When applied to both a class and a method, all versions are combined. Duplicate versions are automatically deduplicated.
+
+#### Version-Conditional Parameters
+
+Use `@ParameterizedByGradleVersion` to inject different String values based on the Gradle version under test.
+
+Conditions in `when` are evaluated in order, and the first matching condition is used. If no condition matches, `otherwiseString` provides the fallback value. Conditions must be ordered by ascending version (lowest `lessThan` value first).
+
+```java
+@Test
+@ParameterizedByGradleVersion(
+    when = @WhenVersion(lessThan = "8.0", stringValue = "legacyStyle"),
+    otherwiseString = "newStyle")
+void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion String configOption) {
+    project.buildGradle().append("myPlugin.style = '%s'", configOption);
+}
+```
+
+**With multiple conditions:**
+
+```java
+@Test
+@ParameterizedByGradleVersion(
+    when = {
+        @WhenVersion(lessThan = "8.0", stringValue = "legacy"),
+        @WhenVersion(lessThan = "9.0", stringValue = "8.x")
+    },
+    otherwiseString = "modern")
+void test(GradleInvoker gradle, RootProject project, @InjectByGradleVersion String generation) {
+    project.buildGradle().append("myPlugin.generation = '%s'", generation);
+}
+```
+
+Conditions are evaluated in order. For Gradle 7.6, `generation` is `"legacy"` (matches first condition). For Gradle 8.5, `generation` is `"8.x"` (doesn't match first, matches second). For Gradle 9.0+, `generation` is `"modern"` (no condition matches, uses fallback).
+
+**With multiple parameters:**
+
+```java
+@Test
+@ParameterizedByGradleVersion(
+    name = "style",
+    when = @WhenVersion(lessThan = "8.0", stringValue = "old"),
+    otherwiseString = "new")
+@ParameterizedByGradleVersion(
+    name = "format",
+    when = @WhenVersion(lessThan = "9.0", stringValue = "classic"),
+    otherwiseString = "modern")
+void test(GradleInvoker gradle, @InjectByGradleVersion String style, @InjectByGradleVersion String format) {
+    project.buildGradle().append("myPlugin { style = '%s'; format = '%s' }", style, format);
+}
+```
+
+**In `@BeforeEach`:**
+
+```java
+private String configStyle;
+
+@BeforeEach
+@ParameterizedByGradleVersion(
+    when = @WhenVersion(lessThan = "8.0", stringValue = "legacy"),
+    otherwiseString = "modern")
+void setup(RootProject project, @InjectByGradleVersion String style) {
+    this.configStyle = style;
+    project.buildGradle().plugins().add("my-plugin");
+}
+
+@Test
+void test_uses_correct_style(GradleInvoker gradle, RootProject project) {
+    project.buildGradle().append("myPlugin.style = '%s'", configStyle);
+    gradle.withArgs("build").buildsSuccessfully();
+}
+```
+
+**Requirements:**
+- The receiving parameter must be annotated with `@InjectByGradleVersion`
+- Must contain an `otherwiseString` to catch the general case
+- Conditions must be ordered by ascending `lessThan` version (lowest first)
+- When using multiple `@ParameterizedByGradleVersion` annotations, each must have a `name` matching its parameter
 
 ## File Operations
 
