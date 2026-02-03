@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import org.slf4j.Logger;
@@ -28,7 +30,7 @@ public interface GradleInvoker {
     GradleInvocation withArgs(String... args);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        DefaultGradleInvoker gradleInvoker = new DefaultGradleInvoker(path, gradleVersion);
+        GradleInvoker gradleInvoker = getInternalDefaultInvoker(path, gradleVersion);
         if (configurationCache) {
             if (shouldRunInTestkitDebugMode()) {
                 log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
@@ -39,6 +41,14 @@ public interface GradleInvoker {
             return new ConfigurationCacheInvoker(path, gradleInvoker);
         }
         return gradleInvoker;
+    }
+
+    @RestrictedApi(
+            explanation =
+                    "For internal use only. Always prefer GradleInvoker#create for the creation of the GradleInvokers.",
+            allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    static GradleInvoker getInternalDefaultInvoker(Path path, GradleVersion gradleVersion) {
+        return new DefaultGradleInvoker(path, gradleVersion);
     }
 
     static boolean shouldRunInTestkitDebugMode() {
