@@ -22,16 +22,9 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 import org.gradle.testkit.runner.GradleRunner;
 
-public final class DefaultGradleInvoker implements GradleInvoker {
-
-    private final Path rootProjectDir;
-    private final GradleVersion gradleVersion;
-
+record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) {
-        this.rootProjectDir = rootProjectDir;
-        this.gradleVersion = gradleVersion;
-    }
+    public DefaultGradleInvoker {}
 
     @Override
     public GradleInvocation with(Options options) {
