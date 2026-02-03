@@ -16,9 +16,7 @@
 
 package com.palantir.gradle.testing.maven;
 
-import com.palantir.gradle.testing.execution.DefaultGradleInvoker;
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import java.nio.file.Path;
@@ -34,10 +32,10 @@ final class MavenRepoPublisher {
     private final GradleInvoker gradleInvoker;
     private final Path mavenRepoUrl;
 
-    MavenRepoPublisher(Path projectRoot, Path mavenRepoUrl, GradleVersion gradleVersion) {
-        this.rootProject = new RootProject(projectRoot);
-        this.gradleInvoker = new DefaultGradleInvoker(projectRoot, gradleVersion);
+    MavenRepoPublisher(Path mavenRepoUrl, RootProject rootProject, GradleInvoker gradleInvoker) {
         this.mavenRepoUrl = mavenRepoUrl;
+        this.rootProject = rootProject;
+        this.gradleInvoker = gradleInvoker;
 
         rootProject.settingsGradle().rootProjectName("maven-repo-publisher");
     }

@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import org.gradle.testkit.runner.GradleRunner;
 
-public record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
+record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public DefaultGradleInvoker {}
 
