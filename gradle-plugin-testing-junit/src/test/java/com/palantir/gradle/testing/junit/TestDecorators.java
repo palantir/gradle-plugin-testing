@@ -22,9 +22,7 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class TestDecorators {
 
@@ -55,13 +53,11 @@ public class TestDecorators {
         @Override
         public GradleInvoker decorate(
                 DecoratorContext context, GradleInvoker invoker, List<RepeatableWithArgAddingDecorator> annotations) {
-            return args -> {
-                String[] modifiedArgs = Stream.concat(
-                                Arrays.stream(args),
-                                annotations.stream().map(RepeatableWithArgAddingDecorator::arg).toList().stream())
-                        .toArray(String[]::new);
-                return invoker.withArgs(modifiedArgs);
-            };
+            return options -> invoker.with(options.asBuilder()
+                    .addAllArgs(annotations.stream()
+                            .map(RepeatableWithArgAddingDecorator::arg)
+                            .toList())
+                    .build());
         }
     }
 
@@ -70,13 +66,11 @@ public class TestDecorators {
         @Override
         public GradleInvoker decorate(
                 DecoratorContext context, GradleInvoker invoker, List<WithArgAddingDecorator> annotations) {
-            return args -> {
-                String[] modifiedArgs = Stream.concat(
-                                Arrays.stream(args),
-                                annotations.stream().map(WithArgAddingDecorator::arg).toList().stream())
-                        .toArray(String[]::new);
-                return invoker.withArgs(modifiedArgs);
-            };
+            return options -> invoker.with(options.asBuilder()
+                    .addAllArgs(annotations.stream()
+                            .map(WithArgAddingDecorator::arg)
+                            .toList())
+                    .build());
         }
     }
 }

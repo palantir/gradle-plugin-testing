@@ -32,6 +32,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -46,7 +47,11 @@ import org.junit.platform.commons.support.AnnotationSupport;
 
 public interface GradleInvoker {
 
-    GradleInvocation withArgs(String... args);
+    default GradleInvocation withArgs(String... args) {
+        return with(Options.builder().args(Arrays.asList(args)).build());
+    }
+
+    GradleInvocation with(Options options);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker baseInvoker = getInternalDefaultInvoker(path, gradleVersion);

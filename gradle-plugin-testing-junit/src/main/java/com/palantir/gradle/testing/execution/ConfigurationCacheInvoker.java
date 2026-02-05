@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.testing.execution;
 
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.io.File;
@@ -37,22 +36,15 @@ public final class ConfigurationCacheInvoker implements GradleInvoker {
     }
 
     @Override
-    public GradleInvocation withArgs(String... args) {
+    public GradleInvocation with(Options options) {
         // not reusing configuration-cache among multiple gradle invocations in a test.
         cleanupConfigurationCache();
 
-        String[] withConfigurationCacheEnabled = ImmutableList.<String>builder()
-                .add(args)
-                .add("--configuration-cache")
-                .build()
-                .toArray(String[]::new);
-        GradleInvocation initialGradleInvocation = gradleInvoker.withArgs(withConfigurationCacheEnabled);
-
-        GradleInvocation secondGradleInvocation = gradleInvoker.withArgs(ImmutableList.<String>builder()
-                .add(withConfigurationCacheEnabled)
-                .add("--dry-run")
-                .build()
-                .toArray(String[]::new));
+        Options argsWithConfigCache =
+                options.asBuilder().addArgs("--configuration-cache").build();
+        GradleInvocation initialGradleInvocation = gradleInvoker.with(argsWithConfigCache);
+        GradleInvocation secondGradleInvocation = gradleInvoker.with(
+                argsWithConfigCache.asBuilder().addArgs("--dry-run").build());
         return new ConfigurationCacheInvocation(rootProjectDir, initialGradleInvocation, secondGradleInvocation);
     }
 
