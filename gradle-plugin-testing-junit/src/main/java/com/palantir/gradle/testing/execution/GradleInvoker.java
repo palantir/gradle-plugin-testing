@@ -20,6 +20,7 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,11 @@ public interface GradleInvoker {
 
     Logger log = LoggerFactory.getLogger(GradleInvoker.class);
 
-    GradleInvocation withArgs(String... args);
+    default GradleInvocation withArgs(String... args) {
+        return with(Options.builder().args(Arrays.asList(args)).build());
+    }
+
+    GradleInvocation with(Options options);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
         GradleInvoker gradleInvoker = getInternalDefaultInvoker(path, gradleVersion);

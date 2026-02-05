@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
-import java.util.Arrays;
 import org.gradle.testkit.runner.GradleRunner;
 
 record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
@@ -28,7 +27,7 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
     public DefaultGradleInvoker {}
 
     @Override
-    public GradleInvocation withArgs(String... args) {
+    public GradleInvocation with(Options options) {
         GradleRunner runner = GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(GradleInvoker.shouldRunInTestkitDebugMode())
@@ -36,7 +35,7 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
                 .withArguments(ImmutableList.<String>builder()
-                        .addAll(Arrays.asList(args))
+                        .addAll(options.args())
                         .add("--stacktrace")
                         .build());
 
