@@ -92,7 +92,6 @@ public interface GradleInvoker {
                     continue;
                 }
                 Class<?> componentType = valueMethod.getReturnType().getComponentType();
-
                 if (!Annotation.class.isAssignableFrom(componentType)) {
                     continue;
                 }
@@ -137,7 +136,6 @@ public interface GradleInvoker {
                 decoratorToAnnotations.entrySet()) {
             invoker = createGradleInvokerFromDecorator(entry.getKey(), context, invoker, entry.getValue());
         }
-
         return invoker;
     }
 
