@@ -66,6 +66,7 @@ An example of delineator comments in a groovy file:
 These comments should be copied over to the new test files as they are created to assist human reviewers.
 
 # General Instructions
+- You MUST migrate ALL tests from the original file. Do not skip any tests or only migrate a "representative sample". Every single test method in the original Groovy file must have a corresponding test method in the new Java file.
 - Test names should be changed to a snake_case_english_sentence in all lower case.
 - Keep the comments from the original Groovy tests when writing the new tests.
 - Method name mappings from old to new framework:
@@ -73,6 +74,7 @@ These comments should be copied over to the new test files as they are created t
     - `.buildAndFail()` → `.buildsWithFailure()`
     - `with('task').build()` → `gradle.withArgs('task').buildsSuccessfully()`
 - When an external plugin is used ensure the correct `gradlePluginForTesting` configuration is added to the projects `build.gradle` file
+- Do NOT add `com.palantir.gradle.plugintesting:gradle-plugin-testing-junit` to `versions.props`. The gradle-plugin-testing plugin automatically provides the correct version of this dependency.
 - When migrating ONLY use the `standardBuildFile` pattern if it was used in the old groovy test
 - If you need to parse a POM / xml file use `jackson` with `records` e.g.
 ```java
@@ -107,6 +109,111 @@ record PomProject(
 # Assertion Instructions
 - Follow the instructions in the test-guide.md under "Assertions" for how to use fluent assertions built into the framework.
 - Use chained assertions when checking multiple things on the same value.
+
+# Common Migration Pitfalls
+
+## Plugin Application
+- Do not use `apply plugin: 'foo'` in `build.gradle` text blocks
+- Use the structured `rootProject.buildGradle().plugins().add("plugin-id")` API instead
+
+## Parameterized Tests
+- The framework injects `GradleInvoker`, `RootProject`, etc. as test method parameters
+- `@ParameterizedTest` works with the framework, but the parameterized test parameters must come first
+- Example: `void my_test(String param, GradleInvoker gradle, RootProject rootProject)` - the `String param` from `@MethodSource` comes before the injected parameters
+
+## Helper Methods
+- Helper methods that need gradle/project access should take `GradleInvoker` and/or `RootProject` as parameters
+- Do not store these as instance fields (injection happens per-test)
+
+## Java Text Blocks vs Groovy Triple-Quoted Strings
+- Java text blocks do not preserve a leading newline like Groovy `'''` strings
+- Groovy: `def s = '''\nfoo'''` starts with a newline
+- Java: `String s = """\nfoo"""` also starts with a newline, but `String s = """\n    foo"""` has different indentation behavior
+- When migrating assertions that compare source content, be aware of these differences
+
+## Don't Use buildscript Blocks for External Plugins
+Do not use `buildscript { }` blocks with `classpath` dependencies to load external plugins. This bypasses TestKit and makes plugins unavailable to the `.plugins().add()` API:
+
+```java
+// WRONG - Don't do this
+rootProject.buildGradle().append("""
+    buildscript {
+        repositories { mavenCentral() }
+        dependencies {
+            classpath 'com.palantir.baseline:gradle-baseline-java:5.38.0'
+        }
+    }
+    apply plugin: 'com.palantir.baseline'
+    """);
+
+// CORRECT - Add to gradlePluginForTesting in build.gradle, then use:
+rootProject.buildGradle().plugins().add("com.palantir.baseline");
+```
+
+## Don't Access Framework Internals
+The framework isolates each test run into its own directory, namespaced by Gradle version. You should never need to know which Gradle version is running.
+
+```java
+// WRONG - Accessing implementation details
+String version = ((DefaultGradleInvoker) gradle).gradleVersion().version();
+Path outputFile = rootProject.buildDir().path()
+    .resolve(String.format("reports/output-%s.xml", version));
+
+// CORRECT - Use simple paths; the framework handles isolation
+Path outputFile = rootProject.buildDir().path().resolve("reports/output.xml");
+```
+
+If you find yourself casting `GradleInvoker` to `DefaultGradleInvoker`, the approach is probably wrong.
+
+## Use Full Task Paths for Explicit Assertions
+When asserting on specific task outcomes, use the full task path including the project name for subproject tasks:
+
+```java
+// WRONG - Task is in subproject, not root
+assertThat(result).task(":checkstyleMain").succeeded();
+
+// CORRECT - Include subproject in path
+assertThat(result).task(":myProject:checkstyleMain").succeeded();
+```
+
+This only matters for explicit task assertions. Running tasks by name (e.g., `gradle.withArgs("checkstyleMain")`) works without the full path since Gradle resolves the task across all projects.
+
+## Test Setup Best Practices
+
+**Combine `buildGradle().append()` calls**: Use a single append with one text block, not multiple calls:
+
+```java
+// CORRECT
+project.buildGradle().append("""
+    group 'com.example'
+    version '1.0.0'
+    """);
+
+// WRONG - multiple appends
+project.buildGradle().append("group 'com.example'");
+project.buildGradle().append("version '1.0.0'");
+```
+
+**No leading newlines**: Start text block content immediately after `"""`. Test file readability matters more than the generated build files, which are rarely read:
+
+```java
+// CORRECT
+project.buildGradle().append("""
+    myPlugin {
+        enabled = true
+    }
+    """);
+
+// WRONG - unnecessary leading newline
+project.buildGradle().append("""
+
+    myPlugin {
+    """);
+```
+
+**Skip unnecessary setup**: Don't call `settingsGradle().rootProjectName()` unless you need a custom name.
+
+**Use exact assertions for lock files**: Prefer `isEqualTo()` with text blocks over `contains()` for lock file content - makes expected output obvious.
 
 # Final Instructions
 - Make sure the migrated tests compile by running `./gradlew compileTestJava`.

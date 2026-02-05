@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.gradle.testing.junit;
 
-public record GradleVersion(String version) implements Comparable<GradleVersion> {
-    @Override
-    public String toString() {
-        return version;
-    }
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    @Override
-    public int compareTo(GradleVersion other) {
-        return org.gradle.util.GradleVersion.version(this.version)
-                .compareTo(org.gradle.util.GradleVersion.version(other.version));
-    }
-}
+/** Marks a method parameter to receive the value from {@link ParameterizedByGradleVersion}. */
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface InjectByGradleVersion {}

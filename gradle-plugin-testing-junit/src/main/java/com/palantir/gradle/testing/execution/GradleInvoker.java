@@ -17,6 +17,8 @@
 package com.palantir.gradle.testing.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.RegistersGradleInvokerDecorator;
@@ -47,7 +49,7 @@ public interface GradleInvoker {
     GradleInvocation withArgs(String... args);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
-        GradleInvoker baseInvoker = new DefaultGradleInvoker(path, gradleVersion);
+        GradleInvoker baseInvoker = getInternalDefaultInvoker(path, gradleVersion);
         RootProject rootProject = new RootProject(path);
         DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
         Set<Annotation> annotations = collectAnnotationsFromContext(extensionContext);
@@ -197,6 +199,14 @@ public interface GradleInvoker {
                             decoratorClass.getSimpleName()),
                     e);
         }
+    }
+
+    @RestrictedApi(
+            explanation =
+                    "For internal use only. Always prefer GradleInvoker#create for the creation of the GradleInvokers.",
+            allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
+    static GradleInvoker getInternalDefaultInvoker(Path path, GradleVersion gradleVersion) {
+        return new DefaultGradleInvoker(path, gradleVersion);
     }
 
     static boolean shouldRunInTestkitDebugMode() {

@@ -292,8 +292,8 @@ class PluginTestingJunitPluginTest {
                 // included because it extends IntegrationSpec
                 "NebulaIntegrationTestKitSpec",
                 "nebula.test.IntegrationTestKitSpec",
-                // ignored because it extends ConfigurationCacheSpec
-                "IgnoredConfigurationCacheTest",
+                // included because it extends ConfigurationCacheSpec (which is a subClass of IntegrationTestKitSpec)
+                "ConfigurationCacheTest",
                 "com.palantir.gradle.plugintesting.ConfigurationCacheSpec",
                 // ignored because it doesn't extend an allowlisted class
                 "IgnoredSpecification",
@@ -325,7 +325,8 @@ class PluginTestingJunitPluginTest {
                 .containsExactlyInAnyOrder(
                         "src/test/groovy/test/NebulaIntegrationTest.groovy",
                         "src/test/groovy/test/SubClassesNebulaIntegrationTest.groovy",
-                        "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy");
+                        "src/test/groovy/test/NebulaIntegrationTestKitSpec.groovy",
+                        "src/test/groovy/test/ConfigurationCacheTest.groovy");
     }
 
     private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {

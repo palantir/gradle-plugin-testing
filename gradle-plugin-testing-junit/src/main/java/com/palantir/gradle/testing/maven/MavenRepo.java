@@ -18,7 +18,9 @@ package com.palantir.gradle.testing.maven;
 
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.GradleVersion;
+import com.palantir.gradle.testing.project.RootProject;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -50,14 +52,17 @@ import java.util.List;
  * </pre>
  */
 public final class MavenRepo {
-    private final Path path;
+    private final Path mavenRepoUrl;
     private final MavenRepoPublisher publisher;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public MavenRepo(Path repoDir, GradleVersion gradleVersion) {
-        this.path = repoDir.resolve("localMavenRepository").toAbsolutePath();
-        this.publisher =
-                new MavenRepoPublisher(repoDir.resolve("localMavenRepositoryPublisherProject"), path, gradleVersion);
+        this.mavenRepoUrl = repoDir.resolve("localMavenRepository").toAbsolutePath();
+        Path repoDirPath = repoDir.resolve("localMavenRepositoryPublisherProject");
+        this.publisher = new MavenRepoPublisher(
+                mavenRepoUrl,
+                new RootProject(repoDirPath),
+                GradleInvoker.getInternalDefaultInvoker(repoDirPath, gradleVersion));
     }
 
     /**
@@ -79,6 +84,6 @@ public final class MavenRepo {
     }
 
     public Path path() {
-        return path;
+        return mavenRepoUrl;
     }
 }
