@@ -173,9 +173,9 @@ public interface GradleInvoker {
     }
 
     /**
-     * Extracts the annotation type parameter by examining the decorate method's 3rd param type `A` from the relevant
-     * method {@code decorate(
-     *          DecoratorContext _firstParam, GradleInvoker _secondParam, List{@literal <}A{@literal >} thirdParam)}
+     * Extracts the annotation type parameter by examining the decorate method's 3rd param type `A`:
+     * {@code decorate(
+     *      DecoratorContext _firstParam, GradleInvoker _secondParam, List{@literal <}A{@literal >} thirdParam)}
      */
     private static Class<?> getDecoratorAnnotationType(Class<?> decoratorClass) {
         try {
