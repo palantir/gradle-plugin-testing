@@ -16,18 +16,17 @@
 
 package com.palantir.gradle.testing.junit;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.junit.jupiter.api.ClassTemplate;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.extension.ExtendWith;
+import com.palantir.gradle.testing.execution.GradleVersion;
+import com.palantir.gradle.testing.project.RootProject;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(GradleVersioningClassTemplate.class)
-@ClassTemplate
-@DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
-@RegistersGradleInvokerDecorator(ConfigurationCacheDecorator.class)
-public @interface GradlePluginTests {}
+/**
+ * Context provided to {@link GradleInvokerDecorator#decorate} containing
+ * all information needed to create a decorated invoker.
+ *
+ * @param rootProject the root project directory for the test
+ * @param gradleVersion the Gradle version being tested
+ * @param extensionContext the JUnit extension context, providing access to stores and test metadata
+ */
+public record DecoratorContext(
+        RootProject rootProject, GradleVersion gradleVersion, ExtensionContext extensionContext) {}

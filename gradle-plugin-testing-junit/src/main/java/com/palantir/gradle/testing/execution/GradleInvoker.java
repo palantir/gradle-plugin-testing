@@ -16,17 +16,35 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import com.palantir.gradle.testing.junit.DecoratorContext;
+import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
+import com.palantir.gradle.testing.junit.RegistersGradleInvokerDecorator;
+import com.palantir.gradle.testing.project.RootProject;
+import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.commons.support.AnnotationSupport;
 
 public interface GradleInvoker {
-
-    Logger log = LoggerFactory.getLogger(GradleInvoker.class);
 
     default GradleInvocation withArgs(String... args) {
         return with(Options.builder().args(Arrays.asList(args)).build());
@@ -34,18 +52,153 @@ public interface GradleInvoker {
 
     GradleInvocation with(Options options);
 
-    static GradleInvoker create(Path path, GradleVersion gradleVersion, boolean configurationCache) {
-        GradleInvoker gradleInvoker = getInternalDefaultInvoker(path, gradleVersion);
-        if (configurationCache) {
-            if (shouldRunInTestkitDebugMode()) {
-                log.warn("Configuration cache disabled because debug mode is active. Debug mode and"
-                        + " configuration cache cannot be used together. See"
-                        + " https://github.com/gradle/gradle/issues/25846 for details.");
-                return gradleInvoker;
+    static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
+        GradleInvoker baseInvoker = getInternalDefaultInvoker(path, gradleVersion);
+        RootProject rootProject = new RootProject(path);
+        DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
+        Set<Annotation> annotations = collectAnnotationsFromContext(extensionContext);
+        return decorateInvokerWithAnnotations(decoratorContext, baseInvoker, annotations);
+    }
+
+    private static Set<Annotation> collectAnnotationsFromContext(ExtensionContext context) {
+        List<Annotation> methodAnnotations = context.getTestMethod()
+                .map(GradleInvoker::findAllAnnotationsWithRegisterDecorator)
+                .orElseGet(List::of);
+        // Collect contexts from bottom to top (method -> class -> parent classes)
+        List<ExtensionContext> contextHierarchy = Stream.iterate(
+                        context, Objects::nonNull, ctx -> ctx.getParent().orElse(null))
+                .collect(Collectors.toList());
+
+        // Reverse to get top-down order (parent classes -> class -> method)
+        Collections.reverse(contextHierarchy);
+
+        Stream<Annotation> classAnnotations = contextHierarchy.stream()
+                .flatMap(ctx -> ctx.getTestClass().stream())
+                .flatMap(testClass -> findAllAnnotationsWithRegisterDecorator(testClass).stream());
+
+        return Stream.concat(classAnnotations, methodAnnotations.stream())
+                // preserving the order while dropping duplicated annotations
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static List<Annotation> findAllAnnotationsWithRegisterDecorator(AnnotatedElement element) {
+        ImmutableList.Builder<Annotation> annotationBuilder = ImmutableList.builder();
+
+        for (Annotation annotation : element.getAnnotations()) {
+            if (AnnotationSupport.isAnnotated(annotation.annotationType(), RegistersGradleInvokerDecorator.class)) {
+                annotationBuilder.add(annotation);
             }
-            return new ConfigurationCacheInvoker(path, gradleInvoker);
+            // Check if this might be a container annotation for repeatable annotations
+            // Look for annotations that might be containers for @RegistersGradleInvokerDecorator annotations
+            try {
+                Method valueMethod = annotation.annotationType().getDeclaredMethod("value");
+                if (!valueMethod.getReturnType().isArray()) {
+                    continue;
+                }
+                Class<?> componentType = valueMethod.getReturnType().getComponentType();
+                if (!Annotation.class.isAssignableFrom(componentType)) {
+                    continue;
+                }
+                if (!componentType.isAnnotationPresent(RegistersGradleInvokerDecorator.class)) {
+                    continue;
+                }
+                Object value = valueMethod.invoke(annotation);
+                if (value instanceof Annotation[] containedAnnotations) {
+                    annotationBuilder.add(containedAnnotations);
+                }
+            } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                // not a repeatable annotation, ignore this
+            }
         }
-        return gradleInvoker;
+        return annotationBuilder.build();
+    }
+
+    /**
+     * Groups annotations by their decorator class and decorates the baseInvoker passing the relevant
+     * `@RegistersGradleInvokerDecorator` annotations.
+     */
+    private static GradleInvoker decorateInvokerWithAnnotations(
+            DecoratorContext context, GradleInvoker baseInvoker, Set<Annotation> annotations) {
+
+        ListMultimap<Class<? extends GradleInvokerDecorator>, Annotation> decoratorToAnnotations =
+                MultimapBuilder.hashKeys().arrayListValues().build();
+        for (Annotation annotation : annotations) {
+            RegistersGradleInvokerDecorator registersMeta =
+                    annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);
+            if (registersMeta == null) {
+                continue;
+            }
+            Class<? extends GradleInvokerDecorator> decoratorClass = registersMeta.value();
+            decoratorToAnnotations.put(decoratorClass, annotation);
+        }
+
+        // Apply decorators in the original order, passing only relevant annotations to each
+        GradleInvoker invoker = baseInvoker;
+        for (Class<? extends GradleInvokerDecorator> decoratorClass : decoratorToAnnotations.keySet()) {
+            invoker = createGradleInvokerFromDecorator(
+                    context, invoker, decoratorClass, decoratorToAnnotations.get(decoratorClass));
+        }
+        return invoker;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static GradleInvoker createGradleInvokerFromDecorator(
+            DecoratorContext context,
+            GradleInvoker invoker,
+            Class<? extends GradleInvokerDecorator> decoratorClass,
+            List<Annotation> annotations) {
+        try {
+            checkAnnotationsType(decoratorClass, annotations);
+
+            GradleInvokerDecorator<Annotation> decorator =
+                    decoratorClass.getDeclaredConstructor().newInstance();
+            return decorator.decorate(context, invoker, annotations);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(
+                    String.format("Failed to instantiate decorator class %s", decoratorClass.getSimpleName()), e);
+        }
+    }
+
+    private static void checkAnnotationsType(
+            Class<? extends GradleInvokerDecorator> decoratorClass, List<Annotation> annotations) {
+        Class<?> expectedAnnotationType = getDecoratorAnnotationType(decoratorClass);
+        List<String> incompatibleAnnotations = annotations.stream()
+                .filter(annotation -> !expectedAnnotationType.isInstance(annotation))
+                .map(annotation -> annotation.annotationType().getSimpleName())
+                .toList();
+        if (!incompatibleAnnotations.isEmpty()) {
+            throw new RuntimeException(String.format(
+                    "Type mismatch: Decorator %s expects annotations of type %s, but received incompatible annotation"
+                            + " types: %s",
+                    decoratorClass.getSimpleName(), expectedAnnotationType.getSimpleName(), incompatibleAnnotations));
+        }
+    }
+
+    /**
+     * Extracts the annotation type parameter by examining the decorate method's 3rd param type `A`:
+     * {@code decorate(
+     *      DecoratorContext _firstParam, GradleInvoker _secondParam, List{@literal <}A{@literal >} thirdParam)}
+     */
+    private static Class<?> getDecoratorAnnotationType(Class<?> decoratorClass) {
+        try {
+            Method decorateMethod =
+                    decoratorClass.getMethod("decorate", DecoratorContext.class, GradleInvoker.class, List.class);
+            Type[] genericParameterTypes = decorateMethod.getGenericParameterTypes();
+            if (genericParameterTypes.length >= 3 && genericParameterTypes[2] instanceof ParameterizedType paramType) {
+                Type[] typeArgs = paramType.getActualTypeArguments();
+                if (typeArgs.length > 0 && typeArgs[0] instanceof Class) {
+                    return (Class<?>) typeArgs[0];
+                }
+            }
+            throw new RuntimeException(String.format(
+                    "Could not determine expected annotation type for decorator %s", decoratorClass.getSimpleName()));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(
+                    String.format(
+                            "Could not determine expected annotation type for decorator %s",
+                            decoratorClass.getSimpleName()),
+                    e);
+        }
     }
 
     @RestrictedApi(

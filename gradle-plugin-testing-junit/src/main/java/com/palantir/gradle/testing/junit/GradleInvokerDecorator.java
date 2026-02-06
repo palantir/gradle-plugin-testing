@@ -16,18 +16,17 @@
 
 package com.palantir.gradle.testing.junit;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.junit.jupiter.api.ClassTemplate;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.extension.ExtendWith;
+import com.palantir.gradle.testing.execution.GradleInvoker;
+import java.lang.annotation.Annotation;
+import java.util.List;
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(GradleVersioningClassTemplate.class)
-@ClassTemplate
-@DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
-@RegistersGradleInvokerDecorator(ConfigurationCacheDecorator.class)
-public @interface GradlePluginTests {}
+/**
+ * A decorator that wraps a {@link GradleInvoker} to add additional behavior.
+ * Implementations are referenced by the {@link RegistersGradleInvokerDecorator} meta-annotation.
+ *
+ * Decorators must have a public no-argument constructor.
+ */
+public interface GradleInvokerDecorator<A extends Annotation> {
+
+    GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate, List<A> annotations);
+}

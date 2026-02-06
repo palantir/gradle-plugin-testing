@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.execution;
+package com.palantir.example;
 
-import com.palantir.gradle.testing.ImmutablesStyle;
-import java.util.List;
-import org.immutables.value.Value;
+import com.palantir.example.TestFixtureDecorators.WithWrongDecoratorAnnotation;
+import com.palantir.gradle.testing.execution.GradleInvoker;
+import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.project.RootProject;
+import org.junit.jupiter.api.Test;
 
-@Value.Immutable
-@ImmutablesStyle
-public abstract class Options {
+@WithWrongDecoratorAnnotation
+@GradlePluginTests
+public class IncompatibleDecoratorsFixtureTest {
 
-    public abstract List<String> args();
-
-    public final Builder asBuilder() {
-        return builder().from(this);
+    @Test
+    void some_test(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().plugins().add("java");
+        invoker.withArgs("help").buildsSuccessfully();
     }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static final class Builder extends ImmutableOptions.Builder {}
 }

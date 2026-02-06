@@ -30,7 +30,7 @@ final class GradleInvokerParameterResolver implements TerseParameterResolver {
             return Optional.of(GradleInvoker.create(
                     RootProjectStore.rootProjectDir(extensionContext),
                     GradleVersionStore.gradleVersion(extensionContext),
-                    ConfigurationCacheStore.isConfigurationCacheEnabled(extensionContext)));
+                    extensionContext));
         }
 
         return Optional.empty();
