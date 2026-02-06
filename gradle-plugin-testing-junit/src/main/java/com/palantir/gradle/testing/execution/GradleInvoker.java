@@ -17,6 +17,8 @@
 package com.palantir.gradle.testing.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.junit.DecoratorContext;
@@ -31,13 +33,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -121,7 +120,8 @@ public interface GradleInvoker {
     private static GradleInvoker decorateInvokerWithAnnotations(
             DecoratorContext context, GradleInvoker baseInvoker, Set<Annotation> annotations) {
 
-        Map<Class<? extends GradleInvokerDecorator>, List<Annotation>> decoratorToAnnotations = new LinkedHashMap<>();
+        ListMultimap<Class<? extends GradleInvokerDecorator>, Annotation> decoratorToAnnotations =
+                MultimapBuilder.hashKeys().arrayListValues().build();
         for (Annotation annotation : annotations) {
             RegistersGradleInvokerDecorator registersMeta =
                     annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);
@@ -129,26 +129,23 @@ public interface GradleInvoker {
                 continue;
             }
             Class<? extends GradleInvokerDecorator> decoratorClass = registersMeta.value();
-            if (!decoratorToAnnotations.containsKey(decoratorClass)) {
-                decoratorToAnnotations.put(decoratorClass, new ArrayList<>());
-            }
-            decoratorToAnnotations.get(decoratorClass).add(annotation);
+            decoratorToAnnotations.put(decoratorClass, annotation);
         }
 
         // Apply decorators in the original order, passing only relevant annotations to each
         GradleInvoker invoker = baseInvoker;
-        for (Map.Entry<Class<? extends GradleInvokerDecorator>, List<Annotation>> entry :
-                decoratorToAnnotations.entrySet()) {
-            invoker = createGradleInvokerFromDecorator(entry.getKey(), context, invoker, entry.getValue());
+        for (Class<? extends GradleInvokerDecorator> decoratorClass : decoratorToAnnotations.keySet()) {
+            invoker = createGradleInvokerFromDecorator(
+                    context, invoker, decoratorClass, decoratorToAnnotations.get(decoratorClass));
         }
         return invoker;
     }
 
     @SuppressWarnings("unchecked")
     private static GradleInvoker createGradleInvokerFromDecorator(
-            Class<? extends GradleInvokerDecorator> decoratorClass,
             DecoratorContext context,
             GradleInvoker invoker,
+            Class<? extends GradleInvokerDecorator> decoratorClass,
             List<Annotation> annotations) {
         try {
             checkAnnotationsType(decoratorClass, annotations);
