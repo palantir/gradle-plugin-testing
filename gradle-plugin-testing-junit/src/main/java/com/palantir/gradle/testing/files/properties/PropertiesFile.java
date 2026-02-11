@@ -32,18 +32,18 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public PropertiesFile {}
 
+    /**
+     * Sets the property key to the {@code value} in the file.
+     */
     public PropertiesFile appendProperty(String key, String value) {
-        String text = Files.exists(path()) ? text() : "";
-        Matcher matcher = getPropertyMatcher(text, key);
+        String originalText = Files.exists(path()) ? text() : "";
+        Matcher matcher = getPropertyMatcher(originalText, key);
         if (!matcher.find()) {
             return appendLine("%s=%s", key, value);
         }
         String existingValue = matcher.group(1);
-        if (!existingValue.equals(value)) {
-            throw new IllegalArgumentException(
-                    String.format("Property '%s' already exists with a different value: '%s'", key, existingValue));
-        }
-        return this;
+        return edit(
+                text -> text.replace(String.format("%s=%s", key, existingValue), String.format("%s=%s", key, value)));
     }
 
     private Matcher getPropertyMatcher(String text, String key) {

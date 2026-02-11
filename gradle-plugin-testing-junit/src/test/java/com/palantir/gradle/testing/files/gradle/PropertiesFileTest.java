@@ -16,8 +16,6 @@
 
 package com.palantir.gradle.testing.files.gradle;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,18 +39,22 @@ public class PropertiesFileTest {
             other.value=true
             """);
 
-        assertThatThrownBy(() -> propertiesFile.appendProperty("other.value", "false"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Property 'other.value' already exists with a different value: 'true'");
+        propertiesFile.appendProperty("other.value", "false");
+        propertiesFile.assertThat().hasContent("""
+            some.value=true
+            other.value=false
+            """);
 
         propertiesFile.appendProperty("some.value", "true");
         propertiesFile.assertThat().hasContent("""
             some.value=true
-            other.value=true
+            other.value=false
             """);
 
-        assertThatThrownBy(() -> propertiesFile.appendProperty("some.value", "false"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Property 'some.value' already exists with a different value: 'true'");
+        propertiesFile.appendProperty("some.value", "false");
+        propertiesFile.assertThat().hasContent("""
+            some.value=false
+            other.value=false
+            """);
     }
 }
