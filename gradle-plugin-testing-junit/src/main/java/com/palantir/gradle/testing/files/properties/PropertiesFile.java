@@ -21,6 +21,7 @@ import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,9 +33,8 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     public PropertiesFile {}
 
     public PropertiesFile appendProperty(String key, String value) {
-        String regex = String.format("(?m)^%s=(.*)$", Pattern.quote(key));
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(text());
+        String text = Files.exists(path()) ? text() : "";
+        Matcher matcher = getPropertyMatcher(text, key);
         if (!matcher.find()) {
             return appendLine("%s=%s", key, value);
         }
@@ -44,6 +44,12 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
                     String.format("Property '%s' already exists with a different value: '%s'", key, existingValue));
         }
         return this;
+    }
+
+    private Matcher getPropertyMatcher(String text, String key) {
+        String regex = String.format("(?m)^%s=(.*)$", Pattern.quote(key));
+        Pattern pattern = Pattern.compile(regex);
+        return pattern.matcher(text);
     }
 
     @Override
