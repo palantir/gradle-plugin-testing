@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.files.gradle;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
