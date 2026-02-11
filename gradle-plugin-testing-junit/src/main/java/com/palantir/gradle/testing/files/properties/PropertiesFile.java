@@ -33,9 +33,18 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     public PropertiesFile {}
 
     /**
-     * Sets the property key to the {@code value} in the file.
+     * @deprecated Use {@link #setProperty(String, String)} instead.
      */
+    @Deprecated
     public PropertiesFile appendProperty(String key, String value) {
+        return setProperty(key, value);
+    }
+
+    /**
+     * Sets the property {@code key} to the given {@code value}, replacing the existing value if the key already exists,
+     * or appending a new property line if it does not.
+     */
+    public PropertiesFile setProperty(String key, String value) {
         String originalText = Files.exists(path()) ? text() : "";
         Matcher matcher = getPropertyMatcher(originalText, key);
         if (!matcher.find()) {

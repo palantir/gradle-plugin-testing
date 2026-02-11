@@ -37,7 +37,7 @@ class PluginTestingJunitPluginTest {
     void beforeEach(RootProject rootProject) {
         rootProject
                 .gradlePropertiesFile()
-                .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
+                .setProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
 
         rootProject
                 .buildGradle()
@@ -81,7 +81,7 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        rootProject.propertiesFile("versions.props").appendProperty("com.palantir.sls-packaging:*", "7.84.0");
+        rootProject.propertiesFile("versions.props").setProperty("com.palantir.sls-packaging:*", "7.84.0");
 
         rootProject.testSourceSet().java().writeClass("""
             package test;
@@ -119,7 +119,7 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
-        rootProject.propertiesFile("versions.props").appendProperty("com.palantir.sls-packaging:*", "7.84.0");
+        rootProject.propertiesFile("versions.props").setProperty("com.palantir.sls-packaging:*", "7.84.0");
 
         gradleInvoker.withArgs("writeVersionsLock").buildsSuccessfully();
         rootProject

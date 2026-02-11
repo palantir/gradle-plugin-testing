@@ -505,16 +505,16 @@ Manage `gradle.properties` and other properties files.  Use `appendProperty(key,
 void set_gradle_properties(RootProject project) {
     // Use appendProperty for key-value pairs
     project.gradlePropertiesFile()
-        .appendProperty("org.gradle.parallel", "true")
-        .appendProperty("org.gradle.caching", "true");
+        .setProperty("org.gradle.parallel", "true")
+        .setProperty("org.gradle.caching", "true");
 }
 
 @Test
 void create_versions_props(RootProject project) {
     // Use propertiesFile() for arbitrary properties files
     project.propertiesFile("versions.props")
-        .appendProperty("com.google.guava:*", "32.1.0-jre")
-        .appendProperty("org.slf4j:*", "2.0.9");
+        .setProperty("com.google.guava:*", "32.1.0-jre")
+        .setProperty("org.slf4j:*", "2.0.9");
 }
 ```
 

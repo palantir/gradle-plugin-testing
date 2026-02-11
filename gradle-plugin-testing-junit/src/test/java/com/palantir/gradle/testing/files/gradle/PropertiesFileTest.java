@@ -32,29 +32,29 @@ public class PropertiesFileTest {
 
     @Test
     void can_append_properties() {
-        propertiesFile.appendProperty("some.value", "true");
-        propertiesFile.appendProperty("other.value", "true");
+        propertiesFile.setProperty("some.value", "true");
+        propertiesFile.setProperty("other.value", "true");
         propertiesFile.assertThat().hasContent("""
             some.value=true
             other.value=true
             """);
 
-        propertiesFile.appendProperty("some.other.value", "true");
-        propertiesFile.appendProperty("other.value", "false");
+        propertiesFile.setProperty("some.other.value", "true");
+        propertiesFile.setProperty("other.value", "false");
         propertiesFile.assertThat().hasContent("""
             some.value=true
             other.value=false
             some.other.value=true
             """);
 
-        propertiesFile.appendProperty("some.value", "true");
+        propertiesFile.setProperty("some.value", "true");
         propertiesFile.assertThat().hasContent("""
             some.value=true
             other.value=false
             some.other.value=true
             """);
 
-        propertiesFile.appendProperty("some.value", "false");
+        propertiesFile.setProperty("some.value", "false");
         propertiesFile.assertThat().hasContent("""
             some.value=false
             other.value=false
