@@ -42,13 +42,13 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
             return appendLine("%s=%s", key, value);
         }
         String existingValue = matcher.group(1);
-        return edit(
-                text -> text.replace(String.format("%s=%s", key, existingValue), String.format("%s=%s", key, value)));
+        return edit(text -> text.replaceFirst(
+                String.format("(?m)^%s=%s$", Pattern.quote(key), Pattern.quote(existingValue)),
+                String.format("%s=%s", key, value)));
     }
 
     private Matcher getPropertyMatcher(String text, String key) {
-        String regex = String.format("(?m)^%s=(.*)$", Pattern.quote(key));
-        Pattern pattern = Pattern.compile(regex);
+        Pattern pattern = Pattern.compile(String.format("(?m)^%s=(.*)$", Pattern.quote(key)));
         return pattern.matcher(text);
     }
 

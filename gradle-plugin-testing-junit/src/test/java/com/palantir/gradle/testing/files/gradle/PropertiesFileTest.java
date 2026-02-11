@@ -39,22 +39,26 @@ public class PropertiesFileTest {
             other.value=true
             """);
 
+        propertiesFile.appendProperty("some.other.value", "true");
         propertiesFile.appendProperty("other.value", "false");
         propertiesFile.assertThat().hasContent("""
             some.value=true
             other.value=false
+            some.other.value=true
             """);
 
         propertiesFile.appendProperty("some.value", "true");
         propertiesFile.assertThat().hasContent("""
             some.value=true
             other.value=false
+            some.other.value=true
             """);
 
         propertiesFile.appendProperty("some.value", "false");
         propertiesFile.assertThat().hasContent("""
             some.value=false
             other.value=false
+            some.other.value=true
             """);
     }
 }
