@@ -30,7 +30,11 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     public PropertiesFile {}
 
     public PropertiesFile appendProperty(String key, String value) {
-        return appendLine("%s=%s", key, value);
+        String propertyValue = String.format("%s=%s", key, value);
+        if (!text().contains(propertyValue)) {
+            return appendLine("%s=%s", key, value);
+        }
+        return this;
     }
 
     @Override
