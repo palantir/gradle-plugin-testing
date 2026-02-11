@@ -109,6 +109,16 @@ record PomProject(
 # Assertion Instructions
 - Follow the instructions in the test-guide.md under "Assertions" for how to use fluent assertions built into the framework.
 - Use chained assertions when checking multiple things on the same value.
+- Use `.as("description")` instead of code comments to describe what an assertion is checking. The `.as()` description appears in failure messages, making test failures self-explanatory without needing to look at the source code. Comments are invisible in test output.
+
+```java
+// WRONG - comment is invisible in test failure output
+// check that the config file was generated correctly
+externalDepsFile.assertThat().exists();
+
+// CORRECT - description appears in the assertion failure message
+externalDepsFile.assertThat().as("external deps config file was generated").exists();
+```
 
 # Common Migration Pitfalls
 
@@ -120,6 +130,47 @@ record PomProject(
 - The framework injects `GradleInvoker`, `RootProject`, etc. as test method parameters
 - `@ParameterizedTest` works with the framework, but the parameterized test parameters must come first
 - Example: `void my_test(String param, GradleInvoker gradle, RootProject rootProject)` - the `String param` from `@MethodSource` comes before the injected parameters
+
+## Don't Add Unused Parameters to Method Signatures
+Only include injected parameters (`GradleInvoker`, `RootProject`, `SubProject`, etc.) in a test method signature if the method actually uses them. Unused parameters add noise and make tests harder to read.
+
+```java
+// WRONG - rootProject is unused
+@Test
+void fails_if_dependency_was_removed(GradleInvoker gradle, RootProject rootProject, SubProject foo) {
+    foo.buildGradle().append(...);
+    gradle.withArgs("check").buildsWithFailure();
+}
+
+// CORRECT - only declare parameters that are used
+@Test
+void fails_if_dependency_was_removed(GradleInvoker gradle, SubProject foo) {
+    foo.buildGradle().append(...);
+    gradle.withArgs("check").buildsWithFailure();
+}
+```
+
+## Prefer SubProject Parameter Injection Over rootProject.subproject()
+When a test needs a subproject, prefer injecting it as a `SubProject` parameter rather than creating it manually via `rootProject.subproject("name")`. Parameter injection is more concise, and the parameter name becomes the project name automatically.
+
+```java
+// WRONG - unnecessarily verbose, also requires RootProject in the signature
+@Test
+void my_test(GradleInvoker gradle, RootProject rootProject) {
+    SubProject foo = rootProject.subproject("foo");
+    foo.buildGradle().plugins().add("java-library");
+    ...
+}
+
+// CORRECT - inject SubProject directly; parameter name "foo" becomes the project name
+@Test
+void my_test(GradleInvoker gradle, SubProject foo) {
+    foo.buildGradle().plugins().add("java-library");
+    ...
+}
+```
+
+Use `project.subproject()` when creating nested subprojects.
 
 ## Helper Methods
 - Helper methods that need gradle/project access should take `GradleInvoker` and/or `RootProject` as parameters
@@ -148,6 +199,21 @@ rootProject.buildGradle().append("""
 
 // CORRECT - Add to gradlePluginForTesting in build.gradle, then use:
 rootProject.buildGradle().plugins().add("com.palantir.baseline");
+```
+
+## Always Provide a Reason for @DisabledConfigurationCache
+When using `@DisabledConfigurationCache`, always include a `value` explaining why the configuration cache is disabled for that test. This makes it clear to future readers whether the disablement is still necessary or can be removed.
+
+```java
+// WRONG - no reason given
+@DisabledConfigurationCache
+@Test
+void my_test(GradleInvoker gradle) { ... }
+
+// CORRECT - reason explains why configuration cache is incompatible
+@DisabledConfigurationCache("The publish task writes to an external directory during configuration phase")
+@Test
+void my_test(GradleInvoker gradle) { ... }
 ```
 
 ## Don't Access Framework Internals
@@ -209,6 +275,29 @@ project.buildGradle().append("""
 
     myPlugin {
     """);
+```
+
+**Adding a Maven repository**: Prefer the built-in `.withMavenRepo(repo)` API on a project's build file. If a single project needs the repo, call it on that project. If all projects need it, use an `allprojects` block in the root build file:
+
+```java
+// BEST - use withMavenRepo for a single project
+rootProject.buildGradle().withMavenRepo(repo);
+
+// ALSO CORRECT - allprojects block when subprojects also need the repo
+rootProject.buildGradle().append("""
+    allprojects {
+        repositories {
+            maven { url uri("%s") }
+        }
+    }
+    """, repo.path());
+
+// WRONG - manually writing the repositories block when withMavenRepo does it for you
+rootProject.buildGradle().append("""
+    repositories {
+        maven { url uri("%s") }
+    }
+    """, repo.path());
 ```
 
 **Skip unnecessary setup**: Don't call `settingsGradle().rootProjectName()` unless you need a custom name.
