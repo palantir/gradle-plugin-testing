@@ -34,7 +34,7 @@ class TestDependencyVersionsTaskTest {
 
         rootProject
                 .gradlePropertiesFile()
-                .appendProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
+                .setProperty(PluginTestingPlugin.PLUGIN_VERSION_PROPERTY_NAME, System.getProperty("projectVersion"));
     }
 
     @Test
@@ -112,14 +112,14 @@ class TestDependencyVersionsTaskTest {
             """);
 
         project.propertiesFile("versions.props")
-                .appendProperty(
+                .setProperty(
                         "org.junit.jupiter:junit-jupiter",
                         TestDependencyVersions.version("org.junit.jupiter:junit-jupiter"))
-                .appendProperty(
+                .setProperty(
                         "com.netflix.nebula:nebula-test",
                         TestDependencyVersions.version("com.netflix.nebula:nebula-test"))
-                .appendProperty("com.google.guava:guava", TestDependencyVersions.version("com.google.guava:guava"))
-                .appendProperty(
+                .setProperty("com.google.guava:guava", TestDependencyVersions.version("com.google.guava:guava"))
+                .setProperty(
                         "com.palantir.gradle.consistentversions:gradle-consistent-versions",
                         TestDependencyVersions.version(
                                 "com.palantir.gradle.consistentversions:gradle-consistent-versions"));

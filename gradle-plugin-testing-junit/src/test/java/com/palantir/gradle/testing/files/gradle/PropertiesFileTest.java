@@ -1,0 +1,64 @@
+/*
+ * (c) Copyright 2026 Palantir Technologies Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.palantir.gradle.testing.files.gradle;
+
+import com.palantir.gradle.testing.files.properties.PropertiesFile;
+import java.nio.file.Path;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+public class PropertiesFileTest {
+    PropertiesFile propertiesFile;
+
+    @BeforeEach
+    void beforeEach(@TempDir Path tempDir) {
+        propertiesFile = new PropertiesFile(tempDir.resolve("gradle.properties")).createEmpty();
+    }
+
+    @Test
+    void can_append_properties() {
+        propertiesFile.setProperty("some.value", "true");
+        propertiesFile.setProperty("other.value", "true");
+        propertiesFile.assertThat().hasContent("""
+            some.value=true
+            other.value=true
+            """);
+
+        propertiesFile.setProperty("some.other.value", "true");
+        propertiesFile.setProperty("other.value", "false");
+        propertiesFile.assertThat().hasContent("""
+            some.value=true
+            other.value=false
+            some.other.value=true
+            """);
+
+        propertiesFile.setProperty("some.value", "true");
+        propertiesFile.assertThat().hasContent("""
+            some.value=true
+            other.value=false
+            some.other.value=true
+            """);
+
+        propertiesFile.setProperty("some.value", "false");
+        propertiesFile.assertThat().hasContent("""
+            some.value=false
+            other.value=false
+            some.other.value=true
+            """);
+    }
+}

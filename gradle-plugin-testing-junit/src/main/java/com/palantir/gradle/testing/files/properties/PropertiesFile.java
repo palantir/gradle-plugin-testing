@@ -22,6 +22,8 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
 import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.PrintFormat;
 
@@ -29,8 +31,34 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public PropertiesFile {}
 
+    /**
+     * @deprecated Use {@link #setProperty(String, String)} instead.
+     */
+    @Deprecated
     public PropertiesFile appendProperty(String key, String value) {
-        return appendLine("%s=%s", key, value);
+        return setProperty(key, value);
+    }
+
+    /**
+     * Sets the property {@code key} to the given {@code value}, replacing the existing value if the key already exists,
+     * or appending a new property line if it does not.
+     */
+    public PropertiesFile setProperty(String key, String value) {
+        return edit(text -> {
+            Matcher matcher = getPropertyMatcher(text, key);
+            if (!matcher.find()) {
+                return text + String.format("%s=%s\n", key, value);
+            }
+            String existingValue = matcher.group(1);
+            return text.replaceFirst(
+                    String.format("(?m)^%s=%s$", Pattern.quote(key), Pattern.quote(existingValue)),
+                    String.format("%s=%s", key, value));
+        });
+    }
+
+    private Matcher getPropertyMatcher(String text, String key) {
+        Pattern pattern = Pattern.compile(String.format("(?m)^%s=(.*)$", Pattern.quote(key)));
+        return pattern.matcher(text);
     }
 
     @Override
