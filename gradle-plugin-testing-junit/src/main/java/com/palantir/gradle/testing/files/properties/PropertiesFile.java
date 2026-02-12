@@ -21,7 +21,6 @@ import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.ProjectFile;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,15 +44,16 @@ public record PropertiesFile(Path path) implements ProjectFile<PropertiesFile> {
      * or appending a new property line if it does not.
      */
     public PropertiesFile setProperty(String key, String value) {
-        String originalText = Files.exists(path()) ? text() : "";
-        Matcher matcher = getPropertyMatcher(originalText, key);
-        if (!matcher.find()) {
-            return appendLine("%s=%s", key, value);
-        }
-        String existingValue = matcher.group(1);
-        return edit(text -> text.replaceFirst(
-                String.format("(?m)^%s=%s$", Pattern.quote(key), Pattern.quote(existingValue)),
-                String.format("%s=%s", key, value)));
+        return edit(text -> {
+            Matcher matcher = getPropertyMatcher(text, key);
+            if (!matcher.find()) {
+                return text + String.format("%s=%s\n", key, value);
+            }
+            String existingValue = matcher.group(1);
+            return text.replaceFirst(
+                    String.format("(?m)^%s=%s$", Pattern.quote(key), Pattern.quote(existingValue)),
+                    String.format("%s=%s", key, value));
+        });
     }
 
     private Matcher getPropertyMatcher(String text, String key) {
