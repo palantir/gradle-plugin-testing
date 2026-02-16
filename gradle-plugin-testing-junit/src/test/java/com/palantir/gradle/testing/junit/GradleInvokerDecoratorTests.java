@@ -135,7 +135,7 @@ class GradleInvokerDecoratorTests {
                             + // then the `@RepeatableWithArgAddingDecorator` with the corresponding args.
                             "-PtopClass=true, -PclassValue=classDecorator,"
                             + " help, -PnestedClass=value, -Pname=hello, -PclassValue2=secondClassDecorator,"
-                            + " --stacktrace, --parallel, -P__TESTING=true");
+                            + " --stacktrace, -P__TESTING=true");
         }
     }
 }

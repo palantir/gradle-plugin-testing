@@ -66,6 +66,7 @@ final class RootProjectStore {
         RootProject rootProject = new RootProject(projectDir);
         rootProject.settingsGradle().createEmpty();
         rootProject.settingsGradle().rootProjectName("root");
+        rootProject.gradlePropertiesFile().setProperty("org.gradle.parallel", "true");
 
         return projectDir;
     }

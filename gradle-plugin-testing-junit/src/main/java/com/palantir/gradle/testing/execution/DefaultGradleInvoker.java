@@ -37,7 +37,6 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                 .withArguments(ImmutableList.<String>builder()
                         .addAll(options.args())
                         .add("--stacktrace")
-                        .add("--parallel")
                         .add("-P__TESTING=true")
                         .build());
 
