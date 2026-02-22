@@ -43,6 +43,7 @@ final class RootProjectStore {
         return new RootProject(rootProjectDir(extensionContext));
     }
 
+    @SuppressWarnings("for-rollout:deprecation")
     public static Path rootProjectDir(ExtensionContext context) {
         return context.getStore(NAMESPACE)
                 .getOrComputeIfAbsent(PROJECT_DIR_KEY, _ignored -> initializeRootProjectDir(context), Path.class);
