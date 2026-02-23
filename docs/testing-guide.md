@@ -700,15 +700,18 @@ public void someMethod() {
 }
 ```
 
-In your tests, pass values via Gradle properties:
+In your tests, pass extra testing environment variables via the Options builder. These will be automatically configured for use with `EnvironmentVariables`"
 
 ```java
 @Test
 void plugin_reads_environment_variable(GradleInvoker gradle, RootProject project) {
     project.buildGradle().plugins().add("my-plugin");
 
-    gradle.withArgs("myTask", "-P__TESTING=true", "-P__TESTING_FOO=TEST_VALUE")
-        .buildsSuccessfully();
+    gradle.with(Options.builder()
+                    .addArgs("myTask")
+                    .putTestingEnvironmentVariables("FOO", "TEST_VALUE")
+                    .build())
+            .buildsSuccessfully();
 }
 ```
 
