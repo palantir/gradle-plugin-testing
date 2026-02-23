@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.execution;
 
 import com.palantir.gradle.testing.ImmutablesStyle;
 import java.util.List;
+import java.util.Map;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -25,6 +26,8 @@ import org.immutables.value.Value;
 public abstract class Options {
 
     public abstract List<String> args();
+
+    public abstract Map<String, Object> testingEnvironmentVariables();
 
     public final Builder asBuilder() {
         return builder().from(this);
