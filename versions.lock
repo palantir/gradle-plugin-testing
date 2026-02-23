@@ -18,17 +18,17 @@ com.diffplug.spotless:spotless-plugin-gradle:6.6.0 (1 constraints: c51120f5)
 
 com.fasterxml.jackson.core:jackson-annotations:2.21 (4 constraints: 4844f0b2)
 
-com.fasterxml.jackson.core:jackson-core:2.21.0 (5 constraints: 4e6e84c6)
+com.fasterxml.jackson.core:jackson-core:2.21.1 (5 constraints: 536e03c9)
 
-com.fasterxml.jackson.core:jackson-databind:2.21.0 (5 constraints: 0061c491)
+com.fasterxml.jackson.core:jackson-databind:2.21.1 (5 constraints: 05614394)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.21.0 (2 constraints: 8c36d494)
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.21.1 (2 constraints: 8c36d494)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.0 (1 constraints: 3705363b)
+com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.1 (1 constraints: 3805373b)
 
-com.fasterxml.jackson.datatype:jackson-datatype-guava:2.21.0 (2 constraints: 8c36d494)
+com.fasterxml.jackson.datatype:jackson-datatype-guava:2.21.1 (2 constraints: 8c36d494)
 
-com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.21.0 (1 constraints: a51a8b21)
+com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.21.1 (1 constraints: a51a8b21)
 
 com.fasterxml.woodstox:woodstox-core:7.1.1 (1 constraints: 3d174926)
 
@@ -206,7 +206,7 @@ org.spockframework:spock-core:2.3-groovy-3.0 (2 constraints: 922109a6)
 
 org.spockframework:spock-junit4:2.3-groovy-3.0 (1 constraints: 7a1000b0)
 
-org.yaml:snakeyaml:2.4 (1 constraints: 3e178d10)
+org.yaml:snakeyaml:2.5 (1 constraints: 3f178e10)
 
 
 
