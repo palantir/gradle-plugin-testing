@@ -121,7 +121,7 @@ public interface GradleInvoker {
             DecoratorContext context, GradleInvoker baseInvoker, Set<Annotation> annotations) {
 
         ListMultimap<Class<? extends GradleInvokerDecorator>, Annotation> decoratorToAnnotations =
-                MultimapBuilder.hashKeys().arrayListValues().build();
+                MultimapBuilder.linkedHashKeys().arrayListValues().build();
         for (Annotation annotation : annotations) {
             RegistersGradleInvokerDecorator registersMeta =
                     annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);

@@ -27,7 +27,7 @@ public abstract class Options {
 
     public abstract List<String> args();
 
-    public abstract Map<String, Object> testingEnvironmentVariables();
+    public abstract Map<String, String> testingEnvironmentVariables();
 
     public final Builder asBuilder() {
         return builder().from(this);
