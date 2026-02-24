@@ -659,6 +659,23 @@ void successful_build(GradleInvoker gradle, RootProject project) {
 }
 ```
 
+For more complex logic (eg. adding both arguments and testing environment variables), use `gradle.with(Options)`:
+
+```java
+import com.palantir.gradle.testing.execution.Options;
+
+@Test  
+void build_with_options(GradleInvoker gradle, RootProject project) {
+    project.buildGradle().plugins().add("java");
+
+    gradle.with(Options.builder()
+            .addArgs("build", "--info")
+            .putTestingEnvironmentVariables("FOO", "test_value")
+            .build())
+        .buildsSuccessfully();
+}
+```
+
 ### Running builds with Configuration Cache enabled
 
 When [`configuration cache is enabled (getConfigurationCacheEnabled() == true)`](../gradle-plugin-testing/src/main/java/com/palantir/gradle/plugintesting/PluginTestingExtension.java), each GradleInvoker invocation will automatically run twice:
@@ -700,15 +717,18 @@ public void someMethod() {
 }
 ```
 
-In your tests, pass values via Gradle properties:
+In your tests, pass extra testing environment variables via the `Options` builder. These will be automatically configured for use with [`EnvironmentVariables`](https://github.com/palantir/gradle-utils?tab=readme-ov-file#environmentvariables):
 
 ```java
 @Test
 void plugin_reads_environment_variable(GradleInvoker gradle, RootProject project) {
     project.buildGradle().plugins().add("my-plugin");
 
-    gradle.withArgs("myTask", "-P__TESTING=true", "-P__TESTING_FOO=TEST_VALUE")
-        .buildsSuccessfully();
+    gradle.with(Options.builder()
+                    .addArgs("myTask")
+                    .putTestingEnvironmentVariables("FOO", "TEST_VALUE")
+                    .build())
+            .buildsSuccessfully();
 }
 ```
 

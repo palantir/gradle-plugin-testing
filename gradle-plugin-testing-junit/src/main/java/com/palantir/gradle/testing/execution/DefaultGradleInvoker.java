@@ -38,6 +38,9 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                         .addAll(options.args())
                         .add("--stacktrace")
                         .add("-P__TESTING=true")
+                        .addAll(options.testingEnvironmentVariables().entrySet().stream()
+                                .map(e -> String.format("-P__TESTING_%s=%s", e.getKey(), e.getValue()))
+                                .toList())
                         .build());
 
         return new DefaultGradleInvocation(runner);
