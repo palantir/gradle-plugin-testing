@@ -717,7 +717,7 @@ public void someMethod() {
 }
 ```
 
-In your tests, pass extra testing environment variables via the `Options` builder. These will be automatically configured for use with `EnvironmentVariables`:
+In your tests, pass extra testing environment variables via the `Options` builder. These will be automatically configured for use with [`EnvironmentVariables`](https://github.com/palantir/gradle-utils?tab=readme-ov-file#environmentvariables):
 
 ```java
 @Test
