@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.execution;
 import com.palantir.gradle.testing.assertion.InvocationResultAssert;
 import java.util.Optional;
 import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.UnexpectedBuildResultException;
 
 public final class InvocationResult {
     private final BuildResult buildResult;
@@ -33,6 +34,10 @@ public final class InvocationResult {
 
     public Optional<TaskResult> task(String taskPath) {
         return Optional.ofNullable(buildResult.task(taskPath)).map(TaskResult::new);
+    }
+
+    public static InvocationResult from(UnexpectedBuildResultException result) {
+        return new InvocationResult(result.getBuildResult());
     }
 
     /**
