@@ -330,17 +330,37 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
-    void nebula_tests_in_non_test_source_sets_are_discovered(GradleInvoker gradle, RootProject rootProject)
-            throws IOException {
+    void nebula_tests_in_both_test_and_integrationTest_source_sets_are_discovered(
+            GradleInvoker gradle, RootProject rootProject) throws IOException {
         rootProject.buildGradle().append("""
-            sourceSets {
-                integrationTest {
-                    groovy.srcDirs = ['src/integrationTest/groovy']
-                    compileClasspath += sourceSets.test.compileClasspath
-                    runtimeClasspath += sourceSets.test.runtimeClasspath
+                sourceSets {
+                    integrationTest {
+                        groovy.srcDirs = ['src/integrationTest/groovy']
+                        compileClasspath += sourceSets.test.compileClasspath
+                        runtimeClasspath += sourceSets.test.runtimeClasspath
+                    }
                 }
-            }
-            """);
+                """);
+
+        Directory testGroovyDir =
+                rootProject.testSourceSet().srcDir("groovy").directory("test").createDirectories();
+
+        testGroovyDir.file("TestSourceSetSpec.groovy").overwrite("""
+                package test;
+
+                import nebula.test.IntegrationSpec
+                import java.nio.file.Files;
+
+                class TestSourceSetSpec extends IntegrationSpec {
+
+                    def '#param: my test'() {
+                        Files.createTempDirectory("prefix" + gradleVersion);
+
+                        where:
+                        param << [1, 2]
+                    }
+                }
+                """);
 
         Directory integrationGroovyDir = rootProject
                 .sourceSet("integrationTest")
@@ -348,26 +368,28 @@ class PluginTestingJunitPluginTest {
                 .directory("test")
                 .createDirectories();
 
-        integrationGroovyDir.file("IntegrationSourceSetTest.groovy").overwrite("""
-            package test;
+        integrationGroovyDir.file("IntegrationSourceSetSpec.groovy").overwrite("""
+                package test;
 
-            import nebula.test.IntegrationSpec
-            import java.nio.file.Files;
+                import nebula.test.IntegrationSpec
+                import java.nio.file.Files;
 
-            class IntegrationSourceSetTest extends IntegrationSpec {
+                class IntegrationSourceSetSpec extends IntegrationSpec {
 
-                def '#param: my test'() {
-                    Files.createTempDirectory("prefix" + gradleVersion);
+                    def '#param: my test'() {
+                        Files.createTempDirectory("prefix" + gradleVersion);
 
-                    where:
-                    param << [1, 2]
+                        where:
+                        param << [1, 2]
+                    }
                 }
-            }
-            """);
+                """);
 
         gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
         assertThat(readTestClassesPaths(rootProject, "groovy"))
-                .containsExactlyInAnyOrder("src/integrationTest/groovy/test/IntegrationSourceSetTest.groovy");
+                .containsExactlyInAnyOrder(
+                        "src/test/groovy/test/TestSourceSetSpec.groovy",
+                        "src/integrationTest/groovy/test/IntegrationSourceSetSpec.groovy");
     }
 
     private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {
