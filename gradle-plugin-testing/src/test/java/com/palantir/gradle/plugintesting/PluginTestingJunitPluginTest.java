@@ -329,6 +329,47 @@ class PluginTestingJunitPluginTest {
                         "src/test/groovy/test/ConfigurationCacheTest.groovy");
     }
 
+    @Test
+    void nebula_tests_in_non_test_source_sets_are_discovered(GradleInvoker gradle, RootProject rootProject)
+            throws IOException {
+        rootProject.buildGradle().append("""
+            sourceSets {
+                integrationTest {
+                    groovy.srcDirs = ['src/integrationTest/groovy']
+                    compileClasspath += sourceSets.test.compileClasspath
+                    runtimeClasspath += sourceSets.test.runtimeClasspath
+                }
+            }
+            """);
+
+        Directory integrationGroovyDir = rootProject
+                .sourceSet("integrationTest")
+                .srcDir("groovy")
+                .directory("test")
+                .createDirectories();
+
+        integrationGroovyDir.file("IntegrationSourceSetTest.groovy").overwrite("""
+            package test;
+
+            import nebula.test.IntegrationSpec
+            import java.nio.file.Files;
+
+            class IntegrationSourceSetTest extends IntegrationSpec {
+
+                def '#param: my test'() {
+                    Files.createTempDirectory("prefix" + gradleVersion);
+
+                    where:
+                    param << [1, 2]
+                }
+            }
+            """);
+
+        gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
+        assertThat(readTestClassesPaths(rootProject, "groovy"))
+                .containsExactlyInAnyOrder("src/integrationTest/groovy/test/IntegrationSourceSetTest.groovy");
+    }
+
     private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {
         return Files.readAllLines(rootProject
                 .buildDir()
