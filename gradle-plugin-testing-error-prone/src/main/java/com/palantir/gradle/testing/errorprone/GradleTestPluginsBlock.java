@@ -276,11 +276,14 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                     return new PluginInfo(pluginId, Optional.empty());
                 });
 
-        Stream<PluginInfo> blocks = PLUGINS_BLOCK.matcher(cleaned).results().flatMap(block -> PLUGINS_BLOCK_ID
-                .matcher(block.group(1))
+        Stream<PluginInfo> blocks = PLUGINS_BLOCK
+                .matcher(cleaned)
                 .results()
-                .map(i -> new PluginInfo(
-                        i.group(1), Optional.ofNullable(i.group(2)).map(Boolean::valueOf))));
+                .flatMap(block -> PLUGINS_BLOCK_ID
+                        .matcher(block.group(1))
+                        .results()
+                        .map(i -> new PluginInfo(
+                                i.group(1), Optional.ofNullable(i.group(2)).map(Boolean::valueOf))));
 
         return Stream.concat(simple, blocks).toList();
     }
