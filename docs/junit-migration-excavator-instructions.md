@@ -67,6 +67,7 @@ These comments should be copied over to the new test files as they are created t
 
 # General Instructions
 - You MUST migrate ALL tests from the original file. Do not skip any tests or only migrate a "representative sample". Every single test method in the original Groovy file must have a corresponding test method in the new Java file.
+- Always add both `@GradlePluginTests` and `@DisabledConfigurationCache` to the migrated test classes.
 - Test names should be changed to a snake_case_english_sentence in all lower case.
 - Keep the comments from the original Groovy tests when writing the new tests.
 - Method name mappings from old to new framework:
@@ -199,21 +200,6 @@ rootProject.buildGradle().append("""
 
 // CORRECT - Add to gradlePluginForTesting in build.gradle, then use:
 rootProject.buildGradle().plugins().add("com.palantir.baseline");
-```
-
-## Always Provide a Reason for @DisabledConfigurationCache
-When using `@DisabledConfigurationCache`, always include a `value` explaining why the configuration cache is disabled for that test. This makes it clear to future readers whether the disablement is still necessary or can be removed.
-
-```java
-// WRONG - no reason given
-@DisabledConfigurationCache
-@Test
-void my_test(GradleInvoker gradle) { ... }
-
-// CORRECT - reason explains why configuration cache is incompatible
-@DisabledConfigurationCache("The publish task writes to an external directory during configuration phase")
-@Test
-void my_test(GradleInvoker gradle) { ... }
 ```
 
 ## Don't Access Framework Internals

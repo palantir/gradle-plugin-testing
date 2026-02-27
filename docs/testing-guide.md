@@ -498,12 +498,12 @@ void create_java_class(RootProject project) {
 
 ### Properties Files
 
-Manage `gradle.properties` and other properties files.  Use `appendProperty(key, value)` for properties files, not `append()`
+To add key-value pairs to properties files such as `gradle.properties` or custom files like `versions.props`, use the `setProperty(key, value)` method:
 
 ```java
 @Test
 void set_gradle_properties(RootProject project) {
-    // Use appendProperty for key-value pairs
+    // Use `gradlePropertiesFile()` for 'gradle.properties' file
     project.gradlePropertiesFile()
         .setProperty("org.gradle.parallel", "true")
         .setProperty("org.gradle.caching", "true");
