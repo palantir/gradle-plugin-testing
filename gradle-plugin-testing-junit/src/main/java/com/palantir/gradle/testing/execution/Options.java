@@ -17,8 +17,10 @@
 package com.palantir.gradle.testing.execution;
 
 import com.palantir.gradle.testing.ImmutablesStyle;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -28,6 +30,8 @@ public abstract class Options {
     public abstract List<String> args();
 
     public abstract Map<String, String> testingEnvironmentVariables();
+
+    public abstract Optional<Path> customGradleUserHome();
 
     public final Builder asBuilder() {
         return builder().from(this);

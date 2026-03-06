@@ -42,6 +42,7 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                                 .map(e -> String.format("-P__TESTING_%s=%s", e.getKey(), e.getValue()))
                                 .toList())
                         .build());
+        options.customGradleUserHome().ifPresent(gradleUserHome -> runner.withTestKitDir(gradleUserHome.toFile()));
 
         return new DefaultGradleInvocation(runner);
     }
