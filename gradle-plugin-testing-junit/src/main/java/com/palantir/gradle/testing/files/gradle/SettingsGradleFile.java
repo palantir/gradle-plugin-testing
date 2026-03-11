@@ -48,20 +48,11 @@ public record SettingsGradleFile(Path path) implements GradleFile {
     }
 
     public SettingsGradleFile includeBuild(String buildPath) {
-        checkNoConflict(buildPath, "include '%s'".formatted(buildPath), "a subproject");
         return idempotentAppend("includeBuild '%s'".formatted(buildPath));
     }
 
     public SettingsGradleFile include(String projectPath) {
-        checkNoConflict(projectPath, "includeBuild '%s'".formatted(projectPath), "an included build");
         return idempotentAppend("include '%s'".formatted(projectPath));
-    }
-
-    private void checkNoConflict(String name, String conflictingLine, String conflictingType) {
-        if (Files.exists(path) && text().contains(conflictingLine)) {
-            throw new IllegalArgumentException(
-                    "'%s' is already registered as %s and cannot also be used here".formatted(name, conflictingType));
-        }
     }
 
     private SettingsGradleFile idempotentAppend(@Language("Gradle") String line) {
