@@ -30,12 +30,10 @@ import java.nio.file.Path;
  * root project's settings.gradle.
  */
 public final class IncludedBuild implements GradleProject {
-    private final Path path;
     private final RootProject rootProject;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public IncludedBuild(String name, Path path) {
-        this.path = path;
         this.rootProject = new RootProject(path);
         this.rootProject.settingsGradle().rootProjectName(name);
         this.rootProject.gradlePropertiesFile().setProperty("org.gradle.parallel", "true");
@@ -43,7 +41,7 @@ public final class IncludedBuild implements GradleProject {
 
     @Override
     public Path path() {
-        return path;
+        return rootProject.path();
     }
 
     @Override
