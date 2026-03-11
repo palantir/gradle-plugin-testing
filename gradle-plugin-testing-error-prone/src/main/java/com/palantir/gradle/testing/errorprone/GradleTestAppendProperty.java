@@ -31,7 +31,7 @@ import com.sun.source.tree.MethodInvocationTree;
 @AutoService(BugChecker.class)
 @BugPattern(
         severity = SeverityLevel.ERROR,
-        summary = "Use setProperty instead of the deprecated appendProperty method on PropertiesFile")
+        summary = "Use `setProperty` instead of the deprecated `appendProperty` method on `PropertiesFile`")
 public final class GradleTestAppendProperty extends BugChecker implements BugChecker.MethodInvocationTreeMatcher {
 
     private static final Matcher<ExpressionTree> APPEND_PROPERTY = Matchers.instanceMethod()
@@ -41,10 +41,6 @@ public final class GradleTestAppendProperty extends BugChecker implements BugChe
     @Override
     public Description matchMethodInvocation(MethodInvocationTree tree, VisitorState state) {
         if (!APPEND_PROPERTY.matches(tree, state)) {
-            return Description.NO_MATCH;
-        }
-
-        if (!GradlePluginTestHelpers.isWithinGradlePluginTests(tree, state)) {
             return Description.NO_MATCH;
         }
 
