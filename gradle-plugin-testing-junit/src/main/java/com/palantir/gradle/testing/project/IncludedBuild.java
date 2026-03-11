@@ -23,14 +23,11 @@ import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
 /**
- * Represents an included build (composite build) in a Gradle project. When injected as a parameter in JUnit test
- * methods, the parameter name will be used as the build name exactly. For example, {@code IncludedBuild myLib}
- * creates an included build named "myLib" and registers it via {@code includeBuild 'myLib'} in the root project's
- * settings.gradle.
+ * When injected as a parameter in JUnit test methods, the parameter name will be used as the build name exactly.
+ * For example, {@code IncludedBuild myLib} creates an included build named "myLib".
  * <br>
- * An included build is a standalone Gradle build with its own {@code settings.gradle} and {@code build.gradle},
- * and can contain its own subprojects. The {@link #rootProject()} method returns a {@link RootProject} scoped to
- * this included build, so {@link #subproject(String)} registers subprojects in this build's settings.gradle.
+ * When injected, the included build will be registered via {@code includeBuild} in the
+ * root project's settings.gradle.
  */
 public record IncludedBuild(Path path, RootProject rootProject) implements GradleProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
