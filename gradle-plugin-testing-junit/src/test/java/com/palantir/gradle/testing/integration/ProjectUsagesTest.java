@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
+import com.palantir.gradle.testing.project.IncludedBuild;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import org.junit.jupiter.api.BeforeEach;
@@ -120,6 +121,95 @@ class ProjectUsagesTest {
             """);
 
         gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :subproject");
+    }
+
+    @Test
+    void included_build_uses_exact_parameter_name(GradleInvoker gradle, IncludedBuild myLib) {
+        myLib.buildGradle().append("""
+            println "included build name: ${name}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: myLib");
+    }
+
+    @Test
+    void included_build_manually(GradleInvoker gradle, RootProject rootProject) {
+        IncludedBuild includedBuild = rootProject.includedBuild("my-included");
+
+        includedBuild.buildGradle().append("""
+            println "included build name: ${name}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: my-included");
+    }
+
+    @Test
+    void included_build_with_subproject(GradleInvoker gradle, IncludedBuild myLib) {
+        myLib.buildGradle().append("""
+            println "included build name: ${name}"
+            """);
+
+        SubProject sub = myLib.subproject("sub-module");
+        sub.buildGradle().append("""
+            println "hello from ${path}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: myLib");
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :sub-module");
+    }
+
+    @Test
+    void included_build_settings_gradle(GradleInvoker gradle, IncludedBuild myLib) {
+        myLib.settingsGradle().append("""
+            println "included settings evaluated"
+            """);
+        myLib.buildGradle().append("""
+            println "included build name: ${name}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included settings evaluated");
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: myLib");
+    }
+
+    @Test
+    void included_build_gradle_properties(GradleInvoker gradle, IncludedBuild myLib) {
+        myLib.gradlePropertiesFile().setProperty("myProp", "fromIncludedBuild");
+        myLib.buildGradle().append("""
+            println "myProp: ${findProperty('myProp')}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("myProp: fromIncludedBuild");
+    }
+
+    @Test
+    void nested_included_build(GradleInvoker gradle, IncludedBuild outerLib) {
+        IncludedBuild innerLib = outerLib.includedBuild("inner");
+
+        innerLib.buildGradle().append("""
+            println "inner build name: ${name}"
+            """);
+
+        outerLib.buildGradle().append("""
+            println "outer build name: ${name}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("outer build name: outerLib");
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("inner build name: inner");
+    }
+
+    @Test
+    void can_request_the_same_included_build_multiple_times(GradleInvoker gradle, RootProject rootProject) {
+        IncludedBuild first = rootProject.includedBuild("shared");
+        IncludedBuild second = rootProject.includedBuild("shared");
+
+        assertThat(second.path()).isEqualTo(first.path());
+        rootProject.settingsGradle().assertThat().content().containsOnlyOnce("includeBuild 'shared'");
+
+        first.buildGradle().append("""
+            println "included build name: ${name}"
+            """);
+
+        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: shared");
     }
 
     @Nested

@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.project.IncludedBuild;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
 import java.util.Optional;
@@ -32,6 +33,11 @@ final class GradleProjectParameterResolver implements TerseParameterResolver {
         if (parameterContext.getParameter().getType().equals(SubProject.class)) {
             return Optional.of(rootProjectFor(extensionContext)
                     .subproject(parameterContext.getParameter().getName()));
+        }
+
+        if (parameterContext.getParameter().getType().equals(IncludedBuild.class)) {
+            return Optional.of(rootProjectFor(extensionContext)
+                    .includedBuild(parameterContext.getParameter().getName()));
         }
 
         return Optional.empty();

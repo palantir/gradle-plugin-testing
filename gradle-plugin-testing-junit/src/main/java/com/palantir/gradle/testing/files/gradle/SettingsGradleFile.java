@@ -47,15 +47,20 @@ public record SettingsGradleFile(Path path) implements GradleFile {
         return this;
     }
 
-    public SettingsGradleFile include(String projectPath) {
-        @Language("Gradle")
-        String includeLine = "include '%s'".formatted(projectPath);
+    public SettingsGradleFile includeBuild(String buildPath) {
+        return idempotentAppend("includeBuild '%s'".formatted(buildPath));
+    }
 
-        if (Files.exists(path) && text().contains(includeLine)) {
+    public SettingsGradleFile include(String projectPath) {
+        return idempotentAppend("include '%s'".formatted(projectPath));
+    }
+
+    private SettingsGradleFile idempotentAppend(@Language("Gradle") String line) {
+        if (Files.exists(path) && text().contains(line)) {
             return this;
         }
 
-        appendLine(includeLine);
+        appendLine(line);
         return this;
     }
 }

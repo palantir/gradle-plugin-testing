@@ -33,16 +33,7 @@ public interface GradleProject extends Directory {
     RootProject rootProject();
 
     default SubProject subproject(String name) {
-        Preconditions.checkArgument(!name.contains(":"), "Subproject names must not %s contain colons", name);
-        Preconditions.checkArgument(!name.contains("/"), "Subproject names must not %s contain slashes", name);
-
-        Path subprojectDir = path().resolve(name);
-
-        try {
-            Files.createDirectories(subprojectDir);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        Path subprojectDir = createValidatedDirectory(path(), name, "Subproject");
 
         String subprojectPath =
                 rootProject().path().relativize(subprojectDir).toString().replace('/', ':');
@@ -50,6 +41,33 @@ public interface GradleProject extends Directory {
         rootProject().settingsGradle().include(subprojectPath);
 
         return new SubProject(subprojectDir, rootProject());
+    }
+
+    default IncludedBuild includedBuild(String name) {
+        Path includedBuildDir = createValidatedDirectory(rootProject().path(), name, "Included build");
+
+        RootProject includedBuildRoot = new RootProject(includedBuildDir);
+        includedBuildRoot.settingsGradle().rootProjectName(name);
+        includedBuildRoot.gradlePropertiesFile().setProperty("org.gradle.parallel", "true");
+
+        rootProject().settingsGradle().includeBuild(name);
+
+        return new IncludedBuild(includedBuildDir, includedBuildRoot);
+    }
+
+    private static Path createValidatedDirectory(Path parent, String name, String type) {
+        Preconditions.checkArgument(!name.contains(":"), "%s names must not %s contain colons", type, name);
+        Preconditions.checkArgument(!name.contains("/"), "%s names must not %s contain slashes", type, name);
+
+        Path dir = parent.resolve(name);
+
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        return dir;
     }
 
     default GradleFile buildGradle() {
