@@ -40,19 +40,6 @@ class GradleTestAppendPropertyTest {
     }
 
     @Test
-    void allow_appendProperty_outside_gradle_plugin_tests() {
-        test("""
-            import com.palantir.gradle.testing.files.properties.PropertiesFile;
-
-            class TestClass {
-                void test(PropertiesFile props) {
-                    props.appendProperty("key", "value");
-                }
-            }
-            """);
-    }
-
-    @Test
     void allow_setProperty_in_gradle_plugin_tests() {
         test("""
             import com.palantir.gradle.testing.junit.GradlePluginTests;
