@@ -286,6 +286,8 @@ rootProject.buildGradle().append("""
     """, repo.path());
 ```
 
+**Use `uri("%s")` when referencing paths in build.gradle**: Do not use raw `file:///...` URLs — Gradle 9.0 removed legacy URL decoding, so paths with spaces or special characters will error. Use `uri("%s")` instead, which handles encoding correctly.
+
 **Skip unnecessary setup**: Don't call `settingsGradle().rootProjectName()` unless you need a custom name.
 
 **Use exact assertions for lock files**: Prefer `isEqualTo()` with text blocks over `contains()` for lock file content - makes expected output obvious.
