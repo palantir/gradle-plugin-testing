@@ -56,8 +56,10 @@ public interface GradleProject extends Directory {
     }
 
     private static Path createValidatedDirectory(Path parent, String name, String type) {
-        Preconditions.checkArgument(!name.contains(":"), "%s names must not contain colons (project name was %s)", type, name);
-        Preconditions.checkArgument(!name.contains("/"), "%s names must not contain slashes (project name was %s)", type, name);
+        Preconditions.checkArgument(
+                !name.contains(":"), "%s names must not contain colons (project name was %s)", type, name);
+        Preconditions.checkArgument(
+                !name.contains("/"), "%s names must not contain slashes (project name was %s)", type, name);
 
         Path dir = parent.resolve(name);
 
