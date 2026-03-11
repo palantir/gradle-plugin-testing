@@ -46,13 +46,9 @@ public interface GradleProject extends Directory {
     default IncludedBuild includedBuild(String name) {
         Path includedBuildDir = createValidatedDirectory(rootProject().path(), name, "Included build");
 
-        RootProject includedBuildRoot = new RootProject(includedBuildDir);
-        includedBuildRoot.settingsGradle().rootProjectName(name);
-        includedBuildRoot.gradlePropertiesFile().setProperty("org.gradle.parallel", "true");
-
         rootProject().settingsGradle().includeBuild(name);
 
-        return new IncludedBuild(includedBuildDir, includedBuildRoot);
+        return new IncludedBuild(name, includedBuildDir);
     }
 
     private static Path createValidatedDirectory(Path parent, String name, String type) {
