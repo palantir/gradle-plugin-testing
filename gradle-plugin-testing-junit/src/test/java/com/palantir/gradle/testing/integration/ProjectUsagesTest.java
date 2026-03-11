@@ -17,6 +17,7 @@
 package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
@@ -210,6 +211,24 @@ class ProjectUsagesTest {
             """);
 
         gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: shared");
+    }
+
+    @Test
+    void subproject_then_included_build_with_same_name_throws(RootProject rootProject) {
+        rootProject.subproject("shared");
+
+        assertThatThrownBy(() -> rootProject.includedBuild("shared"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already registered as a subproject");
+    }
+
+    @Test
+    void included_build_then_subproject_with_same_name_throws(RootProject rootProject) {
+        rootProject.includedBuild("shared");
+
+        assertThatThrownBy(() -> rootProject.subproject("shared"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already registered as an included build");
     }
 
     @Nested
