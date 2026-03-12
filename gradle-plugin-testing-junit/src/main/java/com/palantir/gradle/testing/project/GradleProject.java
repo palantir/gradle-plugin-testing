@@ -33,7 +33,16 @@ public interface GradleProject extends Directory {
     RootProject rootProject();
 
     default SubProject subproject(String name) {
-        Path subprojectDir = createValidatedDirectory(path(), name, "Subproject");
+        Preconditions.checkArgument(!name.contains(":"), "Subproject names must not %s contain colons", name);
+        Preconditions.checkArgument(!name.contains("/"), "Subproject names must not %s contain slashes", name);
+
+        Path subprojectDir = path().resolve(name);
+
+        try {
+            Files.createDirectories(subprojectDir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         String subprojectPath =
                 rootProject().path().relativize(subprojectDir).toString().replace('/', ':');
@@ -41,23 +50,6 @@ public interface GradleProject extends Directory {
         rootProject().settingsGradle().include(subprojectPath);
 
         return new SubProject(subprojectDir, rootProject());
-    }
-
-    private static Path createValidatedDirectory(Path parent, String name, String type) {
-        Preconditions.checkArgument(
-                !name.contains(":"), "%s names must not contain colons (project name was %s)", type, name);
-        Preconditions.checkArgument(
-                !name.contains("/"), "%s names must not contain slashes (project name was %s)", type, name);
-
-        Path dir = parent.resolve(name);
-
-        try {
-            Files.createDirectories(dir);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        return dir;
     }
 
     default GradleFile buildGradle() {
