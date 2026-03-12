@@ -156,8 +156,12 @@ class ProjectUsagesTest {
             println "hello from ${path}"
             """);
 
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: myLib");
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("hello from :sub-module");
+        gradle.withArgs()
+                .buildsSuccessfully()
+                .assertThat()
+                .output()
+                .contains("included build name: myLib")
+                .contains("hello from :sub-module");
     }
 
     @Test
@@ -169,8 +173,12 @@ class ProjectUsagesTest {
             println "included build name: ${name}"
             """);
 
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included settings evaluated");
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("included build name: myLib");
+        gradle.withArgs()
+                .buildsSuccessfully()
+                .assertThat()
+                .output()
+                .contains("included settings evaluated")
+                .contains("included build name: myLib");
     }
 
     @Test
@@ -195,8 +203,12 @@ class ProjectUsagesTest {
             println "outer build name: ${name}"
             """);
 
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("outer build name: outerLib");
-        gradle.withArgs().buildsSuccessfully().assertThat().output().contains("inner build name: inner");
+        gradle.withArgs()
+                .buildsSuccessfully()
+                .assertThat()
+                .output()
+                .contains("outer build name: outerLib")
+                .contains("inner build name: inner");
     }
 
     @Test
