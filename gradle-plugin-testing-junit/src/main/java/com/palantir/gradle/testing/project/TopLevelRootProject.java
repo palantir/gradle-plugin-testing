@@ -21,24 +21,11 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.nio.file.Path;
 
 /**
- * When injected as a parameter in JUnit test methods, the parameter name will be used as the build name exactly.
- * For example, {@code IncludedBuild myLib} creates an included build named "myLib".
- * <br>
- * When injected, the included build will be registered via {@code includeBuild} in the
- * root project's settings.gradle.
+ * The top-level root project of a Gradle build. Will always be named "root" by default.
+ * To use a different project name, call
+ * {@code rootProject.settingsGradle().rootProjectName("custom-name")}.
  */
-public final class IncludedBuild implements RootProject {
-    private final Path path;
-
+public record TopLevelRootProject(Path path) implements RootProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public IncludedBuild(String name, Path path) {
-        this.path = path;
-        settingsGradle().rootProjectName(name);
-        gradlePropertiesFile().setProperty("org.gradle.parallel", "true");
-    }
-
-    @Override
-    public Path path() {
-        return path;
-    }
+    public TopLevelRootProject {}
 }

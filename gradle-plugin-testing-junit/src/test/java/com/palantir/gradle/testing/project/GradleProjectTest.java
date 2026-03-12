@@ -30,7 +30,7 @@ class GradleProjectTest {
 
     @BeforeEach
     void beforeEach(@TempDir Path tempDir) {
-        gradleProject = new RootProject(tempDir);
+        gradleProject = new TopLevelRootProject(tempDir);
     }
 
     @Nested

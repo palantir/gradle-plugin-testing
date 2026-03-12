@@ -18,10 +18,10 @@ package com.palantir.gradle.testing;
 
 public final class RestrictedCreation {
     public static final String EXPLANATION =
-            "Use junit injected objects like GradleInvoker, RootProject or SubProject etc instead rather than "
-                    + "creating these manually. If there really isn't some way to do what you need through the "
-                    + "injected types, please contribute to palantir/gradle-plugin-testing rather than manually "
-                    + "working around the lack of functionality";
+            "Use junit injected objects like GradleInvoker, RootProject, SubProject or IncludedBuild etc instead"
+                    + " rather than creating these manually. If there really isn't some way to do what you need through"
+                    + " the injected types, please contribute to palantir/gradle-plugin-testing rather than manually"
+                    + " working around the lack of functionality";
 
     public static final String ALLOWED_ON_PATH = ".*/com/palantir/gradle/testing/.*";
 

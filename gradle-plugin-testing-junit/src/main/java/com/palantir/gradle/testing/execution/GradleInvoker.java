@@ -25,6 +25,7 @@ import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
 import com.palantir.gradle.testing.junit.RegistersGradleInvokerDecorator;
 import com.palantir.gradle.testing.project.RootProject;
+import com.palantir.gradle.testing.project.TopLevelRootProject;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.AnnotatedElement;
@@ -54,7 +55,7 @@ public interface GradleInvoker {
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
         GradleInvoker baseInvoker = getInternalDefaultInvoker(path, gradleVersion);
-        RootProject rootProject = new RootProject(path);
+        RootProject rootProject = new TopLevelRootProject(path);
         DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
         Set<Annotation> annotations = collectAnnotationsFromContext(extensionContext);
         return decorateInvokerWithAnnotations(decoratorContext, baseInvoker, annotations);
