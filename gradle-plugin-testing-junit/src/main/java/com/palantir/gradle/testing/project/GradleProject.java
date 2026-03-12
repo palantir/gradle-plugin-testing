@@ -43,14 +43,6 @@ public interface GradleProject extends Directory {
         return new SubProject(subprojectDir, rootProject());
     }
 
-    default IncludedBuild includedBuild(String name) {
-        Path includedBuildDir = createValidatedDirectory(rootProject().path(), name, "Included build");
-
-        rootProject().settingsGradle().includeBuild(name);
-
-        return new IncludedBuild(name, includedBuildDir);
-    }
-
     private static Path createValidatedDirectory(Path parent, String name, String type) {
         Preconditions.checkArgument(
                 !name.contains(":"), "%s names must not contain colons (project name was %s)", type, name);
