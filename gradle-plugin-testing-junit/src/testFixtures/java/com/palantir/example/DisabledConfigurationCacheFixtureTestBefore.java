@@ -17,14 +17,13 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 // This is a test fixture, not a real test. It is used to check that CC is disabled even if the annotation is before
 // `@GradlePluginTests`.
-@DisabledConfigurationCache
+
 @GradlePluginTests
 public class DisabledConfigurationCacheFixtureTestBefore {
 
