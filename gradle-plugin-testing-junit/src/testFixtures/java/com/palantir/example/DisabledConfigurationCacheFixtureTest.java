@@ -17,14 +17,12 @@
 package com.palantir.example;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 // This is a test fixture, not a test.
 @GradlePluginTests
-@DisabledConfigurationCache("testing class level annotation")
 public class DisabledConfigurationCacheFixtureTest {
 
     @Test
