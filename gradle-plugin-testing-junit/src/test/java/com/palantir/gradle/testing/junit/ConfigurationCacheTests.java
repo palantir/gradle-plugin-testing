@@ -181,6 +181,15 @@ class ConfigurationCacheTests {
         result.assertThat().output().contains("org.gradle.api.GradleScriptException:");
     }
 
+    @Test
+    void included_build_name_collision_does_not_run_dry_run(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.subproject("shared");
+        rootProject.includedBuild("shared");
+
+        InvocationResult result = invoker.withArgs().buildsWithFailure();
+        result.assertThat().output().contains("has name 'shared' which is the same as a project of the main build.");
+    }
+
     static void setUpConfigurationCacheTask(GradleProject project) {
         project.buildGradle().append("""
             tasks.register("checkConfigurationCache") {

@@ -17,14 +17,12 @@
 package com.palantir.gradle.testing.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.IncludedBuild;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
-import org.gradle.testkit.runner.UnexpectedBuildFailure;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -231,9 +229,11 @@ class ProjectUsagesTest {
         rootProject.subproject("shared");
         rootProject.includedBuild("shared");
 
-        assertThatThrownBy(() -> gradle.withArgs().buildsSuccessfully())
-                .isInstanceOf(UnexpectedBuildFailure.class)
-                .hasMessageContaining("has name 'shared' which is the same as a project of the main build.");
+        gradle.withArgs()
+                .buildsWithFailure()
+                .assertThat()
+                .output()
+                .contains("has name 'shared' which is the same as a project of the main build.");
     }
 
     @Nested
