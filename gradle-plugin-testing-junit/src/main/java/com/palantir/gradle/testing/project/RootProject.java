@@ -58,6 +58,6 @@ public interface RootProject extends GradleProject {
 
         settingsGradle().includeBuild(name);
 
-        return new IncludedBuild(name, includedBuildDir);
+        return new IncludedBuild(includedBuildDir);
     }
 }

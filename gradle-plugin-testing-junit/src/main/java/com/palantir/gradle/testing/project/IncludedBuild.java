@@ -27,18 +27,10 @@ import java.nio.file.Path;
  * When injected, the included build will be registered via {@code includeBuild} in the
  * root project's settings.gradle.
  */
-public final class IncludedBuild implements RootProject {
-    private final Path path;
-
+public record IncludedBuild(Path path) implements RootProject {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public IncludedBuild(String name, Path path) {
+    public IncludedBuild(Path path) {
         this.path = path;
-        settingsGradle().rootProjectName(name);
         gradlePropertiesFile().setProperty("org.gradle.parallel", "true");
-    }
-
-    @Override
-    public Path path() {
-        return path;
     }
 }
