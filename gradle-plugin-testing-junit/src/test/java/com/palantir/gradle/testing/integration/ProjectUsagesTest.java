@@ -229,7 +229,7 @@ class ProjectUsagesTest {
         rootProject.subproject("shared");
         rootProject.includedBuild("shared");
 
-        gradle.withArgs("help")
+        gradle.withArgs()
                 .buildsWithFailure()
                 .assertThat()
                 .output()

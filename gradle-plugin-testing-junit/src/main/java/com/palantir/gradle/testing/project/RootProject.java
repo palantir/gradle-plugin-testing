@@ -16,12 +16,8 @@
 
 package com.palantir.gradle.testing.project;
 
-import com.google.common.base.Preconditions;
 import com.palantir.gradle.testing.files.gradle.SettingsGradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -43,18 +39,7 @@ public interface RootProject extends GradleProject {
     }
 
     default IncludedBuild includedBuild(String name) {
-        Preconditions.checkArgument(
-                !name.contains(":"), "Included build names must not contain colons (project name was %s)", name);
-        Preconditions.checkArgument(
-                !name.contains("/"), "Included build names must not contain slashes (project name was %s)", name);
-
-        Path includedBuildDir = path().resolve(name);
-
-        try {
-            Files.createDirectories(includedBuildDir);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        Path includedBuildDir = GradleProject.createChildProjectDir(path(), name);
 
         settingsGradle().includeBuild(name);
 
