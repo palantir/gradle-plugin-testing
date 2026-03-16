@@ -43,13 +43,13 @@ public interface GradleProject extends Directory {
         return new SubProject(subprojectDir, rootProject());
     }
 
-    static Path createChildProjectDir(Path parentDir, String name) {
+    default Path createChildProjectDir(String name) {
         Preconditions.checkArgument(
                 !name.contains(":"), "Project names must not contain colons (project name was %s)", name);
         Preconditions.checkArgument(
                 !name.contains("/"), "Project names must not contain slashes (project name was %s)", name);
 
-        Path childDir = parentDir.resolve(name);
+        Path childDir = path().resolve(name);
 
         try {
             Files.createDirectories(childDir);

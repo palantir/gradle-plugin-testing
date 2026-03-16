@@ -39,7 +39,7 @@ public interface RootProject extends GradleProject {
     }
 
     default IncludedBuild includedBuild(String name) {
-        Path includedBuildDir = GradleProject.createChildProjectDir(path(), name);
+        Path includedBuildDir = createChildProjectDir(name);
 
         settingsGradle().includeBuild(name);
 
