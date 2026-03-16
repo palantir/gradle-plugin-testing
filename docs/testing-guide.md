@@ -101,6 +101,7 @@ Tests can request these parameters in any order:
 - **`GradleInvoker`** - Executes Gradle builds
 - **`RootProject`** - Gradle root project that will always be named "root". To use a different project name, call `rootProject.settingsGradle().rootProjectName("custom-name")`
 - **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named `apiService`
+- **`IncludedBuild`** - An included build (composite build) for the root project. The parameter name will be used as the build name exactly. For example, `IncludedBuild myLib` creates an included build named `myLib` with its own `settings.gradle` and `build.gradle`
 - **`MavenRepo`** - Maven repository for publishing test artifacts. See [Maven Repository Testing](#maven-repository-testing)
 
 These parameters can be used in the constructor for a test class or in `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, or `@AfterAll` methods.
@@ -127,6 +128,40 @@ void multi_project_build(SubProject api, SubProject server) {
 void create_nested_subprojects_manually(SubProject api) {
     // Nested subprojects
     SubProject nestedProject = api.subproject("nested");
+}
+```
+
+**Example with included builds (composite builds):**
+```java
+@Test
+void composite_build(GradleInvoker gradle, RootProject rootProject, IncludedBuild sharedLib) {
+    // "sharedLib" is automatically created as an included build with its own settings.gradle
+    sharedLib.buildGradle().plugins().add("java-library");
+
+    rootProject.buildGradle().plugins().add("java");
+    rootProject.buildGradle().append("""
+            dependencies {
+                implementation 'com.example:sharedLib'
+            }
+            """);
+
+    gradle.withArgs("tasks").buildsSuccessfully();
+}
+```
+
+**Creating included builds programmatically:**
+```java
+@Test
+void create_nested_included_build(IncludedBuild outerLib) {
+    outerLib.buildGradle().plugins().add("java-library");
+
+    // Included builds can contain their own included builds
+    IncludedBuild innerLib = outerLib.includedBuild("inner-lib");
+    innerLib.buildGradle().plugins().add("java-library");
+
+    // Included builds can also have their own subprojects
+    SubProject sub = outerLib.subproject("sub-module");
+    sub.buildGradle().plugins().add("java-library");
 }
 ```
 

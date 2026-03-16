@@ -16,30 +16,33 @@
 
 package com.palantir.gradle.testing.project;
 
-import com.google.errorprone.annotations.RestrictedApi;
-import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.files.gradle.SettingsGradleFile;
 import com.palantir.gradle.testing.files.properties.PropertiesFile;
 import java.nio.file.Path;
 
 /**
- * The root project will always be named "root" by default. To use a different project name, call
- * {@code rootProject.settingsGradle().rootProjectName("custom-name")}.
+ * A Gradle project that is the root of a build, having its own {@code settings.gradle} and
+ * {@code gradle.properties}. Both the top-level project and included builds are root projects.
  */
-public record RootProject(Path path) implements GradleProject {
-    @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public RootProject {}
-
+public interface RootProject extends GradleProject {
     @Override
-    public RootProject rootProject() {
+    default RootProject rootProject() {
         return this;
     }
 
-    public SettingsGradleFile settingsGradle() {
-        return new SettingsGradleFile(path.resolve("settings.gradle"));
+    default SettingsGradleFile settingsGradle() {
+        return new SettingsGradleFile(path().resolve("settings.gradle"));
     }
 
-    public PropertiesFile gradlePropertiesFile() {
+    default PropertiesFile gradlePropertiesFile() {
         return propertiesFile("gradle.properties");
+    }
+
+    default IncludedBuild includedBuild(String name) {
+        Path includedBuildDir = createChildProjectDir(name);
+
+        settingsGradle().includeBuild(name);
+
+        return new IncludedBuild(includedBuildDir);
     }
 }

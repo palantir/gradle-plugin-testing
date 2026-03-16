@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.junit;
 import com.google.common.collect.Lists;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.project.RootProject;
+import com.palantir.gradle.testing.project.TopLevelRootProject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -40,7 +41,7 @@ final class RootProjectStore {
     private static final Pattern INVALID_FILENAME_CHARS = Pattern.compile("[\\\\/:*?\"<>|\\x00-\\x1F]");
 
     public static RootProject rootProject(ExtensionContext extensionContext) {
-        return new RootProject(rootProjectDir(extensionContext));
+        return new TopLevelRootProject(rootProjectDir(extensionContext));
     }
 
     public static Path rootProjectDir(ExtensionContext context) {
@@ -63,7 +64,7 @@ final class RootProjectStore {
 
         clearDirectory(projectDir);
 
-        RootProject rootProject = new RootProject(projectDir);
+        RootProject rootProject = new TopLevelRootProject(projectDir);
         rootProject.settingsGradle().createEmpty();
         rootProject.settingsGradle().rootProjectName("root");
         rootProject.gradlePropertiesFile().setProperty("org.gradle.parallel", "true");

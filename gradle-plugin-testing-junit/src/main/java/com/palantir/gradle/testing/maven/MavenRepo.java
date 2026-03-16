@@ -20,7 +20,7 @@ import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.GradleVersion;
-import com.palantir.gradle.testing.project.RootProject;
+import com.palantir.gradle.testing.project.TopLevelRootProject;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -61,7 +61,7 @@ public final class MavenRepo {
         Path repoDirPath = repoDir.resolve("localMavenRepositoryPublisherProject");
         this.publisher = new MavenRepoPublisher(
                 mavenRepoUrl,
-                new RootProject(repoDirPath),
+                new TopLevelRootProject(repoDirPath),
                 GradleInvoker.getInternalDefaultInvoker(repoDirPath, gradleVersion));
     }
 
