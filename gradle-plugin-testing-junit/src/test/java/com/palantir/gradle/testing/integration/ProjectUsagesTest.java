@@ -219,9 +219,15 @@ class ProjectUsagesTest {
         rootProject.subproject("shared");
         rootProject.includedBuild("shared");
 
-        assertThatThrownBy(() -> gradle.withArgs().buildsSuccessfully())
+        assertThatThrownBy(() -> gradle.withArgs("help").buildsSuccessfully())
                 .isInstanceOf(UnexpectedBuildFailure.class)
                 .hasMessageContaining("has name 'shared' which is the same as a project of the main build.");
+
+        gradle.withArgs("help")
+                .buildsWithFailure()
+                .assertThat()
+                .output()
+                .contains("has name 'shared' which is the same as a project of the main build.");
     }
 
     @Nested

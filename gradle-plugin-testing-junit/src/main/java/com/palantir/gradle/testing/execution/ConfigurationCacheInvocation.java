@@ -77,8 +77,15 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
         }
 
         assertConfigCacheStored(result);
-        InvocationResult configurationCacheResult = secondGradleInvocation.buildsSuccessfully();
-        assertConfigCacheReused(configurationCacheResult);
+        try {
+            InvocationResult configurationCacheResult = secondGradleInvocation.buildsSuccessfully();
+            assertConfigCacheReused(configurationCacheResult);
+        } catch (UnexpectedBuildFailure unexpectedBuildFailure) {
+            if (unexpectedBuildFailure.getBuildResult().getOutput().contains("configuration cache cannot be reused")) {
+                throwReuseFailure(new InvocationResult(unexpectedBuildFailure.getBuildResult()));
+            }
+            return new InvocationResult(unexpectedBuildFailure.getBuildResult());
+        }
         return result;
     }
 
@@ -111,19 +118,23 @@ public final class ConfigurationCacheInvocation implements GradleInvocation {
 
     private void assertConfigCacheReused(InvocationResult result) {
         if (!result.output().contains("Configuration cache entry reused.")) {
-            throw new UnexpectedConfigurationCacheFailure(String.format("""
-                Configuration cache reuse failure: The second run failed to reuse the cached configuration.
-
-                This test runs with configuration cache enabled (`gradleTestUtils.configurationCacheEnabled=true`).
-                Test sequence:
-                    ✓ First run: Successfully executed tasks and stored configuration cache
-                    ✗ Second run: Failed to reuse configuration cache during dry-run verification
-
-                Please check the output below for specific configuration cache problems.
-
-                Output:
-                %s
-                """, result.output()), result);
+            throwReuseFailure(result);
         }
+    }
+
+    private static void throwReuseFailure(InvocationResult result) {
+        throw new UnexpectedConfigurationCacheFailure(String.format("""
+            Configuration cache reuse failure: The second run failed to reuse the cached configuration.
+
+            This test runs with configuration cache enabled (`gradleTestUtils.configurationCacheEnabled=true`).
+            Test sequence:
+                ✓ First run: Successfully executed tasks and stored configuration cache
+                ✗ Second run: Failed to reuse configuration cache during dry-run verification
+
+            Please check the output below for specific configuration cache problems.
+
+            Output:
+            %s
+            """, result.output()), result);
     }
 }
