@@ -33,7 +33,7 @@ public interface GradleProject extends Directory {
     RootProject rootProject();
 
     default SubProject subproject(String name) {
-        Path subprojectDir = createChildProjectDir(path(), name);
+        Path subprojectDir = createChildProjectDir(name);
 
         String subprojectPath =
                 rootProject().path().relativize(subprojectDir).toString().replace('/', ':');
