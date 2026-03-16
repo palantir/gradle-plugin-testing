@@ -190,6 +190,28 @@ class ConfigurationCacheTests {
         result.assertThat().output().contains("has name 'shared' which is the same as a project of the main build.");
     }
 
+    @Test
+    void fails_when_configuration_cache_cannot_be_reused(GradleInvoker invoker, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+                tasks.register("some") {
+                    def propsFile = project.layout.projectDirectory.file('gradle.properties').asFile
+                    doLast {
+                        def props = new Properties()
+                        propsFile.withInputStream { props.load(it) }
+                        props.setProperty('version', 'two')
+                        propsFile.withOutputStream { props.store(it, null) }
+                        throw new RuntimeException("Version changed from one to two")
+                    }
+                }
+            """);
+
+        rootProject.gradlePropertiesFile().setProperty("version", "one");
+        assertThatThrownBy(() -> invoker.withArgs("some").buildsWithFailure())
+                .isInstanceOf(UnexpectedConfigurationCacheFailure.class)
+                .hasMessageContaining(
+                        "Configuration cache reuse failure: The second run failed to reuse the cached configuration.");
+    }
+
     static void setUpConfigurationCacheTask(GradleProject project) {
         project.buildGradle().append("""
             tasks.register("checkConfigurationCache") {
