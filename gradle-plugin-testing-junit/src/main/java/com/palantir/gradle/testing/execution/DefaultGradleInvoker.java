@@ -19,7 +19,12 @@ package com.palantir.gradle.testing.execution;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.palantir.gradle.testing.RestrictedCreation;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 import org.gradle.testkit.runner.GradleRunner;
 
 record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
@@ -28,10 +33,14 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
 
     @Override
     public GradleInvocation with(Options options) {
+        ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
+        Writer captureWriter = new OutputStreamWriter(capturedOutput, StandardCharsets.UTF_8);
+
         GradleRunner runner = GradleRunner.create()
                 .withProjectDir(rootProjectDir.toFile())
                 .withDebug(GradleInvoker.shouldRunInTestkitDebugMode())
-                .forwardOutput()
+                .forwardStdOutput(captureWriter)
+                .forwardStdError(captureWriter)
                 .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
                 .withArguments(ImmutableList.<String>builder()
@@ -44,6 +53,15 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                         .build());
         options.customGradleUserHome().ifPresent(gradleUserHome -> runner.withTestKitDir(gradleUserHome.toFile()));
 
-        return new DefaultGradleInvocation(runner);
+        String title = buildTitle(options.args());
+        return new DefaultGradleInvocation(runner, title, capturedOutput);
+    }
+
+    private String buildTitle(List<String> args) {
+        StringBuilder title = new StringBuilder();
+        title.append("gradle ");
+        title.append(String.join(" ", args));
+        title.append(" [Gradle ").append(gradleVersion.version()).append("]");
+        return title.toString();
     }
 }
