@@ -16,23 +16,58 @@
 
 package com.palantir.gradle.testing.execution;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.UnexpectedBuildFailure;
+import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 
 public final class DefaultGradleInvocation implements GradleInvocation {
 
     private final GradleRunner gradleRunner;
+    private final ByteArrayOutputStream capturedOutput;
+    private final String outputTitle;
 
-    public DefaultGradleInvocation(GradleRunner gradleRunner) {
+    public DefaultGradleInvocation(
+            GradleRunner gradleRunner, String outputTitle, ByteArrayOutputStream capturedOutput) {
         this.gradleRunner = gradleRunner;
+        this.outputTitle = outputTitle;
+        this.capturedOutput = capturedOutput;
     }
 
     @Override
     public InvocationResult buildsSuccessfully() {
-        return new InvocationResult(gradleRunner.build());
+        try {
+            BuildResult result = gradleRunner.build();
+            printFormattedOutput(true);
+            return new InvocationResult(result);
+        } catch (UnexpectedBuildFailure e) {
+            printFormattedOutput(false);
+            // Don't rethrow e, as it needlessly prints the inner build output again
+            throw new RuntimeException("Expected build to be successful: " + outputTitle);
+        }
     }
 
     @Override
     public InvocationResult buildsWithFailure() {
-        return new InvocationResult(gradleRunner.buildAndFail());
+        try {
+            BuildResult result = gradleRunner.buildAndFail();
+            printFormattedOutput(false);
+            return new InvocationResult(result);
+        } catch (UnexpectedBuildSuccess e) {
+            printFormattedOutput(true);
+            // Don't rethrow e, as it needlessly prints the inner build output again
+            throw new RuntimeException("Expected build to fail: " + outputTitle);
+        }
+    }
+
+    private void printFormattedOutput(boolean success) {
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        String formatted = success
+                ? OutputBoxFormatter.formatSuccess(outputTitle, output)
+                : OutputBoxFormatter.formatFailure(outputTitle, output);
+        // CHECKSTYLE.OFF: RegexpSinglelineJava
+        System.out.println("\n" + formatted + "\n");
     }
 }
