@@ -60,12 +60,12 @@ public final class DefaultGradleInvocation implements GradleInvocation {
         }
     }
 
+    @SuppressWarnings("checkstyle:RegexpSinglelineJava")
     private void printFormattedOutput(boolean success) {
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
         String formatted = success
                 ? OutputBoxFormatter.formatSuccess(outputTitle, output)
                 : OutputBoxFormatter.formatFailure(outputTitle, output);
-        // CHECKSTYLE.OFF: RegexpSinglelineJava
         System.out.println("\n" + formatted + "\n");
     }
 }
