@@ -4,21 +4,21 @@ commons-io:commons-io = 2.21.0
 com.google.auto.service:* = 1.1.1
 com.google.errorprone:* = 2.42.0
 com.google.guava:guava = 33.5.0-jre
-com.palantir.baseline:gradle-baseline-java = 6.8.0
-com.palantir.suppressible-error-prone:* = 2.21.0
+com.palantir.baseline:gradle-baseline-java = 7.4.0
+com.palantir.suppressible-error-prone:* = 2.31.0
 org.apache.commons:commons-lang3 = 3.20.0
-org.assertj:* = 3.27.2
+org.assertj:* = 3.27.7
 org.immutables:* = 2.12.1
-org.junit.jupiter:* = 5.13.4
+org.junit.jupiter:* = 6.0.3
 org.jetbrains:annotations = 26.1.0
 info.picocli:* = 4.7.7
 one.util:streamex = 0.8.4
 
 # test dependencies
 com.netflix.nebula:nebula-test = 10.6.2
-org.codehaus.groovy:* = 3.0.24
+org.codehaus.groovy:* = 3.0.25
 com.palantir.gradle.consistentversions:gradle-consistent-versions = 3.15.0
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2
-org.junit.platform:* = 1.13.4
+org.junit.platform:* = 6.0.3
