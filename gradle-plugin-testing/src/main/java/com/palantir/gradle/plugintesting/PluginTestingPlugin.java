@@ -116,6 +116,14 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
         Provider<String> testDependenciesFileAbsolutePath = project.provider(() ->
                 testDependencyVersions.get().getOutputFile().get().getAsFile().getAbsolutePath());
 
+        RegularFile testVersionsConfigPath;
+        if (GradleVersion.current().compareTo(GradleVersion.version("8.10")) >= 0) {
+            testVersionsConfigPath = getProjectLayout().getSettingsDirectory().file("gradle/gradle-test-versions.yml");
+        } else {
+            testVersionsConfigPath =
+                    project.getRootProject().getLayout().getProjectDirectory().file("gradle/gradle-test-versions.yml");
+        }
+
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.dependsOn(testDependencyVersions);
 
@@ -133,8 +141,8 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             testDependenciesFileAbsolutePath.get());
 
                     // add system property for what versions of gradle should be used in tests
-                    Set<String> versionsFromConfig =
-                            readGradleTestingVersionsConfigFile().getOrElse(Set.of());
+                    Set<String> versionsFromConfig = readGradleTestingVersionsConfigFile(testVersionsConfigPath)
+                            .getOrElse(Set.of());
                     Set<String> versionsFromExtension =
                             testUtilsExt.getGradleVersions().get();
                     Set<String> gradleTestVersions = ImmutableSet.<String>builder()
@@ -286,10 +294,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
         });
     }
 
-    private Provider<Set<String>> readGradleTestingVersionsConfigFile() {
-        RegularFile testVersionsConfigPath =
-                getProjectLayout().getSettingsDirectory().file("gradle/gradle-test-versions.yml");
-
+    private Provider<Set<String>> readGradleTestingVersionsConfigFile(RegularFile testVersionsConfigPath) {
         Provider<GradleTestVersionsConfig> config = getProviderFactory()
                 .fileContents(testVersionsConfigPath)
                 .getAsText()
