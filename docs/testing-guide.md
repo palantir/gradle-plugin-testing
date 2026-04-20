@@ -769,8 +769,7 @@ void plugin_reads_environment_variable(GradleInvoker gradle, RootProject project
 
 ### Custom Gradle Distribution URL
 
-By default, tests download Gradle distributions from `services.gradle.org`. To use a custom distribution server
-(e.g. an internal Artifactory mirror), set `gradleDistributionBaseUrl` on the extension:
+By default, tests download Gradle distributions from `services.gradle.org`. To use a custom distribution server, set `gradleDistributionBaseUrl` on the extension:
 
 ```groovy
 gradleTestUtils {
