@@ -42,13 +42,14 @@ public abstract class PluginTestingExtension {
     public abstract Property<Boolean> getConfigurationCacheEnabled();
 
     /**
-     * Base URL for downloading Gradle distributions. When set, tests will download Gradle from
-     * {@code {baseUrl}/gradle-{version}-bin.zip} instead of the default Gradle distribution server.
+     * Base URL for downloading Gradle distributions. Tests will download Gradle from
+     * {@code {baseUrl}/gradle-{version}-bin.zip}.
      */
     public abstract Property<String> getGradleDistributionBaseUrl();
 
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
         getConfigurationCacheEnabled().convention(false);
+        getGradleDistributionBaseUrl().convention("https://services.gradle.org/distributions");
     }
 }

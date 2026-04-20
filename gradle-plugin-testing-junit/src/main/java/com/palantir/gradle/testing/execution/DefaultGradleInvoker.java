@@ -26,6 +26,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import org.gradle.testkit.runner.GradleRunner;
 
 record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
@@ -42,28 +43,27 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                 .withDebug(GradleInvoker.shouldRunInTestkitDebugMode())
                 .forwardStdOutput(captureWriter)
                 .forwardStdError(captureWriter)
-                .withPluginClasspath();
-
-        String distributionBaseUrl = System.getProperty("com.palantir.gradle.testing.gradle_distribution_base_url");
-        if (distributionBaseUrl != null) {
-            runner.withGradleDistribution(
-                    URI.create(distributionBaseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip"));
-        } else {
-            runner.withGradleVersion(gradleVersion.version());
-        }
-
-        runner.withArguments(ImmutableList.<String>builder()
-                .addAll(options.args())
-                .add("--stacktrace")
-                .add("-P__TESTING=true")
-                .addAll(options.testingEnvironmentVariables().entrySet().stream()
-                        .map(e -> String.format("-P__TESTING_%s=%s", e.getKey(), e.getValue()))
-                        .toList())
-                .build());
+                .withPluginClasspath()
+                .withGradleDistribution(gradleDistributionUri())
+                .withArguments(ImmutableList.<String>builder()
+                        .addAll(options.args())
+                        .add("--stacktrace")
+                        .add("-P__TESTING=true")
+                        .addAll(options.testingEnvironmentVariables().entrySet().stream()
+                                .map(e -> String.format("-P__TESTING_%s=%s", e.getKey(), e.getValue()))
+                                .toList())
+                        .build());
         options.customGradleUserHome().ifPresent(gradleUserHome -> runner.withTestKitDir(gradleUserHome.toFile()));
 
         String title = buildTitle(options.args());
         return new DefaultGradleInvocation(runner, title, capturedOutput);
+    }
+
+    private URI gradleDistributionUri() {
+        String baseUrl = Optional.ofNullable(
+                        System.getProperty("com.palantir.gradle.testing.gradle_distribution_base_url"))
+                .orElse("https://services.gradle.org/distributions");
+        return URI.create(baseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip");
     }
 
     private String buildTitle(List<String> args) {
