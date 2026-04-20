@@ -50,6 +50,6 @@ public abstract class PluginTestingExtension {
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
         getConfigurationCacheEnabled().convention(false);
-        getGradleDistributionBaseUrl().convention("https://services.gradle.org/distributions");
+        getGradleDistributionBaseUrl().convention(GradleDistributionBaseUrl.DEFAULT_BASE_URL);
     }
 }

@@ -17,5 +17,5 @@
 package com.palantir.gradle.plugintesting;
 
 public record ConfigurationCacheHelper() {
-    static final String CONFIG_CACHE_SYSTEM_PROPERTY = "com.palantir.gradle.testing.configuration_cache_enabled";
+    public static final String CONFIG_CACHE_SYSTEM_PROPERTY = "com.palantir.gradle.testing.configuration_cache_enabled";
 }

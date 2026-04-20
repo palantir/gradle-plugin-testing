@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.plugintesting.ConfigurationCacheHelper;
 import com.palantir.gradle.testing.execution.ConfigurationCacheInvoker;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import java.lang.annotation.Annotation;
@@ -36,7 +37,7 @@ public final class ConfigurationCacheDecorator implements GradleInvokerDecorator
         }
 
         boolean configurationCacheEnabled = context.extensionContext()
-                .getConfigurationParameter("com.palantir.gradle.testing.configuration_cache_enabled")
+                .getConfigurationParameter(ConfigurationCacheHelper.CONFIG_CACHE_SYSTEM_PROPERTY)
                 .map(Boolean::parseBoolean)
                 .orElseThrow(() -> new RuntimeException(
                         "Could not configure whether to run the tests with configuration-cache. Have you"
