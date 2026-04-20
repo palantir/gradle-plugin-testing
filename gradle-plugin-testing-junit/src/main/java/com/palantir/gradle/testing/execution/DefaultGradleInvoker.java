@@ -26,7 +26,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import org.gradle.testkit.runner.GradleRunner;
 
 record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
@@ -60,9 +59,7 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
     }
 
     private URI gradleDistributionUri() {
-        String baseUrl = Optional.ofNullable(
-                        System.getProperty("com.palantir.gradle.testing.gradle_distribution_base_url"))
-                .orElse("https://services.gradle.org/distributions");
+        String baseUrl = System.getProperty("com.palantir.gradle.testing.gradle_distribution_base_url");
         return URI.create(baseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip");
     }
 
