@@ -27,7 +27,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import org.gradle.testkit.runner.GradleRunner;
 
 record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
@@ -61,9 +60,7 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
     }
 
     private URI gradleDistributionUri() {
-        String baseUrl = Optional.ofNullable(
-                        System.getProperty(GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY))
-                .orElse(GradleDistributionBaseUrl.DEFAULT_BASE_URL);
+        String baseUrl = System.getProperty(GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY);
         return URI.create(baseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip");
     }
 
