@@ -773,7 +773,7 @@ By default, tests download Gradle distributions from `services.gradle.org`. To u
 
 ```groovy
 gradleTestUtils {
-    gradleDistributionBaseUrl = 'https://my-artifactory.example.com/gradle-distributions'
+    gradleDistributionBaseUrl = 'https://example.com/gradle-distributions'
 }
 ```
 
