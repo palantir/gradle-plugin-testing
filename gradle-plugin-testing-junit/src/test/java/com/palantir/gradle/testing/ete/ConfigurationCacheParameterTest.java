@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.palantir.example.ConfigurationCacheFixtureTest;
 import com.palantir.example.DisabledConfigurationCacheFixtureTest;
 import com.palantir.example.DisabledConfigurationCacheFixtureTestBefore;
+import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -42,6 +43,9 @@ public class ConfigurationCacheParameterTest {
                 .configurationParameter(
                         "com.palantir.gradle.testing.configuration_cache_enabled",
                         String.valueOf(isConfigurationCacheEnabled))
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
@@ -67,6 +71,9 @@ public class ConfigurationCacheParameterTest {
                 // we require a value for this parameter to be set. Setting it to `invalid` to make sure the value will
                 // always be overridden to false due to the `@DisabledConfigurationCache` annotation.
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "invalid")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();

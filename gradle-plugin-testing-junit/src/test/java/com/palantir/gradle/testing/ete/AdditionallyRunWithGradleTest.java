@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.AdditionallyRunWithGradleFixtureTest;
 import com.palantir.example.MethodLevelAdditionallyRunWithGradleFixtureTest;
+import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,9 @@ final class AdditionallyRunWithGradleTest {
                 // Base version configured via parameter
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
@@ -58,6 +62,9 @@ final class AdditionallyRunWithGradleTest {
                 // 8.0 is both in config and in @AdditionallyRunWithGradle
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.0")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
@@ -77,6 +84,9 @@ final class AdditionallyRunWithGradleTest {
                 // Base version configured via parameter
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();

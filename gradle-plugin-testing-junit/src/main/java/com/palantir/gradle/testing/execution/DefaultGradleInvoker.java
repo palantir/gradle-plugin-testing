@@ -18,7 +18,6 @@ package com.palantir.gradle.testing.execution;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.RestrictedApi;
-import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import com.palantir.gradle.testing.RestrictedCreation;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -29,7 +28,8 @@ import java.nio.file.Path;
 import java.util.List;
 import org.gradle.testkit.runner.GradleRunner;
 
-record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
+record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion, String gradleDistributionBaseUrl)
+        implements GradleInvoker {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public DefaultGradleInvoker {}
 
@@ -60,8 +60,7 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
     }
 
     private URI gradleDistributionUri() {
-        String baseUrl = System.getProperty(GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY);
-        return URI.create(baseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip");
+        return URI.create(gradleDistributionBaseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip");
     }
 
     private String buildTitle(List<String> args) {

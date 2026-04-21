@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.errorprone.annotations.RestrictedApi;
+import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import com.palantir.gradle.testing.RestrictedCreation;
 import com.palantir.gradle.testing.junit.DecoratorContext;
 import com.palantir.gradle.testing.junit.GradleInvokerDecorator;
@@ -54,11 +55,20 @@ public interface GradleInvoker {
     GradleInvocation with(Options options);
 
     static GradleInvoker create(Path path, GradleVersion gradleVersion, ExtensionContext extensionContext) {
-        GradleInvoker baseInvoker = getInternalDefaultInvoker(path, gradleVersion);
+        String baseUrl = readGradleDistributionBaseUrl(extensionContext);
+        GradleInvoker baseInvoker = getInternalDefaultInvoker(path, gradleVersion, baseUrl);
         RootProject rootProject = new TopLevelRootProject(path);
         DecoratorContext decoratorContext = new DecoratorContext(rootProject, gradleVersion, extensionContext);
         Set<Annotation> annotations = collectAnnotationsFromContext(extensionContext);
         return decorateInvokerWithAnnotations(decoratorContext, baseInvoker, annotations);
+    }
+
+    static String readGradleDistributionBaseUrl(ExtensionContext extensionContext) {
+        return extensionContext
+                .getConfigurationParameter(GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY)
+                .orElseThrow(() -> new RuntimeException(
+                        "Could not determine the Gradle distribution base URL. Have you applied the latest"
+                                + " `com.palantir.gradle-plugin-testing` plugin to this project?"));
     }
 
     private static Set<Annotation> collectAnnotationsFromContext(ExtensionContext context) {
@@ -206,8 +216,8 @@ public interface GradleInvoker {
             explanation =
                     "For internal use only. Always prefer GradleInvoker#create for the creation of the GradleInvokers.",
             allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    static GradleInvoker getInternalDefaultInvoker(Path path, GradleVersion gradleVersion) {
-        return new DefaultGradleInvoker(path, gradleVersion);
+    static GradleInvoker getInternalDefaultInvoker(Path path, GradleVersion gradleVersion, String baseUrl) {
+        return new DefaultGradleInvoker(path, gradleVersion, baseUrl);
     }
 
     static boolean shouldRunInTestkitDebugMode() {

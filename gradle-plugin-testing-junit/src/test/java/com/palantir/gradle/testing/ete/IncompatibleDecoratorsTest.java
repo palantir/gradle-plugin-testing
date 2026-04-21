@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.IncompatibleDecoratorsFixtureTest;
+import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.TestExecutionResult;
@@ -36,6 +37,9 @@ final class IncompatibleDecoratorsTest {
                 .selectors(DiscoverySelectors.selectClass(IncompatibleDecoratorsFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.14.3")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         List<Event> finished = executionResults.testEvents().finished().stream().toList();

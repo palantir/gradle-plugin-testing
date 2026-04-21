@@ -56,13 +56,13 @@ public final class MavenRepo {
     private final MavenRepoPublisher publisher;
 
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
-    public MavenRepo(Path repoDir, GradleVersion gradleVersion) {
+    public MavenRepo(Path repoDir, GradleVersion gradleVersion, String gradleDistributionBaseUrl) {
         this.mavenRepoUrl = repoDir.resolve("localMavenRepository").toAbsolutePath();
         Path repoDirPath = repoDir.resolve("localMavenRepositoryPublisherProject");
         this.publisher = new MavenRepoPublisher(
                 mavenRepoUrl,
                 new TopLevelRootProject(repoDirPath),
-                GradleInvoker.getInternalDefaultInvoker(repoDirPath, gradleVersion));
+                GradleInvoker.getInternalDefaultInvoker(repoDirPath, gradleVersion, gradleDistributionBaseUrl));
     }
 
     /**

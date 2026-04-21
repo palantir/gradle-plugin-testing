@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.maven.MavenRepo;
 import java.io.IOException;
@@ -46,7 +47,7 @@ final class MavenRepoStore {
 
         clearDirectory(repositoryDirectory);
 
-        return new MavenRepo(repositoryDirectory, gradleVersion);
+        return new MavenRepo(repositoryDirectory, gradleVersion, GradleInvoker.readGradleDistributionBaseUrl(context));
     }
 
     private static void clearDirectory(Path mavenRepoDirectory) {
