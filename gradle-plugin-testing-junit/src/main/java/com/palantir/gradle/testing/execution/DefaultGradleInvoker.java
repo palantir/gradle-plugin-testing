@@ -22,12 +22,14 @@ import com.palantir.gradle.testing.RestrictedCreation;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import org.gradle.testkit.runner.GradleRunner;
 
-record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) implements GradleInvoker {
+record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion, String gradleDistributionBaseUrl)
+        implements GradleInvoker {
     @RestrictedApi(explanation = RestrictedCreation.EXPLANATION, allowedOnPath = RestrictedCreation.ALLOWED_ON_PATH)
     public DefaultGradleInvoker {}
 
@@ -41,8 +43,8 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
                 .withDebug(GradleInvoker.shouldRunInTestkitDebugMode())
                 .forwardStdOutput(captureWriter)
                 .forwardStdError(captureWriter)
-                .withGradleVersion(gradleVersion.version())
                 .withPluginClasspath()
+                .withGradleDistribution(gradleDistributionUri())
                 .withArguments(ImmutableList.<String>builder()
                         .addAll(options.args())
                         .add("--stacktrace")
@@ -55,6 +57,10 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion) im
 
         String title = buildTitle(options.args());
         return new DefaultGradleInvocation(runner, title, capturedOutput);
+    }
+
+    private URI gradleDistributionUri() {
+        return URI.create(gradleDistributionBaseUrl + "/gradle-" + gradleVersion.version() + "-bin.zip");
     }
 
     private String buildTitle(List<String> args) {

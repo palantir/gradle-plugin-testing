@@ -170,6 +170,10 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             ConfigurationCacheHelper.CONFIG_CACHE_SYSTEM_PROPERTY,
                             testUtilsExt.getConfigurationCacheEnabled().get());
 
+                    test.systemProperty(
+                            GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                            testUtilsExt.getGradleDistributionBaseUrl().get());
+
                     // add system property to ignore gradle deprecations so that nebula tests don't fail
                     if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
                         // from

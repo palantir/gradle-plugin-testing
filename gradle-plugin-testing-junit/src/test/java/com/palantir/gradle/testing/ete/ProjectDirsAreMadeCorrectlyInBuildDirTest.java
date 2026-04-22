@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.ete;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.example.ProjectDirsAreMadeCorrectlyInBuildDirFixtureTest;
+import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,9 @@ final class ProjectDirsAreMadeCorrectlyInBuildDirTest {
                 .selectors(DiscoverySelectors.selectClass(ProjectDirsAreMadeCorrectlyInBuildDirFixtureTest.class))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "true")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
 
         executionResults.testEvents().finished().assertThatEvents().allSatisfy(event -> {

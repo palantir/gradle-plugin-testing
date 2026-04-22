@@ -46,6 +46,8 @@ gradlePlugin {
 
 tasks.named('test', Test) {
     systemProperty 'projectVersion', project.version
+    // TODO(gradle-plugin-testing): remove once buildscript classpath is updated to a version that sets this property
+    systemProperty 'com.palantir.gradle.testing.gradle_distribution_base_url', 'https://services.gradle.org/distributions'
 
     // Added as a jar the so in nebula-tests needs to exist in maven local
     dependsOn ':discover-tests-cli:publishToMavenLocal'

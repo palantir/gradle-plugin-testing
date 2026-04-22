@@ -16,8 +16,10 @@
 
 package com.palantir.gradle.testing.junit;
 
+import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.GradleVersion;
 import com.palantir.gradle.testing.maven.MavenRepo;
+import com.palantir.gradle.testing.project.TopLevelRootProject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -46,7 +48,12 @@ final class MavenRepoStore {
 
         clearDirectory(repositoryDirectory);
 
-        return new MavenRepo(repositoryDirectory, gradleVersion);
+        Path repoDirPath = repositoryDirectory.resolve("localMavenRepositoryPublisherProject");
+        Path mavenRepoUrl = repositoryDirectory.resolve("localMavenRepository");
+        String gradleDistributionBaseUrl = GradleInvoker.readGradleDistributionBaseUrl(context);
+        GradleInvoker invoker =
+                GradleInvoker.getInternalDefaultInvoker(repoDirPath, gradleVersion, gradleDistributionBaseUrl);
+        return new MavenRepo(mavenRepoUrl, new TopLevelRootProject(repoDirPath), invoker);
     }
 
     private static void clearDirectory(Path mavenRepoDirectory) {

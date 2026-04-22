@@ -171,6 +171,35 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
+    void gradle_distribution_base_url_is_passed_as_system_property(
+            GradleInvoker gradleInvoker, RootProject rootProject) {
+
+        rootProject.buildGradle().append("""
+            gradleTestUtils {
+                gradleDistributionBaseUrl = 'https://example.com/gradle-distributions'
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import static org.assertj.core.api.Assertions.assertThat;
+
+            import org.junit.jupiter.api.Test;
+
+            class TestClass {
+                @Test
+                void testMethod() {
+                    assertThat(System.getProperty("com.palantir.gradle.testing.gradle_distribution_base_url"))
+                            .isEqualTo("https://example.com/gradle-distributions");
+                }
+            }
+            """);
+
+        gradleInvoker.withArgs("test").buildsSuccessfully();
+    }
+
+    @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 

@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.plugintesting;
 
-public record ConfigurationCacheHelper() {
-    public static final String CONFIG_CACHE_SYSTEM_PROPERTY = "com.palantir.gradle.testing.configuration_cache_enabled";
+public record GradleDistributionBaseUrl() {
+    public static final String GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY =
+            "com.palantir.gradle.testing.gradle_distribution_base_url";
+    public static final String DEFAULT_BASE_URL = "https://services.gradle.org/distributions";
 }

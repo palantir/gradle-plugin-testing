@@ -19,6 +19,7 @@ package com.palantir.gradle.testing.ete;
 import static org.junit.platform.testkit.engine.EventConditions.reportEntry;
 
 import com.palantir.example.ParameterizedByGradleVersionFixtureTest;
+import com.palantir.gradle.plugintesting.GradleDistributionBaseUrl;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
@@ -130,6 +131,9 @@ final class ParameterizedByGradleVersionTest {
                 .selectors(DiscoverySelectors.selectClass(fixtureClass))
                 .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", gradleVersion)
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
+                .configurationParameter(
+                        GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
+                        GradleDistributionBaseUrl.DEFAULT_BASE_URL)
                 .execute();
     }
 }
