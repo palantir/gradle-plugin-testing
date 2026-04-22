@@ -49,7 +49,7 @@ final class MavenRepoStore {
         clearDirectory(repositoryDirectory);
 
         Path repoDirPath = repositoryDirectory.resolve("localMavenRepositoryPublisherProject");
-        Path mavenRepoUrl = repositoryDirectory.resolve("localMavenRepository").toAbsolutePath();
+        Path mavenRepoUrl = repositoryDirectory.resolve("localMavenRepository");
         String gradleDistributionBaseUrl = GradleInvoker.readGradleDistributionBaseUrl(context);
         GradleInvoker invoker =
                 GradleInvoker.getInternalDefaultInvoker(repoDirPath, gradleVersion, gradleDistributionBaseUrl);
