@@ -19,7 +19,7 @@ import com.palantir.gradle.versions.VersionsLockExtension;
 import org.gradle.api.Project;
 
 /**
- * Isolates GCV types so {@link PluginTestingPlugin} can be decorated without GCV on the classpath. Only call from
+ * Isolates GCV type references so {@link PluginTestingPlugin} loads without GCV on the classpath. Only call from
  * inside a {@code withPlugin("com.palantir.consistent-versions", ...)} callback.
  */
 final class GradleConsistentVersionsInterop {
