@@ -86,7 +86,7 @@ com.palantir.javaformat:palantir-java-format-spi:1.1.0 (2 constraints: 2b273bdb)
 
 com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.21.0 (2 constraints: f5161a3a)
 
-commons-io:commons-io:2.21.0 (1 constraints: 3705363b)
+commons-io:commons-io:2.22.0 (1 constraints: 3805393b)
 
 commons-lang:commons-lang:2.6 (1 constraints: 6311bad1)
 
