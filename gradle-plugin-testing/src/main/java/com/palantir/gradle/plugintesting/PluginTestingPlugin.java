@@ -24,7 +24,6 @@ import com.palantir.baseline.tasks.CheckUnusedDependenciesParentTask;
 import com.palantir.gradle.plugintesting.TestDependencyVersionsTask.TestDependency;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorProneExtension;
 import com.palantir.gradle.suppressibleerrorprone.SuppressibleErrorPronePlugin;
-import com.palantir.gradle.versions.VersionsLockExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -292,9 +291,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
         });
 
         project.getRootProject().getPluginManager().withPlugin("com.palantir.consistent-versions", _plugin -> {
-            project.getExtensions()
-                    .getByType(VersionsLockExtension.class)
-                    .test(scope -> scope.from(gradlePluginForTestingResolvable.getName()));
+            GradleConsistentVersionsInterop.registerTestScope(project, gradlePluginForTestingResolvable.getName());
         });
     }
 
