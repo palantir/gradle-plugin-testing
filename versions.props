@@ -1,6 +1,6 @@
 com.fasterxml.jackson.*:* = 2.21.1
 com.fasterxml.jackson.core:jackson-annotations = 2.21
-commons-io:commons-io = 2.21.0
+commons-io:commons-io = 2.22.0
 com.google.auto.service:* = 1.1.1
 com.google.errorprone:* = 2.42.0
 com.google.guava:guava = 33.5.0-jre
