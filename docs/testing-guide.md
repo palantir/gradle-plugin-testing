@@ -104,6 +104,7 @@ Tests can request these parameters in any order:
 - **`SubProject`** - Gradle subproject for the root project. The parameter name will be used as the project name exactly. For example, `SubProject apiService` creates a subproject named `apiService`
 - **`IncludedBuild`** - An included build (composite build) for the root project. The parameter name will be used as the build name exactly. For example, `IncludedBuild myLib` creates an included build named `myLib` with its own `settings.gradle` and `build.gradle`
 - **`MavenRepo`** - Maven repository for publishing test artifacts. See [Maven Repository Testing](#maven-repository-testing)
+- **`Git`** - Git repository initialised against the root project directory. See [Git Repository Testing](#git-repository-testing)
 
 These parameters can be used in the constructor for a test class or in `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, or `@AfterAll` methods.
 
@@ -676,28 +677,37 @@ The `MavenRepo` instance is shared across all test methods in a class. Artifacts
 
 ## Git Repository Testing
 
-Use `Git` to set up a git repository in a test project for plugins that read git state (versioning, release, changelog, etc.). It shells out to the `git` binary on `PATH`, so tests exercise the same code path as production.
+Request a `Git` parameter to set up a git repository in a test project for plugins that read git state (versioning, release, changelog, etc.). It shells out to the `git` binary on `PATH`.
 
-`Git` lives in a separate module, `testing-utils`, so projects can depend on it without pulling in the full JUnit harness:
-
-```gradle
-testImplementation 'com.palantir.gradle.plugintesting:testing-utils'
-```
+The repository is initialised against the root project directory on first injection per test method.
 
 ```java
-import com.palantir.gradle.testing.utils.git.Git;
+import com.palantir.gradle.testing.git.Git;
 
 @Test
-void resolves_version_from_tag(RootProject project, GradleInvoker gradle) throws Exception {
-    Git.init(project.projectDir());
-    Git.run(project.projectDir(), "commit", "--allow-empty", "-m", "initial");
-    Git.run(project.projectDir(), "tag", "1.0.0");
+void resolves_version_from_tag(Git git, GradleInvoker gradle) {
+    git.commit("initial");
+    git.tag("1.0.0");
 
-    gradle.withArgs("printVersion").buildsSuccessfully();
+    assertThat(gradle.withArgs("printVersion").buildsSuccessfully())
+        .output().contains("1.0.0");
 }
 ```
 
-`Git.init` runs `git init` and then disables gpg signing (`commit.gpgsign`, `tag.gpgsign`, `tag.forcesignannotated`) and sets a fixed `user.email` / `user.name`, so tests are hermetic regardless of the host's git config.
+Auto-initialisation runs `git init`, disables gpg signing (`commit.gpgsign`, `tag.gpgsign`, `tag.forcesignannotated`), and sets a fixed `user.email` / `user.name`, so tests are hermetic regardless of the host's git config.
+
+Common helpers:
+
+- `git.commit(message)` — creates an empty commit
+- `git.commit(message, env)` — creates an empty commit with environment variables (e.g. `GIT_AUTHOR_DATE`)
+- `git.tag(name)` — creates a lightweight tag at `HEAD`
+
+For other git operations:
+
+```java
+git.run("checkout", "-b", "feature");
+git.run(Map.of("GIT_AUTHOR_DATE", "2020-01-02T03:04:05+00:00"), "commit", "--allow-empty", "-m", "dated");
+```
 
 ## Executing Gradle Builds
 
