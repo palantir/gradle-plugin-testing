@@ -55,6 +55,7 @@ final class GradleVersioningClassTemplate implements ClassTemplateInvocationCont
                     new GradleInvokerParameterResolver(),
                     new GradleProjectParameterResolver(),
                     new MavenRepoParameterResolver(),
+                    new GitParameterResolver(),
                     new ParameterizedByGradleVersionResolver());
         }
     }
