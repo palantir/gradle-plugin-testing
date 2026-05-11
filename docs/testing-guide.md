@@ -699,17 +699,6 @@ void resolves_version_from_tag(RootProject project, GradleInvoker gradle) throws
 
 `Git.init` runs `git init` and then disables gpg signing (`commit.gpgsign`, `tag.gpgsign`, `tag.forcesignannotated`) and sets a fixed `user.email` / `user.name`, so tests are hermetic regardless of the host's git config.
 
-`Git.run` returns the combined stdout/stderr of the command and asserts a zero exit code. Use it for any git operation — commits, tags, branches, merges, `rev-parse`, `worktree`, remotes, and so on.
-
-There is also an overload that accepts environment variables, which is useful for deterministic timestamps:
-
-```java
-Git.run(
-    project.projectDir(),
-    Map.of("GIT_COMMITTER_DATE", "2024-01-01T00:00:00+00:00"),
-    "commit", "--allow-empty", "-m", "fixed-date");
-```
-
 ## Executing Gradle Builds
 
 ### Basic Execution
