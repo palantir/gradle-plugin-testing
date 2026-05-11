@@ -26,6 +26,7 @@ This guide covers how to write tests for Gradle plugins using the `gradle-plugin
     - [Directories](#directories)
     - [Build Directory](#build-directory)
 - [Maven Repository Testing](#maven-repository-testing)
+- [Git Repository Testing](#git-repository-testing)
 - [Executing Gradle Builds](#executing-gradle-builds)
     - [Basic Execution](#basic-execution)
     - [Running builds with Configuration Cache enabled](#running-builds-with-configuration-cache-enabled)
@@ -672,6 +673,42 @@ void publish_and_resolve_artifacts(MavenRepo repo, RootProject root, GradleInvok
 ```
 
 The `MavenRepo` instance is shared across all test methods in a class. Artifacts published in lifecycle methods (eg. `@BeforeEach`) remain available for subsequent tests.
+
+## Git Repository Testing
+
+Use `Git` to set up a git repository in a test project for plugins that read git state (versioning, release, changelog, etc.). It shells out to the `git` binary on `PATH`, so tests exercise the same code path as production.
+
+`Git` lives in a separate module, `gradle-plugin-testing-utils`, so projects can depend on it without pulling in the full JUnit harness:
+
+```gradle
+testImplementation 'com.palantir.gradle.plugintesting:gradle-plugin-testing-utils'
+```
+
+```java
+import com.palantir.gradle.testing.git.Git;
+
+@Test
+void resolves_version_from_tag(RootProject project, GradleInvoker gradle) throws Exception {
+    Git.init(project.projectDir());
+    Git.run(project.projectDir(), "commit", "--allow-empty", "-m", "initial");
+    Git.run(project.projectDir(), "tag", "1.0.0");
+
+    gradle.withArgs("printVersion").buildsSuccessfully();
+}
+```
+
+`Git.init` runs `git init` and then disables gpg signing (`commit.gpgsign`, `tag.gpgsign`, `tag.forcesignannotated`) and sets a fixed `user.email` / `user.name`, so tests are hermetic regardless of the host's git config.
+
+`Git.run` returns the combined stdout/stderr of the command and asserts a zero exit code. Use it for any git operation — commits, tags, branches, merges, `rev-parse`, `worktree`, remotes, and so on.
+
+There is also an overload that accepts environment variables, which is useful for deterministic timestamps:
+
+```java
+Git.run(
+    project.projectDir(),
+    Map.of("GIT_COMMITTER_DATE", "2024-01-01T00:00:00+00:00"),
+    "commit", "--allow-empty", "-m", "fixed-date");
+```
 
 ## Executing Gradle Builds
 
