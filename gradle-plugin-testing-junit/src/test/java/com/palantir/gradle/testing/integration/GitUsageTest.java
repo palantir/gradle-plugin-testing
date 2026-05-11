@@ -50,10 +50,9 @@ class GitUsageTest {
 
     @Test
     void commit_with_env_vars(Git git) {
-        String authorDate = "2020-01-02T03:04:05+00:00";
-        git.commit("dated commit", Map.of("GIT_AUTHOR_DATE", authorDate, "GIT_COMMITTER_DATE", authorDate));
+        git.commit("authored commit", Map.of("GIT_AUTHOR_NAME", "Overridden Author"));
 
-        assertThat(git.run("log", "-1", "--format=%aI").trim()).isEqualTo("2020-01-02T03:04:05Z");
+        assertThat(git.run("log", "-1", "--format=%an").trim()).isEqualTo("Overridden Author");
     }
 
     @Test
