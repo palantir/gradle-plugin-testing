@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    implementation 'com.google.guava:guava'
+    implementation 'org.assertj:assertj-core'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
