@@ -67,6 +67,7 @@ These comments should be copied over to the new test files as they are created t
 
 # General Instructions
 - You MUST migrate ALL tests from the original file. Do not skip any tests or only migrate a "representative sample". Every single test method in the original Groovy file must have a corresponding test method in the new Java file.
+- You MUST ensure the repo's own Gradle version is included in the Gradle versions tested against. Check `gradle/wrapper/gradle-wrapper.properties` for the version the repo runs on, then make sure it appears in `gradle/gradle-test-versions.yml` (under `major-versions` or `extra-versions`) or in the `gradleTestUtils { gradleVersions = [...] }` extension. For example, if the existing config only lists `8.14.5` but the repo runs on Gradle 9, add the repo's Gradle 9 version too. If no config file exists yet, create `gradle/gradle-test-versions.yml` with the repo's version. Tests must run against the version the repo itself uses.
 - Always add both `@GradlePluginTests` and `@DisabledConfigurationCache` to the migrated test classes.
 - Test names should be changed to a snake_case_english_sentence in all lower case.
 - Keep the comments from the original Groovy tests when writing the new tests.
