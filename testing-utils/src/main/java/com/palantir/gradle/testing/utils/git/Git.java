@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.testing.git;
+package com.palantir.gradle.testing.utils.git;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

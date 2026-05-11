@@ -678,14 +678,14 @@ The `MavenRepo` instance is shared across all test methods in a class. Artifacts
 
 Use `Git` to set up a git repository in a test project for plugins that read git state (versioning, release, changelog, etc.). It shells out to the `git` binary on `PATH`, so tests exercise the same code path as production.
 
-`Git` lives in a separate module, `gradle-plugin-testing-utils`, so projects can depend on it without pulling in the full JUnit harness:
+`Git` lives in a separate module, `testing-utils`, so projects can depend on it without pulling in the full JUnit harness:
 
 ```gradle
-testImplementation 'com.palantir.gradle.plugintesting:gradle-plugin-testing-utils'
+testImplementation 'com.palantir.gradle.plugintesting:testing-utils'
 ```
 
 ```java
-import com.palantir.gradle.testing.git.Git;
+import com.palantir.gradle.testing.utils.git.Git;
 
 @Test
 void resolves_version_from_tag(RootProject project, GradleInvoker gradle) throws Exception {
