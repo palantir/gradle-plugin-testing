@@ -87,7 +87,7 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
                         getProjectLayout().getBuildDirectory(),
                         getTestClassType(),
                         (buildDirectory, testType) ->
-                                buildDirectory.dir(String.format("tests-discovery/%s", testType)));
+                                buildDirectory.dir(String.format("tests-discovery/%s/%s", getName(), testType)));
 
         getDiscoveredTestsFile().convention(outputRootDirectory.map(outputRoot -> outputRoot.file("test-classes")));
         getOutputFile().convention(outputRootDirectory.map(outputRoot -> outputRoot.file("test-classes-paths")));

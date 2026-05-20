@@ -202,6 +202,13 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                                             "com.palantir.gradle.testing.junit.DisabledConfigurationCache"));
                         });
 
+        project.getTasks().register("discoverGradlePluginTestsAnnotatedTests", DiscoverTestClassesTask.class, task -> {
+            task.getTestClassType().set("java");
+            task.getExtraArguments()
+                    .addAll(List.of(
+                            "withAnnotations", "--include", "com.palantir.gradle.testing.junit.GradlePluginTests"));
+        });
+
         project.getTasks().register("discoverNebulaTestClassesToMigrate", DiscoverTestClassesTask.class, task -> {
             task.getTestClassType().set("groovy");
             task.getExtraArguments()
