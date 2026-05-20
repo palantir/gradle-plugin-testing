@@ -301,11 +301,11 @@ class PluginTestingJunitPluginTest {
 
         gradle.withArgs("discoverGradlePluginTestsWithDisabledConfigurationCache")
                 .buildsSuccessfully();
-        assertThat(readTestClassesPaths(rootProject, "java"))
+        assertThat(readTestClassesPaths(rootProject, "discoverGradlePluginTestsWithDisabledConfigurationCache", "java"))
                 .containsExactlyInAnyOrder("src/test/java/test/NoConfigCacheGradlePluginTestClass.java");
 
         gradle.withArgs("discoverGradlePluginTestsAnnotatedTests").buildsSuccessfully();
-        assertThat(readGradlePluginTestsAnnotatedPaths(rootProject))
+        assertThat(readTestClassesPaths(rootProject, "discoverGradlePluginTestsAnnotatedTests", "java"))
                 .containsExactlyInAnyOrder(
                         "src/test/java/test/GradlePluginTestClass.java",
                         "src/test/java/test/NoConfigCacheGradlePluginTestClass.java");
@@ -356,7 +356,7 @@ class PluginTestingJunitPluginTest {
         });
 
         gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
-        assertThat(readTestClassesPaths(rootProject, "groovy"))
+        assertThat(readTestClassesPaths(rootProject, "discoverNebulaTestClassesToMigrate", "groovy"))
                 .containsExactlyInAnyOrder(
                         "src/test/groovy/test/NebulaIntegrationTest.groovy",
                         "src/test/groovy/test/SubClassesNebulaIntegrationTest.groovy",
@@ -421,24 +421,17 @@ class PluginTestingJunitPluginTest {
             """);
 
         gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
-        assertThat(readTestClassesPaths(rootProject, "groovy"))
+        assertThat(readTestClassesPaths(rootProject, "discoverNebulaTestClassesToMigrate", "groovy"))
                 .containsExactlyInAnyOrder(
                         "src/test/groovy/test/TestSourceSetSpec.groovy",
                         "src/integrationTest/groovy/test/IntegrationSourceSetSpec.groovy");
     }
 
-    private static List<String> readTestClassesPaths(RootProject rootProject, String language) throws IOException {
+    private static List<String> readTestClassesPaths(RootProject rootProject, String taskName, String language)
+            throws IOException {
         return Files.readAllLines(rootProject
                 .buildDir()
-                .directory(String.format("tests-discovery/%s", language))
-                .file("test-classes-paths")
-                .path());
-    }
-
-    private static List<String> readGradlePluginTestsAnnotatedPaths(RootProject rootProject) throws IOException {
-        return Files.readAllLines(rootProject
-                .buildDir()
-                .directory("tests-discovery/gradle-plugin-tests-annotated")
+                .directory(String.format("tests-discovery/%s/%s", taskName, language))
                 .file("test-classes-paths")
                 .path());
     }
