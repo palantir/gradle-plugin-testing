@@ -303,6 +303,12 @@ class PluginTestingJunitPluginTest {
                 .buildsSuccessfully();
         assertThat(readTestClassesPaths(rootProject, "java"))
                 .containsExactlyInAnyOrder("src/test/java/test/NoConfigCacheGradlePluginTestClass.java");
+
+        gradle.withArgs("discoverGradlePluginTestsAnnotatedTests").buildsSuccessfully();
+        assertThat(readGradlePluginTestsAnnotatedPaths(rootProject))
+                .containsExactlyInAnyOrder(
+                        "src/test/java/test/GradlePluginTestClass.java",
+                        "src/test/java/test/NoConfigCacheGradlePluginTestClass.java");
     }
 
     @Test
@@ -425,6 +431,14 @@ class PluginTestingJunitPluginTest {
         return Files.readAllLines(rootProject
                 .buildDir()
                 .directory(String.format("tests-discovery/%s", language))
+                .file("test-classes-paths")
+                .path());
+    }
+
+    private static List<String> readGradlePluginTestsAnnotatedPaths(RootProject rootProject) throws IOException {
+        return Files.readAllLines(rootProject
+                .buildDir()
+                .directory("tests-discovery/gradle-plugin-tests-annotated")
                 .file("test-classes-paths")
                 .path());
     }
