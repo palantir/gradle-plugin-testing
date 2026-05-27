@@ -36,23 +36,23 @@ com.github.ben-manes.caffeine:caffeine:3.1.8 (2 constraints: a724eed3)
 
 com.github.kevinstern:software-and-algorithms:1.0 (1 constraints: 7e12fcf5)
 
-com.google.auto:auto-common:1.2.1 (2 constraints: b321cc9d)
+com.google.auto:auto-common:1.2.2 (2 constraints: b421cd9d)
 
 com.google.auto.service:auto-service:1.1.1 (1 constraints: 0505f435)
 
 com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 9c0f6a86)
 
-com.google.auto.value:auto-value-annotations:1.10.4 (2 constraints: 141da40a)
+com.google.auto.value:auto-value-annotations:1.11.0 (3 constraints: 562f3924)
 
-com.google.errorprone:error_prone_annotation:2.42.0 (2 constraints: a02795d0)
+com.google.errorprone:error_prone_annotation:2.47.0 (2 constraints: aa27cbd1)
 
-com.google.errorprone:error_prone_annotations:2.42.0 (5 constraints: a34c5e22)
+com.google.errorprone:error_prone_annotations:2.47.0 (5 constraints: b14ce426)
 
-com.google.errorprone:error_prone_check_api:2.42.0 (2 constraints: c71974d5)
+com.google.errorprone:error_prone_check_api:2.47.0 (2 constraints: cc1983d5)
 
 com.google.guava:failureaccess:1.0.3 (2 constraints: f3154f13)
 
-com.google.guava:guava:33.5.0-jre (15 constraints: ee1dbbec)
+com.google.guava:guava:33.6.0-jre (15 constraints: 631eecbd)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
@@ -148,7 +148,7 @@ org.apiguardian:apiguardian-api:1.1.2 (7 constraints: 4c78945b)
 
 org.assertj:assertj-core:3.27.3 (2 constraints: 7417d248)
 
-org.checkerframework:checker-qual:3.42.0 (3 constraints: 102d791b)
+org.checkerframework:checker-qual:3.42.0 (1 constraints: 3310aaaf)
 
 org.codehaus.groovy:groovy:3.0.24 (4 constraints: 762e7bd1)
 
@@ -182,7 +182,7 @@ org.immutables:value:2.12.2 (1 constraints: 3905373b)
 
 org.jetbrains:annotations:26.1.0 (1 constraints: 3b054e3b)
 
-org.jspecify:jspecify:1.0.0 (3 constraints: 4431fdfd)
+org.jspecify:jspecify:1.0.0 (5 constraints: af4d04ab)
 
 org.junit.jupiter:junit-jupiter-api:5.13.4 (4 constraints: 3e35a85d)
 
@@ -198,7 +198,7 @@ org.objenesis:objenesis:2.4 (1 constraints: ea0c8c0a)
 
 org.opentest4j:opentest4j:1.3.0 (3 constraints: c832c2a1)
 
-org.ow2.asm:asm:9.9 (4 constraints: 154d6fae)
+org.ow2.asm:asm:9.9 (4 constraints: 174de3af)
 
 org.slf4j:slf4j-api:1.7.36 (4 constraints: fb433bc6)
 
@@ -212,17 +212,15 @@ org.yaml:snakeyaml:2.5 (1 constraints: 3f178e10)
 
 [Test dependencies]
 
-com.google.auto.value:auto-value:1.10 (1 constraints: e711f8e8)
-
-com.google.errorprone:error_prone_test_helpers:2.42.0 (1 constraints: 3a05413b)
+com.google.errorprone:error_prone_test_helpers:2.47.0 (1 constraints: 3a05413b)
 
 com.google.googlejavaformat:google-java-format:1.27.0 (1 constraints: 9014ad75)
 
 com.google.jimfs:jimfs:1.3.0 (1 constraints: 5a141061)
 
-com.google.testing.compile:compile-testing:0.21.0 (1 constraints: 89149575)
+com.google.testing.compile:compile-testing:0.23.0 (1 constraints: 8b149b75)
 
-com.google.truth:truth:1.4.0 (2 constraints: 72265a6a)
+com.google.truth:truth:1.4.5 (2 constraints: 7726656a)
 
 org.hamcrest:hamcrest-library:2.2 (1 constraints: fc138e38)
 
