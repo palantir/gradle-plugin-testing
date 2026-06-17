@@ -20,6 +20,7 @@ import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.Options;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -42,5 +43,16 @@ public class TestingPropertiesTest {
                 .putTestingEnvironmentVariables("FOO", "bar")
                 .build();
         gradle.with(barOptions).buildsSuccessfully().assertThat().output().contains("hello from bar");
+    }
+
+    @Test
+    void can_override_testing_property(GradleInvoker gradle, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            println "testing value is ${project.property("__TESTING")}"
+            """);
+
+        Options noTestingOptions =
+                Options.builder().args(List.of("-P__TESTING=false")).build();
+        gradle.with(noTestingOptions).buildsSuccessfully().assertThat().output().contains("testing value is false");
     }
 }
