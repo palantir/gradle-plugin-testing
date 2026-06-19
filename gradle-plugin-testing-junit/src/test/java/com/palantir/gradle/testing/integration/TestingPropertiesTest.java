@@ -47,7 +47,7 @@ public class TestingPropertiesTest {
 
     @Test
     @DisabledTestingProperty
-    void can_override_testing_property(GradleInvoker gradle, RootProject rootProject) {
+    void can_disable_testing_property(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().append("""
             println "testing value is ${project.property("__TESTING")}"
             """);
