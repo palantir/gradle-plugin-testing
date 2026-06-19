@@ -17,14 +17,20 @@
 package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
-public final class TestingPropertyDecorator implements GradleInvokerDecorator<DisabledTestingProperty> {
+public final class TestingPropertyDecorator implements GradleInvokerDecorator<Annotation> {
 
     @Override
-    public GradleInvoker decorate(
-            DecoratorContext context, GradleInvoker delegate, List<DisabledTestingProperty> annotations) {
+    public GradleInvoker decorate(DecoratorContext context, GradleInvoker delegate, List<Annotation> annotations) {
+        if (annotations.stream()
+                .anyMatch(annotation -> annotation.annotationType().equals(DisabledTestingProperty.class))) {
+            return options -> delegate.with(
+                    options.asBuilder().addArgs("-P__TESTING=false").build());
+        }
+
         return options ->
-                delegate.with(options.asBuilder().addArgs("-P__TESTING=false").build());
+                delegate.with(options.asBuilder().addArgs("-P__TESTING=true").build());
     }
 }

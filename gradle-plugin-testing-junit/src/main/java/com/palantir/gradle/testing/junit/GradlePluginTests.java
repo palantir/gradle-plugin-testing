@@ -30,4 +30,5 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ClassTemplate
 @DisplayNameGeneration(GradlePluginTestingDisplayNameGenerator.class)
 @RegistersGradleInvokerDecorator(ConfigurationCacheDecorator.class)
+@RegistersGradleInvokerDecorator(TestingPropertyDecorator.class)
 public @interface GradlePluginTests {}

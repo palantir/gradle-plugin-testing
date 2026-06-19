@@ -128,7 +128,7 @@ class GradleInvokerDecoratorTests {
 
             assertThatThrownBy(() -> invoker.withArgs("hello").buildsWithFailure())
                     .as("check top-down order (parent classes -> class -> method), ")
-                    .hasMessageContaining("-P__TESTING=true, hello, "
+                    .hasMessageContaining("hello, -P__TESTING=true, "
                             + // first discovering the `@WithArgAddingDecorator`(most inner class) annotation with the
                             // corresponding args.
                             "-Pfoo=foo, -Pbar=bar, -Pbaz=baz, "

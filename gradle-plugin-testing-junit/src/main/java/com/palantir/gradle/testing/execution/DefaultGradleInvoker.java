@@ -46,7 +46,6 @@ record DefaultGradleInvoker(Path rootProjectDir, GradleVersion gradleVersion, St
                 .withPluginClasspath()
                 .withGradleDistribution(gradleDistributionUri())
                 .withArguments(ImmutableList.<String>builder()
-                        .add("-P__TESTING=true")
                         .addAll(options.args())
                         .add("--stacktrace")
                         .addAll(options.testingEnvironmentVariables().entrySet().stream()
