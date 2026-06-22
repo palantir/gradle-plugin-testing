@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.platform.commons.support.AnnotationSupport;
 
 public interface GradleInvoker {
 
@@ -96,7 +95,7 @@ public interface GradleInvoker {
         ImmutableList.Builder<Annotation> annotationBuilder = ImmutableList.builder();
 
         for (Annotation annotation : element.getAnnotations()) {
-            if (AnnotationSupport.isAnnotated(annotation.annotationType(), RegistersGradleInvokerDecorator.class)) {
+            if (annotation.annotationType().getAnnotationsByType(RegistersGradleInvokerDecorator.class).length > 0) {
                 annotationBuilder.add(annotation);
             }
             // Check if this might be a container annotation for repeatable annotations
@@ -134,13 +133,12 @@ public interface GradleInvoker {
         ListMultimap<Class<? extends GradleInvokerDecorator>, Annotation> decoratorToAnnotations =
                 MultimapBuilder.linkedHashKeys().arrayListValues().build();
         for (Annotation annotation : annotations) {
-            RegistersGradleInvokerDecorator registersMeta =
-                    annotation.annotationType().getAnnotation(RegistersGradleInvokerDecorator.class);
-            if (registersMeta == null) {
-                continue;
+            RegistersGradleInvokerDecorator[] registersMetas =
+                    annotation.annotationType().getAnnotationsByType(RegistersGradleInvokerDecorator.class);
+            for (RegistersGradleInvokerDecorator registersMeta : registersMetas) {
+                Class<? extends GradleInvokerDecorator> decoratorClass = registersMeta.value();
+                decoratorToAnnotations.put(decoratorClass, annotation);
             }
-            Class<? extends GradleInvokerDecorator> decoratorClass = registersMeta.value();
-            decoratorToAnnotations.put(decoratorClass, annotation);
         }
 
         // Apply decorators in the original order, passing only relevant annotations to each

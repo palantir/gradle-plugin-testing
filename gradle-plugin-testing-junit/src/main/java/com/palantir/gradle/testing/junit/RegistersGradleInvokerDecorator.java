@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.junit;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -43,6 +44,7 @@ import java.util.List;
  * }
  * }</pre>
  */
+@Repeatable(RegistersGradleInvokerDecorators.class)
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RegistersGradleInvokerDecorator {

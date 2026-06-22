@@ -128,14 +128,14 @@ class GradleInvokerDecoratorTests {
 
             assertThatThrownBy(() -> invoker.withArgs("hello").buildsWithFailure())
                     .as("check top-down order (parent classes -> class -> method), ")
-                    .hasMessageContaining("hello, "
+                    .hasMessageContaining("hello, -P__TESTING=true, "
                             + // first discovering the `@WithArgAddingDecorator`(most inner class) annotation with the
                             // corresponding args.
                             "-Pfoo=foo, -Pbar=bar, -Pbaz=baz, "
                             + // then the `@RepeatableWithArgAddingDecorator` with the corresponding args.
                             "-PtopClass=true, -PclassValue=classDecorator,"
                             + " help, -PnestedClass=value, -Pname=hello, -PclassValue2=secondClassDecorator,"
-                            + " --stacktrace, -P__TESTING=true");
+                            + " --stacktrace");
         }
     }
 }
