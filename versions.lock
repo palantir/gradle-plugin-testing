@@ -106,7 +106,7 @@ net.bytebuddy:byte-buddy:1.15.11 (1 constraints: 7f0bc9ea)
 
 net.ltgt.gradle:gradle-errorprone-plugin:4.3.0 (2 constraints: ba2e2b18)
 
-one.util:streamex:0.8.4 (3 constraints: ce3df6ab)
+one.util:streamex:0.9.0 (3 constraints: cb3d2daa)
 
 org.apache.commons:commons-lang3:3.20.0 (5 constraints: f643f6f6)
 
