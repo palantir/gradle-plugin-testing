@@ -31,4 +31,3 @@ include 'configuration-cache-spec'
 include 'gradle-plugin-testing-error-prone'
 include 'gradle-plugin-testing-junit'
 include 'discover-tests-cli'
-throw new RuntimeException('''The excavator failed to run properly - exited with code 1 and output:\n\n''' + file('gradle/exception').text + '\n\n')

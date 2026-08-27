@@ -3,7 +3,9 @@ apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
     api 'com.netflix.nebula:nebula-test'
-    implementation 'org.codehaus.groovy:groovy'
+    implementation 'org.apache.groovy:groovy'
     implementation 'org.spockframework:spock-core'
+    compileOnly 'junit:junit'
+    runtimeOnly 'org.spockframework:spock-junit4'
     implementation gradleTestKit()
 }
