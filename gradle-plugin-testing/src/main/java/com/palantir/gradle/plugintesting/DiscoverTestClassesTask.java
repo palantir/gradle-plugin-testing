@@ -124,8 +124,12 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
                 }
             }
 
-            private String toFilePath(String line) {
-                return line.replace('.', '/') + "." + getTestClassType().get();
+            private String toFilePath(String className) {
+                int nestedClassSeparator = className.indexOf('$');
+                String sourceClassName =
+                        nestedClassSeparator >= 0 ? className.substring(0, nestedClassSeparator) : className;
+                return sourceClassName.replace('.', '/') + "."
+                        + getTestClassType().get();
             }
         });
     }

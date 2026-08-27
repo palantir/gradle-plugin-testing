@@ -271,6 +271,24 @@ class PluginTestingJunitPluginTest {
             package test;
 
             import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import java.nio.file.Files;
+            import org.junit.jupiter.api.Test;
+
+            class NestedGradlePluginTestClassContainer {
+                @GradlePluginTests
+                static class NestedGradlePluginTestClass {
+                    @Test
+                    void test() throws Exception {
+                        Files.createTempDirectory("prefix");
+                    }
+                }
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
             import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
             import java.nio.file.Files;
             import org.junit.jupiter.api.Nested;
@@ -308,6 +326,7 @@ class PluginTestingJunitPluginTest {
         assertThat(readTestClassesPaths(rootProject, "discoverGradlePluginTestsAnnotatedTests", "java"))
                 .containsExactlyInAnyOrder(
                         "src/test/java/test/GradlePluginTestClass.java",
+                        "src/test/java/test/NestedGradlePluginTestClassContainer.java",
                         "src/test/java/test/NoConfigCacheGradlePluginTestClass.java");
     }
 
