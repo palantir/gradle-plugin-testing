@@ -150,9 +150,9 @@ org.assertj:assertj-core:3.27.3 (2 constraints: 7417d248)
 
 org.checkerframework:checker-qual:3.42.0 (3 constraints: 102d791b)
 
-org.codehaus.groovy:groovy:3.0.24 (4 constraints: 762e7bd1)
+org.codehaus.groovy:groovy:3.0.25 (4 constraints: 782e45d2)
 
-org.codehaus.groovy:groovy-xml:3.0.24 (1 constraints: 791161da)
+org.codehaus.groovy:groovy-xml:3.0.25 (1 constraints: 791161da)
 
 org.codehaus.plexus:plexus-cipher:2.0 (1 constraints: 641174c7)
 
