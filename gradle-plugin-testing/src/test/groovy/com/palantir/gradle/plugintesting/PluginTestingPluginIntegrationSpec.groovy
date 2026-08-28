@@ -51,10 +51,12 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 implementation gradleApi()
                 implementation 'com.google.guava:guava'
                 
-                testImplementation 'org.codehaus.groovy:groovy'
+                testImplementation 'org.spockframework:spock-core:2.4-groovy-3.0'
+                testCompileOnly 'junit:junit:4.13.2'
                 testImplementation 'org.junit.jupiter:junit-jupiter'
                 testImplementation 'com.netflix.nebula:nebula-test'
 
+                testRuntimeOnly 'org.spockframework:spock-junit4:2.4-groovy-3.0'
                 testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             tasks.withType(Test) {
@@ -105,7 +107,6 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 'org.junit.jupiter:junit-jupiter',
                 'com.netflix.nebula:nebula-test',
                 'com.google.guava:guava',
-                'org.codehaus.groovy:groovy',
                 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
         runTasksSuccessfully('writeVersionLocks')
     }
