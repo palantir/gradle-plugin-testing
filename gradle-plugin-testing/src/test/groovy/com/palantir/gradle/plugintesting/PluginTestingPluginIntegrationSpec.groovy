@@ -103,14 +103,13 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
         '''.stripIndent(true)
 
+        file('versions.props') << 'org.spockframework:* = 2.3-groovy-3.0\n'
         TestContentHelpers.addVersionsToPropsFile(file('versions.props'), [
                 'org.junit.jupiter:junit-jupiter',
                 'org.junit.platform:junit-platform-launcher',
                 'com.netflix.nebula:nebula-test',
                 'com.google.guava:guava',
-                'com.palantir.gradle.consistentversions:gradle-consistent-versions'], [
-                'junit:junit': '4.13.2',
-                'org.spockframework:*': '2.4-groovy-3.0'])
+                'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
         runTasksSuccessfully('writeVersionLocks')
     }
 
@@ -172,7 +171,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
            major-versions:
              8: 8.14.2
            extra-versions:
-           - 9.3.1
+           - 7.6
         '''.stripIndent(true)
 
         and: 'gradleVersions is set in build script'
@@ -214,7 +213,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         result.success
         result.standardOutput.contains("Running with Gradle version: 8.14.2")
         result.standardOutput.contains("Running with Gradle version: 8.8")
-        result.standardOutput.contains("Running with Gradle version: 9.3.1")
+        result.standardOutput.contains("Running with Gradle version: 7.6")
 
         where:
         version << GradleTestVersions.gradleVersionsForTests
@@ -306,7 +305,7 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         applyTestUtilsPlugin()
         buildFile << """
             gradleTestUtils {
-                gradleVersions = ['8.14.3', '9.3.1']
+                gradleVersions = ['7.6.4', '8.10.1']
             }
         """.stripIndent(true)
 
@@ -340,8 +339,8 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
         def result = runTasks('test')
 
         then:
-        result.standardOutput.contains('test with version: #configuredVersion > test with version: 8.14.3')
-        result.standardOutput.contains('test with version: #configuredVersion > test with version: 9.3.1')
+        result.standardOutput.contains('test with version: #configuredVersion > test with version: 7.6.4')
+        result.standardOutput.contains('test with version: #configuredVersion > test with version: 8.10.1')
         
         where:
         version << GradleTestVersions.gradleVersionsForTests

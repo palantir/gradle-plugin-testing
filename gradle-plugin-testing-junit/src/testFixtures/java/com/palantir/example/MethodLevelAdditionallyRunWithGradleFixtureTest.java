@@ -23,7 +23,7 @@ import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@AdditionallyRunWithGradle("8.14.3")
+@AdditionallyRunWithGradle("8.0")
 public class MethodLevelAdditionallyRunWithGradleFixtureTest {
 
     @Test
@@ -39,7 +39,7 @@ public class MethodLevelAdditionallyRunWithGradleFixtureTest {
     }
 
     @Test
-    @AdditionallyRunWithGradle("9.3.1")
+    @AdditionallyRunWithGradle("8.5")
     void test_with_method_annotation(GradleInvoker gradleInvoker, RootProject rootProject) {
         rootProject.buildGradle().append("""
             import org.gradle.util.GradleVersion

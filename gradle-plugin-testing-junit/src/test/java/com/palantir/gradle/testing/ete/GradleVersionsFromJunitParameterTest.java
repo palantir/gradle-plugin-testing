@@ -32,7 +32,7 @@ final class GradleVersionsFromJunitParameterTest {
     void runs_tests_with_gradle_versions_from_junit_parameter() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(GradleVersionsFromJunitParameterFixtureTest.class))
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.14.3,9.3.1")
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5,8.14.3")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .configurationParameter(
                         GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
@@ -44,8 +44,8 @@ final class GradleVersionsFromJunitParameterTest {
         assertThat(finished).hasSize(2);
 
         Assertions.assertThatRanWithCorrectGradleVersion(
-                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(0), "8.14.3");
+                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(0), "7.6.5");
         Assertions.assertThatRanWithCorrectGradleVersion(
-                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(1), "9.3.1");
+                GradleVersionsFromJunitParameterFixtureTest.class, finished.get(1), "8.14.3");
     }
 }

@@ -15,11 +15,11 @@ info.picocli:* = 4.7.7
 one.util:streamex = 0.9.0
 
 # test dependencies
-com.netflix.nebula:nebula-test = 12.1.0
+com.netflix.nebula:nebula-test = 11.1.0
 org.apache.groovy:* = 4.0.29
 com.palantir.gradle.consistentversions:gradle-consistent-versions = 3.15.0
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2
 org.junit.platform:* = 1.13.4
-org.spockframework:* = 2.4-groovy-4.0
+org.spockframework:* = 2.3-groovy-4.0

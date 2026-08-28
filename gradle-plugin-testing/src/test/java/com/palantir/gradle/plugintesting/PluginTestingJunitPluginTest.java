@@ -56,7 +56,7 @@ class PluginTestingJunitPluginTest {
             dependencies {
                 testImplementation 'com.netflix.nebula:nebula-test'
                 testImplementation 'org.spockframework:spock-core'
-                testImplementation 'junit:junit'
+                testImplementation 'org.spockframework:spock-junit4'
                 testImplementation 'org.junit.jupiter:junit-jupiter'
 
                 testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -67,17 +67,17 @@ class PluginTestingJunitPluginTest {
             }
 
             gradleTestUtils {
-                gradleVersions = ['8.14.3', '9.3.1']
+                gradleVersions = ['7.6.5', '8.14.3']
             }
             """);
 
+        rootProject.propertiesFile("versions.props").setProperty("org.spockframework:*", "2.3-groovy-3.0");
         TestContentHelpers.addVersionsToPropsFile(
                 rootProject.propertiesFile("versions.props").path().toFile(),
                 List.of(
                         "com.netflix.nebula:nebula-test",
                         "org.junit.jupiter:junit-jupiter",
-                        "org.junit.platform:junit-platform-launcher"),
-                Map.of("junit:junit", "4.13.2", "org.spockframework:*", "2.4-groovy-3.0"));
+                        "org.junit.platform:junit-platform-launcher"));
         rootProject.file("versions.lock").createEmpty();
     }
 
@@ -168,15 +168,15 @@ class PluginTestingJunitPluginTest {
 
         rootProject
                 .buildDir()
-                .file("gradle-plugin-testing/TestClass/testMethod/8.14.3/gradle-version")
+                .file("gradle-plugin-testing/TestClass/testMethod/7.6.5/gradle-version")
                 .assertThat()
-                .hasContent("8.14.3");
+                .hasContent("7.6.5");
 
         rootProject
                 .buildDir()
-                .file("gradle-plugin-testing/TestClass/testMethod/9.3.1/gradle-version")
+                .file("gradle-plugin-testing/TestClass/testMethod/8.14.3/gradle-version")
                 .assertThat()
-                .hasContent("9.3.1");
+                .hasContent("8.14.3");
     }
 
     @Test

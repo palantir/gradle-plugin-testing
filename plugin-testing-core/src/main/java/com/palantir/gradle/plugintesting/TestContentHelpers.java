@@ -25,9 +25,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Useful methods for writing common test content.
@@ -41,21 +39,9 @@ public final class TestContentHelpers {
      * TestDependencyVersions.
      */
     public static void addVersionsToPropsFile(File versionPropsFile, Collection<String> dependencies) {
-        addVersionsToPropsFile(versionPropsFile, dependencies, Map.of());
-    }
-
-    /**
-     * Add resolved and explicit version strings to the versions.props file.
-     */
-    public static void addVersionsToPropsFile(
-            File versionPropsFile, Collection<String> dependencies, Map<String, String> explicitVersions) {
-        Stream<String> resolvedDependencies =
-                dependencies.stream().map(dep -> dep + " = " + TestDependencyVersions.version(dep));
-        Stream<String> explicitDependencies = explicitVersions.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(entry -> entry.getKey() + " = " + entry.getValue());
-        String versionsProps =
-                Stream.concat(resolvedDependencies, explicitDependencies).collect(Collectors.joining("\n"));
+        String versionsProps = dependencies.stream()
+                .map(dep -> dep + " = " + TestDependencyVersions.version(dep))
+                .collect(Collectors.joining("\n", "", "\n"));
 
         try {
             Files.writeString(versionPropsFile.toPath(), versionsProps, StandardCharsets.UTF_8, WRITE_OPTIONS);
