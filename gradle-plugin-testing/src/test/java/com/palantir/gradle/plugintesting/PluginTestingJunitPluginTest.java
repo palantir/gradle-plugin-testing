@@ -67,7 +67,7 @@ class PluginTestingJunitPluginTest {
             }
 
             gradleTestUtils {
-                gradleVersions = ['7.6.5', '8.14.3']
+                gradleVersions = ['8.14.3']
             }
             """);
 
