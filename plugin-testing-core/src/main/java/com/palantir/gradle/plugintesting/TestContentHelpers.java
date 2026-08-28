@@ -41,7 +41,7 @@ public final class TestContentHelpers {
     public static void addVersionsToPropsFile(File versionPropsFile, Collection<String> dependencies) {
         String versionsProps = dependencies.stream()
                 .map(dep -> dep + " = " + TestDependencyVersions.version(dep))
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining("\n", "", "\n"));
 
         try {
             Files.writeString(versionPropsFile.toPath(), versionsProps, StandardCharsets.UTF_8, WRITE_OPTIONS);

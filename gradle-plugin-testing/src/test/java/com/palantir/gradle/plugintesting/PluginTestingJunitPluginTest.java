@@ -54,10 +54,12 @@ class PluginTestingJunitPluginTest {
             }
 
             dependencies {
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.13.4'
-                testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.14.0'
-
                 testImplementation 'com.netflix.nebula:nebula-test'
+                testImplementation 'org.spockframework:spock-core'
+                testImplementation 'org.spockframework:spock-junit4'
+                testImplementation 'org.junit.jupiter:junit-jupiter'
+
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
 
             tasks.withType(Test).configureEach {
@@ -69,6 +71,13 @@ class PluginTestingJunitPluginTest {
             }
             """);
 
+        rootProject.propertiesFile("versions.props").setProperty("org.spockframework:*", "2.3-groovy-3.0");
+        TestContentHelpers.addVersionsToPropsFile(
+                rootProject.propertiesFile("versions.props").path().toFile(),
+                List.of(
+                        "com.netflix.nebula:nebula-test",
+                        "org.junit.jupiter:junit-jupiter",
+                        "org.junit.platform:junit-platform-launcher"));
         rootProject.file("versions.lock").createEmpty();
     }
 

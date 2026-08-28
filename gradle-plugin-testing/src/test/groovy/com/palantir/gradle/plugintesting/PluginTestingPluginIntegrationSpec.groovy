@@ -51,10 +51,12 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
                 implementation gradleApi()
                 implementation 'com.google.guava:guava'
                 
-                testImplementation 'org.codehaus.groovy:groovy'
+                testImplementation 'org.spockframework:spock-core'
+                testCompileOnly 'junit:junit'
                 testImplementation 'org.junit.jupiter:junit-jupiter'
                 testImplementation 'com.netflix.nebula:nebula-test'
 
+                testRuntimeOnly 'org.spockframework:spock-junit4'
                 testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             tasks.withType(Test) {
@@ -101,11 +103,12 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
         '''.stripIndent(true)
 
+        file('versions.props') << 'org.spockframework:* = 2.3-groovy-3.0\n'
         TestContentHelpers.addVersionsToPropsFile(file('versions.props'), [
                 'org.junit.jupiter:junit-jupiter',
+                'org.junit.platform:junit-platform-launcher',
                 'com.netflix.nebula:nebula-test',
                 'com.google.guava:guava',
-                'org.codehaus.groovy:groovy',
                 'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
         runTasksSuccessfully('writeVersionLocks')
     }

@@ -17,16 +17,19 @@ dependencies {
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
     compileOnlyApi 'org.immutables:value::annotations'
 
+    testImplementation project(':configuration-cache-spec')
     testImplementation project(':gradle-plugin-testing-junit')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.codehaus.groovy:groovy'
+    testImplementation 'org.apache.groovy:groovy'
     testImplementation 'org.spockframework:spock-core'
 
     gradlePluginForTesting 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
 
     // This needs to remain until all nebula based tests are removed from this project
     testRuntimeOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
+    testCompileOnly 'junit:junit'
+    testRuntimeOnly 'org.spockframework:spock-junit4'
 }
 
 gradlePlugin {
