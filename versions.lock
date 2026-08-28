@@ -208,8 +208,6 @@ org.slf4j:slf4j-api:1.7.36 (4 constraints: fb433bc6)
 
 org.spockframework:spock-core:2.4-groovy-4.0 (2 constraints: 561900d9)
 
-org.spockframework:spock-junit4:2.4-groovy-4.0 (1 constraints: 3c08e476)
-
 org.yaml:snakeyaml:2.5 (1 constraints: 3f178e10)
 
 
@@ -235,3 +233,5 @@ org.junit.jupiter:junit-jupiter:5.13.4 (1 constraints: a9076e7e)
 org.junit.jupiter:junit-jupiter-engine:5.13.4 (2 constraints: 7813555c)
 
 org.junit.platform:junit-platform-testkit:1.14.3 (1 constraints: 3b05363b)
+
+org.spockframework:spock-junit4:2.4-groovy-4.0 (1 constraints: 3c08e476)
