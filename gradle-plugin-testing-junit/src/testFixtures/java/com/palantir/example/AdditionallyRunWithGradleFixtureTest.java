@@ -23,7 +23,7 @@ import com.palantir.gradle.testing.project.RootProject;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@AdditionallyRunWithGradle({"8.0", "8.5"})
+@AdditionallyRunWithGradle("9.3.1")
 public class AdditionallyRunWithGradleFixtureTest {
     @Test
     void test_name(GradleInvoker gradleInvoker, RootProject rootProject) {

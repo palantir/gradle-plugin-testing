@@ -103,15 +103,14 @@ class PluginTestingPluginIntegrationSpec extends AbstractTestingPluginSpec {
             }
         '''.stripIndent(true)
 
-        file('versions.props') << '''
-            junit:junit = 4.13.2
-            org.spockframework:* = 2.4-groovy-3.0
-        '''.stripIndent(true)
         TestContentHelpers.addVersionsToPropsFile(file('versions.props'), [
                 'org.junit.jupiter:junit-jupiter',
+                'org.junit.platform:junit-platform-launcher',
                 'com.netflix.nebula:nebula-test',
                 'com.google.guava:guava',
-                'com.palantir.gradle.consistentversions:gradle-consistent-versions'])
+                'com.palantir.gradle.consistentversions:gradle-consistent-versions'], [
+                'junit:junit': '4.13.2',
+                'org.spockframework:*': '2.4-groovy-3.0'])
         runTasksSuccessfully('writeVersionLocks')
     }
 

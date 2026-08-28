@@ -36,7 +36,7 @@ final class AdditionallyRunWithGradleTest {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(AdditionallyRunWithGradleFixtureTest.class))
                 // Base version configured via parameter
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.14.3")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .configurationParameter(
                         GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
@@ -48,19 +48,17 @@ final class AdditionallyRunWithGradleTest {
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
                         // from config parameter
-                        ranWithGradleVersion("7.6.5"),
+                        ranWithGradleVersion("8.14.3"),
                         // from @AdditionallyRunWithGradle
-                        ranWithGradleVersion("8.0"),
-                        // from @AdditionallyRunWithGradle
-                        ranWithGradleVersion("8.5"));
+                        ranWithGradleVersion("9.3.1"));
     }
 
     @Test
     void duplicate_versions_are_deduplicated() {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(AdditionallyRunWithGradleFixtureTest.class))
-                // 8.0 is both in config and in @AdditionallyRunWithGradle
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.0")
+                // 9.3.1 is both in config and in @AdditionallyRunWithGradle
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "9.3.1")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .configurationParameter(
                         GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
@@ -70,11 +68,9 @@ final class AdditionallyRunWithGradleTest {
         List<Event> finished = executionResults.testEvents().finished().stream().toList();
 
         assertThat(finished)
-                .satisfiesExactlyInAnyOrder(
-                        // 8.0 is in both config and @AdditionallyRunWithGradle, but only runs once
-                        ranWithGradleVersion("8.0"),
-                        // from @AdditionallyRunWithGradle
-                        ranWithGradleVersion("8.5"));
+                .satisfiesExactly(
+                        // 9.3.1 is in both config and @AdditionallyRunWithGradle, but only runs once
+                        ranWithGradleVersion("9.3.1"));
     }
 
     @Test
@@ -82,7 +78,7 @@ final class AdditionallyRunWithGradleTest {
         EngineExecutionResults executionResults = EngineTestKit.engine("junit-jupiter")
                 .selectors(DiscoverySelectors.selectClass(MethodLevelAdditionallyRunWithGradleFixtureTest.class))
                 // Base version configured via parameter
-                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "7.6.5")
+                .configurationParameter("com.palantir.gradle.testing.gradle_versions_to_test", "8.14.3")
                 .configurationParameter("com.palantir.gradle.testing.configuration_cache_enabled", "false")
                 .configurationParameter(
                         GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
@@ -94,16 +90,13 @@ final class AdditionallyRunWithGradleTest {
 
         assertThat(finished)
                 .satisfiesExactlyInAnyOrder(
-                        // "test without method annotation" runs on base (7.6.5) and class-level (8.0)
-                        ranWithNameAndVersion("test without method annotation", "7.6.5"),
-                        ranWithNameAndVersion("test without method annotation", "8.0"),
-                        // "test with method annotation" runs on base (7.6.5), class-level (8.0), and method-level (8.5)
-                        ranWithNameAndVersion("test with method annotation", "7.6.5"),
-                        ranWithNameAndVersion("test with method annotation", "8.0"),
-                        ranWithNameAndVersion("test with method annotation", "8.5"));
+                        // Both tests run on the base/class-level version.
+                        ranWithNameAndVersion("test without method annotation", "8.14.3"),
+                        ranWithNameAndVersion("test with method annotation", "8.14.3"),
+                        // The annotated test also runs on its method-level version.
+                        ranWithNameAndVersion("test with method annotation", "9.3.1"));
 
-        // Method without annotation is skipped for 8.5 (only runs on base + class versions)
-        assertThat(skipped).satisfiesExactly(skippedWithNameAndVersion("test without method annotation", "8.5"));
+        assertThat(skipped).satisfiesExactly(skippedWithNameAndVersion("test without method annotation", "9.3.1"));
     }
 
     private static Consumer<Event> ranWithGradleVersion(String gradleVersion) {
