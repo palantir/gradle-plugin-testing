@@ -54,12 +54,12 @@ class PluginTestingJunitPluginTest {
             }
 
             dependencies {
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.13.4'
-                testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.14.0'
+                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+                testRuntimeOnly 'org.junit.platform:junit-platform-runner'
 
                 testImplementation 'com.netflix.nebula:nebula-test'
-                testImplementation 'org.spockframework:spock-core:2.4-groovy-3.0'
-                testImplementation 'junit:junit:4.13.2'
+                testImplementation 'org.spockframework:spock-core'
+                testImplementation 'junit:junit'
             }
 
             tasks.withType(Test).configureEach {
@@ -67,10 +67,14 @@ class PluginTestingJunitPluginTest {
             }
 
             gradleTestUtils {
-                gradleVersions = ['7.6.5', '8.14.3']
+                gradleVersions = ['8.14.3', '9.3.1']
             }
             """);
 
+        rootProject.propertiesFile("versions.props").setProperty("junit:junit", "4.13.2");
+        rootProject.propertiesFile("versions.props").setProperty("org.junit.jupiter:*", "5.13.4");
+        rootProject.propertiesFile("versions.props").setProperty("org.junit.platform:*", "1.14.0");
+        rootProject.propertiesFile("versions.props").setProperty("org.spockframework:*", "2.4-groovy-3.0");
         rootProject.file("versions.lock").createEmpty();
     }
 
@@ -161,15 +165,15 @@ class PluginTestingJunitPluginTest {
 
         rootProject
                 .buildDir()
-                .file("gradle-plugin-testing/TestClass/testMethod/7.6.5/gradle-version")
-                .assertThat()
-                .hasContent("7.6.5");
-
-        rootProject
-                .buildDir()
                 .file("gradle-plugin-testing/TestClass/testMethod/8.14.3/gradle-version")
                 .assertThat()
                 .hasContent("8.14.3");
+
+        rootProject
+                .buildDir()
+                .file("gradle-plugin-testing/TestClass/testMethod/9.3.1/gradle-version")
+                .assertThat()
+                .hasContent("9.3.1");
     }
 
     @Test

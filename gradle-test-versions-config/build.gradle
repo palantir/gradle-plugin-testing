@@ -10,6 +10,8 @@ dependencies {
     implementation 'one.util:streamex'
     implementation 'com.google.guava:guava'
 
+    testImplementation project(':configuration-cache-spec')
+
     annotationProcessor 'org.immutables:value'
     compileOnlyApi 'org.immutables:value::annotations'
 }

@@ -27,6 +27,7 @@ dependencies {
     compileOnly 'org.immutables:value'
     annotationProcessor 'org.immutables:value'
 
+    testImplementation project(':configuration-cache-spec')
     testImplementation 'org.junit.platform:junit-platform-testkit'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
@@ -41,4 +42,3 @@ configurations.runtimeClasspath {
 gradleTestUtils {
     configurationCacheEnabled = true
 }
-
