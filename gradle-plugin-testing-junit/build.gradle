@@ -34,6 +34,10 @@ dependencies {
     testFixturesImplementation 'org.junit.jupiter:junit-jupiter-params'
 }
 
+configurations.runtimeClasspath {
+    resolutionStrategy.force 'org.assertj:assertj-core:3.27.4', 'net.bytebuddy:byte-buddy:1.15.11'
+}
+
 gradleTestUtils {
     configurationCacheEnabled = true
 }

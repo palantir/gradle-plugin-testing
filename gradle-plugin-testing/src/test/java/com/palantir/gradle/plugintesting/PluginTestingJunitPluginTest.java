@@ -58,6 +58,8 @@ class PluginTestingJunitPluginTest {
                 testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.14.0'
 
                 testImplementation 'com.netflix.nebula:nebula-test'
+                testImplementation 'org.spockframework:spock-core:2.4-groovy-3.0'
+                testImplementation 'junit:junit:4.13.2'
             }
 
             tasks.withType(Test).configureEach {

@@ -31,6 +31,10 @@ dependencies {
     testRuntimeOnly 'org.spockframework:spock-junit4'
 }
 
+configurations.testRuntimeClasspath {
+    exclude group: 'org.codehaus.groovy'
+}
+
 gradlePlugin {
     website = 'https://github.com/palantir/gradle-plugin-testing'
     vcsUrl = 'https://github.com/palantir/gradle-plugin-testing'
