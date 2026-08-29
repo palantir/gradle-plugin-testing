@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: utility methods for inserting dependencies and other boilerplate
-  links:
-  - https://github.com/palantir/gradle-plugin-testing/pull/22

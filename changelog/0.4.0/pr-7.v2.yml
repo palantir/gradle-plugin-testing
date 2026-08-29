@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: ignore utilities as unused dependencies
-  links:
-  - https://github.com/palantir/gradle-plugin-testing/pull/7

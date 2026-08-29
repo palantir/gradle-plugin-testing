@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Write dependency versions to file
-  links:
-  - https://github.com/palantir/gradle-plugin-testing/pull/12

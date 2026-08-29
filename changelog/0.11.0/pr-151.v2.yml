@@ -1,6 +1,0 @@
-type: fix
-fix:
-  description: fix local testing by running publish-to-mavel-local on the other new
-    subproject
-  links:
-  - https://github.com/palantir/gradle-plugin-testing/pull/151
