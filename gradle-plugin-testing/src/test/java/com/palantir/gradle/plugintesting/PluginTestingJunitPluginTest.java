@@ -323,6 +323,63 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
+    void junit_discovery_does_not_initialise_optional_groovy(GradleInvoker gradle, RootProject rootProject)
+            throws IOException {
+        rootProject.buildGradle().append("""
+            configurations.testRuntimeClasspath {
+                exclude group: 'org.spockframework', module: 'spock-core'
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package groovy.lang;
+
+            public abstract class Closure {
+                static {
+                    failWithConflictingGroovyModules();
+                }
+
+                private static void failWithConflictingGroovyModules() {
+                    throw new GroovyRuntimeException(
+                            "Conflicting module versions. Module [groovy-dateutil is loaded in version 3.0.25 "
+                                    + "and you are trying to load version 3.0.8]");
+                }
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            class GradlePluginTestClass {
+                @Test
+                void test() {}
+            }
+            """);
+
+        gradle.withArgs("discoverGradlePluginTestsAnnotatedTests").buildsSuccessfully();
+        assertThat(readTestClassesPaths(rootProject, "discoverGradlePluginTestsAnnotatedTests", "java"))
+                .containsExactly("src/test/java/test/GradlePluginTestClass.java");
+    }
+
+    @Test
+    void missing_spock_is_treated_as_no_nebula_superclasses(GradleInvoker gradle, RootProject rootProject)
+            throws IOException {
+        rootProject.buildGradle().append("""
+            configurations.testRuntimeClasspath {
+                exclude group: 'org.spockframework', module: 'spock-core'
+            }
+            """);
+
+        gradle.withArgs("discoverNebulaTestClassesToMigrate").buildsSuccessfully();
+        assertThat(readTestClassesPaths(rootProject, "discoverNebulaTestClassesToMigrate", "groovy"))
+                .isEmpty();
+    }
+
+    @Test
     void nebula_tests_ready_for_migration_are_discovered(GradleInvoker gradle, RootProject rootProject)
             throws IOException {
         Directory groovyDir =

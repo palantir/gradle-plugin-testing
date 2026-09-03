@@ -32,6 +32,7 @@ public final class DiscoverTestsMain {
     }
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("picocli.disable.closures", "true");
         int exitCode = new CommandLine(new DiscoverTestsMain()).execute(args);
         System.exit(exitCode);
     }

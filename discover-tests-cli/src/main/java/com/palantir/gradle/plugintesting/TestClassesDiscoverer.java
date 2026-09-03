@@ -24,9 +24,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.platform.engine.Filter;
+import org.junit.platform.engine.TestEngine;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
@@ -50,12 +52,19 @@ public abstract class TestClassesDiscoverer implements Runnable {
     protected abstract Filter<?> getFilter();
 
     private Set<String> getDiscoveredClassNames() {
+        String testEngine = testClassesCommand.getTestEngine();
+        if (ServiceLoader.load(TestEngine.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .noneMatch(testEngineCandidate -> testEngineCandidate.getId().equals(testEngine))) {
+            return Set.of();
+        }
+
         String classPath = System.getProperty("java.class.path");
         LauncherDiscoveryRequest discoveryRequest = LauncherDiscoveryRequestBuilder.request()
                 .selectors(DiscoverySelectors.selectClasspathRoots(Arrays.stream(classPath.split(File.pathSeparator))
                         .map(Paths::get)
                         .collect(Collectors.toSet())))
-                .filters(getFilter(), EngineFilter.includeEngines(testClassesCommand.getTestEngine()))
+                .filters(getFilter(), EngineFilter.includeEngines(testEngine))
                 .build();
 
         LauncherConfig launcherConfig =
