@@ -21,8 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.base.Splitter;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.files.Directory;
+import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.project.RootProject;
+import com.palantir.gradle.testing.project.SubProject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
@@ -434,6 +436,62 @@ class PluginTestingJunitPluginTest {
                 .containsExactlyInAnyOrder(
                         "src/test/groovy/test/TestSourceSetSpec.groovy",
                         "src/integrationTest/groovy/test/IntegrationSourceSetSpec.groovy");
+    }
+
+    @Test
+    @DisabledConfigurationCache
+    void test_discovery_is_limited_to_one_project_at_a_time(GradleInvoker gradle, RootProject rootProject) {
+        List.of("first", "second", "third", "fourth").forEach(projectName -> {
+            SubProject subProject = rootProject.subproject(projectName);
+            subProject.buildGradle().plugins().add("com.palantir.gradle-plugin-testing");
+            subProject.buildGradle().append("""
+                repositories {
+                    mavenCentral()
+                    mavenLocal()
+                }
+
+                dependencies {
+                    testImplementation 'org.junit.jupiter:junit-jupiter'
+                }
+                """);
+        });
+
+        rootProject.buildGradle().append("""
+            import com.palantir.gradle.plugintesting.DiscoverTestClassesTask
+            import java.util.concurrent.atomic.AtomicInteger
+
+            def activeDiscoveries = new AtomicInteger()
+            def maximumActiveDiscoveries = new AtomicInteger()
+            def discoveryTasks = []
+
+            subprojects {
+                tasks.withType(DiscoverTestClassesTask).configureEach {
+                    doFirst {
+                        def active = activeDiscoveries.incrementAndGet()
+                        maximumActiveDiscoveries.updateAndGet { currentMaximum ->
+                            Math.max(currentMaximum, active)
+                        }
+                        sleep(500)
+                        activeDiscoveries.decrementAndGet()
+                    }
+                }
+
+                discoveryTasks.add("${path}:discoverGradlePluginTestsAnnotatedTests")
+            }
+
+            tasks.register('verifyDiscoveryConcurrency') {
+                dependsOn discoveryTasks
+                doLast {
+                    if (maximumActiveDiscoveries.get() != 1) {
+                        throw new GradleException(
+                            "Expected one active discovery task, but observed ${maximumActiveDiscoveries.get()}")
+                    }
+                }
+            }
+            """);
+
+        gradle.withArgs("verifyDiscoveryConcurrency", "--parallel", "--max-workers=4")
+                .buildsSuccessfully();
     }
 
     private static List<String> readTestClassesPaths(RootProject rootProject, String taskName, String language)

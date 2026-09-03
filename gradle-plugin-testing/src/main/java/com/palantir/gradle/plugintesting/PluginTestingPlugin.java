@@ -189,6 +189,13 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
     }
 
     private static void addTestClassesDiscoveryTasks(Project project) {
+        Provider<TestDiscoveryConcurrencyService> testDiscoveryConcurrencyService = project.getGradle()
+                .getSharedServices()
+                .registerIfAbsent(
+                        "gradlePluginTestingTestDiscovery",
+                        TestDiscoveryConcurrencyService.class,
+                        service -> service.getMaxParallelUsages().set(1));
+
         project.getTasks()
                 .register(
                         "discoverGradlePluginTestsWithDisabledConfigurationCache",
@@ -218,7 +225,8 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                             "nebula.test.IntegrationSpec,nebula.test.IntegrationTestKitSpec"));
         });
 
-        project.getTasks().withType(DiscoverTestClassesTask.class, task -> {
+        project.getTasks().withType(DiscoverTestClassesTask.class).configureEach(task -> {
+            task.usesService(testDiscoveryConcurrencyService);
             SourceSetContainer sourceSetContainer = project.getExtensions().getByType(SourceSetContainer.class);
             sourceSetContainer.all(sourceSet -> {
                 if (!sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME)) {
