@@ -13,5 +13,5 @@ dependencies {
     testImplementation project(':configuration-cache-spec')
 
     annotationProcessor 'org.immutables:value'
-    compileOnlyApi 'org.immutables:value::annotations'
+    compileOnly 'org.immutables:value::annotations'
 }

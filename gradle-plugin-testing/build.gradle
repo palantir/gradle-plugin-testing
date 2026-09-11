@@ -15,7 +15,6 @@ dependencies {
     implementation 'com.google.guava:guava'
 
     compileOnly 'com.palantir.gradle.consistentversions:gradle-consistent-versions'
-    compileOnlyApi 'org.immutables:value::annotations'
 
     testImplementation project(':configuration-cache-spec')
     testImplementation project(':gradle-plugin-testing-junit')
