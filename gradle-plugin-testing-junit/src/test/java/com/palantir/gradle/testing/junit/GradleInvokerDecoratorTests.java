@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 @RepeatableWithArgAddingDecorator(arg = "-PclassValue=classDecorator")
 @WithArgAddingDecorator(arg = "-Pfoo=foo")
 @GradlePluginTests
-@DisabledConfigurationCache("Testing decorator mechanism without config cache complexity")
 class GradleInvokerDecoratorTests {
 
     @Nested
