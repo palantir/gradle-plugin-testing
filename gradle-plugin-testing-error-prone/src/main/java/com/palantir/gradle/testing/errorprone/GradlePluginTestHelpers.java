@@ -51,6 +51,7 @@ public final class GradlePluginTestHelpers {
                 .isPresent();
     }
 
+    @SuppressWarnings("for-rollout:ReferenceEquality")
     static Optional<ExpressionTree> findVariableInitializer(Symbol.VarSymbol var, VisitorState state) {
         JavacProcessingEnvironment javacEnv = JavacProcessingEnvironment.instance(state.context);
         return StreamEx.ofNullable(Trees.instance(javacEnv).getPath(var))

@@ -192,6 +192,7 @@ public final class GradleTestPluginsBlock extends BugChecker implements BugCheck
                         : buildDescription(tree).build());
     }
 
+    @SuppressWarnings("for-rollout:ReferenceEquality")
     private static boolean isInMethodChain(MethodInvocationTree tree, VisitorState state) {
         // Check if this is being called on a chain of content methods (receiver is a content method invocation)
         if (ASTHelpers.getReceiver(tree) instanceof MethodInvocationTree receiver
