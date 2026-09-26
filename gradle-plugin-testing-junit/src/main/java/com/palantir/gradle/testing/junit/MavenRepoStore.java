@@ -37,6 +37,7 @@ final class MavenRepoStore {
 
     private MavenRepoStore() {}
 
+    @SuppressWarnings("for-rollout:deprecation")
     static MavenRepo mavenRepo(ExtensionContext context) {
         return context.getStore(NAMESPACE)
                 .getOrComputeIfAbsent(MAVEN_REPO_KEY, _ignored -> initializeMavenRepo(context), MavenRepo.class);
