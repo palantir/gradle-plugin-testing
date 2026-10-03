@@ -111,7 +111,7 @@ Similarly, tests may hardcode versions of Gradle that they need to stay compatib
 
 There are two ways to set which Gradle versions to test against:
 * setting the versions in the `gradle/gradle-test-versions.yml` file
-* setting `gradleVersions` in the the `gradleTestUtils` extension (this is deprecated)
+* setting `gradleVersions` in the `gradleTestUtils` extension (this is deprecated)
   When using `@GradlePluginTests`, the versions of Gradle used will be the union of the versions above.
 
 If you haven't set either, tests will fall back to using the Gradle version of the test driver.
@@ -144,7 +144,7 @@ gradleTestUtils {
 ```
 
 > [!WARNING]
-> This is deprecated because it's merges together the intent of a user wanting a _specific_ version and also the intent of testing against the latest versions of Gradle. How does an automated process know if the user wanted to test this specific version which also happens to be the latest version?## Accessing Gradle test versions
+> This is deprecated because it merges together the intent of a user wanting a _specific_ version and also the intent of testing against the latest versions of Gradle. How does an automated process know if the user wanted to test this specific version which also happens to be the latest version?## Accessing Gradle test versions
 
 ### Java tests with `@GradlePluginTests`
 
