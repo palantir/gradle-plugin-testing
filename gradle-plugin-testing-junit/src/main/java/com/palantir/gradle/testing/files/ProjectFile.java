@@ -18,6 +18,7 @@ package com.palantir.gradle.testing.files;
 
 import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
+import com.palantir.gradle.testing.assertion.GradlePluginTestAssertions;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +28,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.assertj.core.api.AbstractPathAssert;
-import org.assertj.core.api.Assertions;
 
 public interface ProjectFile<T extends ProjectFile<T>> {
     Path path();
@@ -94,7 +94,7 @@ public interface ProjectFile<T extends ProjectFile<T>> {
     }
 
     default AbstractPathAssert<?> assertThat() {
-        return Assertions.assertThat(path());
+        return GradlePluginTestAssertions.assertThat(this);
     }
 
     default String text() {

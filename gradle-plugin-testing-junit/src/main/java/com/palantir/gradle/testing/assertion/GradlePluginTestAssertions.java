@@ -18,6 +18,10 @@ package com.palantir.gradle.testing.assertion;
 
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.execution.TaskOutcome;
+import com.palantir.gradle.testing.files.Directory;
+import com.palantir.gradle.testing.files.ProjectFile;
+import org.assertj.core.api.AbstractPathAssert;
+import org.assertj.core.api.Assertions;
 
 /**
  * Entry point for AssertJ-style assertions for Gradle plugin testing.
@@ -31,6 +35,26 @@ import com.palantir.gradle.testing.execution.TaskOutcome;
  * </pre>
  */
 public final class GradlePluginTestAssertions {
+
+    /**
+     * Creates an assertion for a {@link Directory}.
+     *
+     * @param directory the directory to assert on
+     * @return an {@link AbstractPathAssert} for fluent assertion chaining
+     */
+    public static AbstractPathAssert<?> assertThat(Directory directory) {
+        return Assertions.assertThat(directory.path());
+    }
+
+    /**
+     * Creates an assertion for a {@link ProjectFile}.
+     *
+     * @param projectFile the project file to assert on
+     * @return an {@link AbstractPathAssert} for fluent assertion chaining
+     */
+    public static AbstractPathAssert<?> assertThat(ProjectFile<?> projectFile) {
+        return Assertions.assertThat(projectFile.path());
+    }
 
     /**
      * Creates an assertion for an {@link InvocationResult}.

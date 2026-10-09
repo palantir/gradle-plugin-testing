@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.files;
 
+import com.palantir.gradle.testing.assertion.GradlePluginTestAssertions;
 import com.palantir.gradle.testing.files.arbitrary.ArbitraryDirectory;
 import com.palantir.gradle.testing.files.arbitrary.ArbitraryFile;
 import com.palantir.gradle.testing.files.gradle.GradleFile;
@@ -27,7 +28,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.assertj.core.api.AbstractPathAssert;
-import org.assertj.core.api.Assertions;
 
 public interface Directory {
     Path path();
@@ -62,7 +62,7 @@ public interface Directory {
     }
 
     default AbstractPathAssert<?> assertThat() {
-        return Assertions.assertThat(path());
+        return GradlePluginTestAssertions.assertThat(this);
     }
 
     private Path resolvePath(String path) {
