@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.testing.execution;
 
+import com.palantir.gradle.testing.assertion.GradlePluginTestAssertions;
 import com.palantir.gradle.testing.assertion.InvocationResultAssert;
 import java.util.Optional;
 import org.gradle.testkit.runner.BuildResult;
@@ -51,6 +52,6 @@ public final class InvocationResult {
      * </pre>
      */
     public InvocationResultAssert assertThat() {
-        return new InvocationResultAssert(this);
+        return GradlePluginTestAssertions.assertThat(this);
     }
 }
