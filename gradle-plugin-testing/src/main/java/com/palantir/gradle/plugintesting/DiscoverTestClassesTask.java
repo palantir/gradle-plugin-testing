@@ -72,11 +72,11 @@ public abstract class DiscoverTestClassesTask extends JavaExec {
     @Inject
     public abstract ProjectLayout getProjectLayout();
 
-    @SuppressWarnings("for-rollout:MissingOverride")
+    @Override
     @Inject
     public abstract ProviderFactory getProviderFactory();
 
-    @SuppressWarnings("for-rollout:MissingOverride")
+    @Override
     @Inject
     public abstract ObjectFactory getObjectFactory();
 
