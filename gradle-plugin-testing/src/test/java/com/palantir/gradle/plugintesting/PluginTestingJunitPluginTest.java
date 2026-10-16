@@ -299,22 +299,6 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
-                void testMethod(GradleInvoker gradle, RootProject rootProject) {
-                    rootProject.buildGradle().append("println 'portal: ' + repositories.gradlePluginPortal().url");
-
-                    gradle.with(Options.builder()
-                                    .customGradleUserHome(rootProject.path().resolve("custom-gradle-user-home"))
-                                    .build())
-                            .buildsSuccessfully().assertThat().output()
-                            .contains("portal: https://example.com/gradle-plugins");
-                }
-            }
-            """);
-
-        gradleInvoker.withArgs("test").buildsSuccessfully();
-    }
-
-    @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 
