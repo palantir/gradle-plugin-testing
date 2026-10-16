@@ -29,10 +29,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
 
-/**
- * Writes the {@code gradle.properties} of the TestKit Gradle user home, which applies to every build started by
- * TestKit, whether from {@code @GradlePluginTests} or nebula-test.
- */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class TestKitGradlePropertiesTask extends DefaultTask {
     static final String PLUGIN_PORTAL_URL_OVERRIDE_PROPERTY = "org.gradle.internal.plugins.portal.url.override";

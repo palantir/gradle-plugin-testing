@@ -25,9 +25,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.CommandLineArgumentProvider;
 
-/**
- * Points TestKit at the directory containing the given {@code gradle.properties} as its Gradle user home.
- */
 final class TestKitDirArgumentProvider implements CommandLineArgumentProvider {
     private static final String TEST_KIT_DIR_SYSTEM_PROPERTY = "org.gradle.testkit.dir";
 
