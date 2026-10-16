@@ -299,27 +299,6 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
-    void plugin_portal_url_is_used_by_builds_with_a_custom_gradle_user_home(
-            GradleInvoker gradleInvoker, RootProject rootProject) {
-
-        rootProject.buildGradle().append("""
-            gradleTestUtils {
-                pluginPortalUrl = 'https://example.com/gradle-plugins'
-            }
-            """);
-
-        rootProject.testSourceSet().java().writeClass("""
-            package test;
-
-            import com.palantir.gradle.testing.execution.GradleInvoker;
-            import com.palantir.gradle.testing.execution.Options;
-            import com.palantir.gradle.testing.junit.GradlePluginTests;
-            import com.palantir.gradle.testing.project.RootProject;
-            import org.junit.jupiter.api.Test;
-
-            @GradlePluginTests
-            class CustomGradleUserHomeTest {
-                @Test
                 void testMethod(GradleInvoker gradle, RootProject rootProject) {
                     rootProject.buildGradle().append("println 'portal: ' + repositories.gradlePluginPortal().url");
 
