@@ -815,6 +815,16 @@ gradleTestUtils {
 
 When set, tests will download Gradle from `{baseUrl}/gradle-{version}-bin.zip` instead of the default server.
 
+### Custom Gradle Plugin Portal URL
+
+By default, builds run by tests resolve `plugins {}` blocks and `gradlePluginPortal()` repositories from `plugins.gradle.org`. To use a mirror instead, set `pluginPortalUrl` on the extension:
+
+```groovy
+gradleTestUtils {
+    pluginPortalUrl = 'https://example.com/gradle-plugins'
+}
+```
+
 ## Assertions
 
 ### Fluent Assertion API

@@ -65,6 +65,7 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
     public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String MAVEN_GROUP = "com.palantir.gradle.plugintesting";
+    private static final String PLUGIN_PORTAL_URL_OVERRIDE_PROPERTY = "org.gradle.internal.plugins.portal.url.override";
     private static final Logger log = Logging.getLogger(PluginTestingPlugin.class);
 
     @Inject
@@ -172,6 +173,12 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                     test.systemProperty(
                             GradleDistributionBaseUrl.GRADLE_DISTRIBUTION_BASE_URL_SYSTEM_PROPERTY,
                             testUtilsExt.getGradleDistributionBaseUrl().get());
+
+                    if (testUtilsExt.getPluginPortalUrl().isPresent()) {
+                        test.systemProperty(
+                                PLUGIN_PORTAL_URL_OVERRIDE_PROPERTY,
+                                testUtilsExt.getPluginPortalUrl().get());
+                    }
 
                     // add system property to ignore gradle deprecations so that nebula tests don't fail
                     if (testUtilsExt.getIgnoreGradleDeprecations().get()) {
