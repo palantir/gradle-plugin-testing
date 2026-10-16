@@ -825,7 +825,7 @@ gradleTestUtils {
 }
 ```
 
-This applies to every TestKit build by pointing TestKit at a Gradle user home in `build/plugin-testing/test-kit`. Tests that set a custom Gradle user home do not pick it up.
+This applies to every TestKit build by pointing TestKit at a Gradle user home in `build/plugin-testing/test-kit`, and to in-process builds such as nebula `IntegrationSpec` via a system property on the test JVM. Tests that set a custom Gradle user home do not pick it up.
 
 ## Assertions
 

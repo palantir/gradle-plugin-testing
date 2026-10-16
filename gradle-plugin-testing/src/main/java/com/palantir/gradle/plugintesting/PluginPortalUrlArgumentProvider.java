@@ -19,19 +19,28 @@ package com.palantir.gradle.plugintesting;
 import java.util.List;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.CommandLineArgumentProvider;
 
-final class TestKitDirArgumentProvider implements CommandLineArgumentProvider {
+final class PluginPortalUrlArgumentProvider implements CommandLineArgumentProvider {
     private static final String TEST_KIT_DIR_SYSTEM_PROPERTY = "org.gradle.testkit.dir";
 
+    private final Provider<String> pluginPortalUrl;
     private final Provider<RegularFile> testKitGradleProperties;
 
-    TestKitDirArgumentProvider(Provider<RegularFile> testKitGradleProperties) {
+    PluginPortalUrlArgumentProvider(Provider<String> pluginPortalUrl, Provider<RegularFile> testKitGradleProperties) {
+        this.pluginPortalUrl = pluginPortalUrl;
         this.testKitGradleProperties = testKitGradleProperties;
+    }
+
+    @Optional
+    @Input
+    public Provider<String> getPluginPortalUrl() {
+        return pluginPortalUrl;
     }
 
     @Optional
@@ -43,9 +52,12 @@ final class TestKitDirArgumentProvider implements CommandLineArgumentProvider {
 
     @Override
     public Iterable<String> asArguments() {
-        return testKitGradleProperties
-                .map(gradleProperties -> List.of("-D" + TEST_KIT_DIR_SYSTEM_PROPERTY + "="
-                        + gradleProperties.getAsFile().getParent()))
-                .getOrElse(List.of());
+        if (!pluginPortalUrl.isPresent()) {
+            return List.of();
+        }
+        return List.of(
+                "-D" + TestKitGradlePropertiesTask.PLUGIN_PORTAL_URL_OVERRIDE_PROPERTY + "=" + pluginPortalUrl.get(),
+                "-D" + TEST_KIT_DIR_SYSTEM_PROPERTY + "="
+                        + testKitGradleProperties.get().getAsFile().getParent());
     }
 }

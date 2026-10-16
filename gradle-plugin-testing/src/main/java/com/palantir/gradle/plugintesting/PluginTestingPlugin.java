@@ -133,7 +133,9 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
 
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.dependsOn(testDependencyVersions);
-            test.getJvmArgumentProviders().add(new TestKitDirArgumentProvider(testKitGradlePropertiesFile));
+            test.getJvmArgumentProviders()
+                    .add(new PluginPortalUrlArgumentProvider(
+                            testUtilsExt.getPluginPortalUrl(), testKitGradlePropertiesFile));
 
             // doFirst so any custom settings on the extension are applied before reading the values and setting
             // the system properties.

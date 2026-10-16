@@ -209,8 +209,7 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
-    void plugin_portal_url_is_used_by_junit_and_nebula_testkit_builds(
-            GradleInvoker gradleInvoker, RootProject rootProject) {
+    void plugin_portal_url_is_used_by_junit_and_nebula_builds(GradleInvoker gradleInvoker, RootProject rootProject) {
 
         rootProject.buildGradle().append("""
             gradleTestUtils {
@@ -247,14 +246,24 @@ class PluginTestingJunitPluginTest {
                 .overwrite("""
                     package test
 
+                    import nebula.test.IntegrationSpec
                     import nebula.test.IntegrationTestKitSpec
 
-                    class NebulaPortalSpec extends IntegrationTestKitSpec {
+                    class NebulaTestKitPortalSpec extends IntegrationTestKitSpec {
                         def 'uses plugin portal url'() {
                             buildFile << "println 'portal: ' + repositories.gradlePluginPortal().url"
 
                             expect:
                             runTasks('help').output.contains('portal: https://example.com/gradle-plugins')
+                        }
+                    }
+
+                    class NebulaInProcessPortalSpec extends IntegrationSpec {
+                        def 'uses plugin portal url'() {
+                            buildFile << "println 'portal: ' + repositories.gradlePluginPortal().url"
+
+                            expect:
+                            runTasksSuccessfully('help').standardOutput.contains('portal: https://example.com/gradle-plugins')
                         }
                     }
                     """);
