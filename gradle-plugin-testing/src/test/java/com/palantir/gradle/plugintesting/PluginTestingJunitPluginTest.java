@@ -209,6 +209,60 @@ class PluginTestingJunitPluginTest {
     }
 
     @Test
+    void plugin_portal_url_is_used_by_junit_and_nebula_testkit_builds(
+            GradleInvoker gradleInvoker, RootProject rootProject) {
+
+        rootProject.buildGradle().append("""
+            gradleTestUtils {
+                pluginPortalUrl = 'https://example.com/gradle-plugins'
+            }
+            """);
+
+        rootProject.testSourceSet().java().writeClass("""
+            package test;
+
+            import com.palantir.gradle.testing.execution.GradleInvoker;
+            import com.palantir.gradle.testing.junit.GradlePluginTests;
+            import com.palantir.gradle.testing.project.RootProject;
+            import org.junit.jupiter.api.Test;
+
+            @GradlePluginTests
+            class JunitPortalTest {
+                @Test
+                void testMethod(GradleInvoker gradle, RootProject rootProject) {
+                    rootProject.buildGradle().append("println 'portal: ' + repositories.gradlePluginPortal().url");
+
+                    gradle.withArgs().buildsSuccessfully().assertThat().output()
+                            .contains("portal: https://example.com/gradle-plugins");
+                }
+            }
+            """);
+
+        rootProject
+                .testSourceSet()
+                .srcDir("groovy")
+                .directory("test")
+                .createDirectories()
+                .file("NebulaPortalSpec.groovy")
+                .overwrite("""
+                    package test
+
+                    import nebula.test.IntegrationTestKitSpec
+
+                    class NebulaPortalSpec extends IntegrationTestKitSpec {
+                        def 'uses plugin portal url'() {
+                            buildFile << "println 'portal: ' + repositories.gradlePluginPortal().url"
+
+                            expect:
+                            runTasks('help').output.contains('portal: https://example.com/gradle-plugins')
+                        }
+                    }
+                    """);
+
+        gradleInvoker.withArgs("test").buildsSuccessfully();
+    }
+
+    @Test
     void errorprones_are_injected_automatically(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add("net.ltgt.errorprone");
 

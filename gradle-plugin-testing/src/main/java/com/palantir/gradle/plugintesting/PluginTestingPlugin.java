@@ -123,8 +123,17 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
                     project.getRootProject().getLayout().getProjectDirectory().file("gradle/gradle-test-versions.yml");
         }
 
+        TaskProvider<TestKitGradlePropertiesTask> testKitGradleProperties = project.getTasks()
+                .register("writeTestKitGradleProperties", TestKitGradlePropertiesTask.class, task -> {
+                    task.getPluginPortalUrl().set(testUtilsExt.getPluginPortalUrl());
+                });
+        Provider<RegularFile> testKitGradlePropertiesFile = testUtilsExt
+                .getPluginPortalUrl()
+                .flatMap(_unused -> testKitGradleProperties.flatMap(TestKitGradlePropertiesTask::getOutputFile));
+
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.dependsOn(testDependencyVersions);
+            test.getJvmArgumentProviders().add(new TestKitDirArgumentProvider(testKitGradlePropertiesFile));
 
             // doFirst so any custom settings on the extension are applied before reading the values and setting
             // the system properties.

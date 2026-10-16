@@ -47,6 +47,12 @@ public abstract class PluginTestingExtension {
      */
     public abstract Property<String> getGradleDistributionBaseUrl();
 
+    /**
+     * Maven repository URL that builds run by tests use instead of the Gradle Plugin Portal, both for resolving
+     * {@code plugins {}} blocks and for {@code gradlePluginPortal()} repositories. Unset by default.
+     */
+    public abstract Property<String> getPluginPortalUrl();
+
     public PluginTestingExtension() {
         getIgnoreGradleDeprecations().convention(true);
         getConfigurationCacheEnabled().convention(false);
