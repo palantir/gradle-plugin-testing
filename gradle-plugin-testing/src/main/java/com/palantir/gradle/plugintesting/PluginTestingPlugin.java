@@ -91,7 +91,6 @@ public abstract class PluginTestingPlugin implements Plugin<Project> {
         });
     }
 
-    @SuppressWarnings("for-rollout:TaskDependsOn")
     private void doApply(Project project) {
         PluginTestingExtension testUtilsExt = project.getExtensions().getByType(PluginTestingExtension.class);
 
