@@ -26,6 +26,7 @@ final class GitStore {
 
     private GitStore() {}
 
+    @SuppressWarnings("for-rollout:deprecation")
     static Git git(ExtensionContext context) {
         return context.getStore(NAMESPACE)
                 .getOrComputeIfAbsent(
