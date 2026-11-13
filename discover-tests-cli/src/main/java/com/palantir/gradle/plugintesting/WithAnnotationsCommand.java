@@ -71,10 +71,10 @@ public final class WithAnnotationsCommand extends TestClassesDiscoverer {
         return annotations.stream().anyMatch(annotation -> AnnotationSupport.isAnnotated(clazz, annotation));
     }
 
-    @SuppressWarnings({"BanSystemOut", "for-rollout:UnnecessarilyQualified"})
+    @SuppressWarnings("BanSystemOut")
     private static Optional<Class<? extends Annotation>> getClassAnnotation(String annotationName) {
         try {
-            return Optional.of((Class<? extends java.lang.annotation.Annotation>) Class.forName(annotationName));
+            return Optional.of((Class<? extends Annotation>) Class.forName(annotationName));
         } catch (ClassNotFoundException e) {
             System.out.format(
                     "Failed to retrieve the annotation class from the string name: %s, Skipping", annotationName);
