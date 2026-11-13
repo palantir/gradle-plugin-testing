@@ -126,7 +126,7 @@ one.util:streamex:0.9.0 (3 constraints: cb3d2daa)
 
 org.apache.commons:commons-lang3:3.22.0 (5 constraints: f24347f5)
 
-org.apache.groovy:groovy:4.0.29 (3 constraints: 5c200542)
+org.apache.groovy:groovy:6.0.0 (3 constraints: 23206e2b)
 
 org.apache.maven:maven-artifact:3.9.1 (3 constraints: 82293854)
 
