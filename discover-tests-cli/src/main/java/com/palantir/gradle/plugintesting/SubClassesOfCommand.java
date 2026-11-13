@@ -63,7 +63,6 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
         };
     }
 
-    @SuppressWarnings("for-rollout:StreamFlatMapOptional")
     static List<Class<?>> getClassesFrom(List<String> classNames) {
         return classNames.stream()
                 .map(className -> {
@@ -72,9 +71,7 @@ public final class SubClassesOfCommand extends TestClassesDiscoverer {
                     } catch (ClassNotFoundException e) {
                         return Optional.<Class<?>>empty();
                     }
-                })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                }).<? extends Class<?>>mapMulti(Optional::ifPresent)
                 .collect(Collectors.toList());
     }
 
